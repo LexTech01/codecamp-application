@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - CodeCamp</title>
+    <link rel="stylesheet" href="../css/applicant-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Share+Tech&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2>CodeCamp</h2>
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="challenges/puzzles.html"><i class="fas fa-puzzle-piece"></i> Challenges</a></li>
+                <li><a href="interview.html"><i class="fas fa-user-tie"></i> Interview</a></li>
+                <li><a href="profiles.html"><i class="fas fa-user"></i> Profile</a></li>
+                <li><a href="status.html"><i class="fas fa-chart-line"></i> Status</a></li>
+                <li><a href="../applicant/results/result.html"><i class="fas fa-trophy"></i> Results</a></li>
+            </ul>
+            <div>
+                <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <div class="main-content">
+            <div class="topbar">
+                <h3>Profile</h3>
+                <div>
+                    <span class="notification">3</span>
+                    <img src="assets/images/profile.jpg" alt="Profile Picture" class="profile-pic">
+                </div>
+            </div>
+            <section class="profile-hero-section">
+                <h1>Manage Your Profile</h1>
+                <p>Update your personal information, skills, and application details here.</p>
+            </section>
+
+            <section class="profile-section">
+                <div class="profile-pic-large">
+                    <img src="assets/images/profile.jpg" alt="Your Profile Picture" class="profile-pic-img">
+                </div>
+
+                <form id="profileForm" class="profile-form">
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" value="Winfred" class="form-input" required>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">Email</label>
+                            <input type="email" value="winfred@example.com" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" value="+1-234-567-890" class="form-input">
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">Program Applied</label>
+                            <select class="form-input">
+                                <option>Software Engineering</option>
+                                <option>Data Science</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Bio / About Me</label>
+                        <textarea rows="4" class="form-textarea" placeholder="Tell us about yourself...">Passionate software engineer eager to join Cellusys CodeCamp.</textarea>
+                    </div>
+                    
+                </form>
+            </section>
+
+            <section class="progress profile-progress">
+                <ul>
+                    <li><i class="fas fa-user"></i> Personal Info
+                        <p class="progress-status completed">Completed</p>
+                    </li>
+                    <li><i class="fas fa-puzzle-piece"></i> Technical Test
+                        <p class="progress-status active">Active</p>
+                    </li>
+                    <li><i class="fas fa-user-tie"></i> Interview
+                        <p class="progress-status locked">Locked</p>
+                    </li>
+                    <li><i class="fas fa-check-circle"></i> Final Decision
+                        <p class="progress-status locked">Locked</p>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </div>
+
+</body>
+</html>

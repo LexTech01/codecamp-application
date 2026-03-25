@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cellusys CodeCamp Application</title>
+    <link rel="stylesheet" href="css/apply.css" />
+</head>
+<body>
+    <div class="aside">
+    <h1>Cellusys CodeCamp Application</h1>
+    <p>Welcome to the Cellusys CodeCamp application page! We are excited to have you here. Please fill out the form below to apply for the CodeCamp program.</p>
+    <P>
+        We're Located at Musuku Roundabout Accra,Ghana. Selected students are to attend classes in-person three times in a week for the entire duration of the course. <br>
+        Please proceed to fill out the form if you can be available. 
+    </P>
+
+    </div>
+
+    <form action="" method="post" id="application-form">
+        <fieldset>
+            <label for="FirstName">First Name</label>
+            <input type="text" id="Firstname"> <br>
+            <label for="LastName">Last Name</label>
+            <input type="text" id="LastName"> <br>
+            <label for="age">Age</label>
+            <input type="number" id="age" max="35" min="16" name="age"> <br>
+            <label>Gender</label><br>
+            <input type="radio" id="male" name="gender">
+            <label for="male">Male</label><br>
+            <input type="radio" name="gender" id="female">
+            <label for="female">Female</label>
+        </fieldset>
+        <fieldset>
+            <label for="phone">WhatsApp Number:</label><br />
+            <input type="tel" id="phone" name="phone" required><br /><br />
+        </fieldset>
+
+        <fieldset>
+            <label>Desired Program:</label><br />
+            <input type="radio" id="programSE" name="program" value="Software Engineering" required>
+            <label for="programSE">Software Engineering</label><br />
+            <input type="radio" id="programDS" name="program" value="Networking And Telecom">
+            <label for="programDS">Networking And Telecom</label><br /><br>
+
+            <label>Do you have any prior experience?</label><br/>
+            <input type="radio" id="expYes" name="experience" value="yes" required>
+            <label for="expYes">Yes</label><br />
+            <input type="radio" id="expNo" name="experience" value="no">
+            <label for="expNo">No</label><br /><br />
+
+            <label for="expDetails">If yes, describe your experience:</label><br />
+            <textarea id="expDetails" name="expDetails" rows="4" cols="50"></textarea><br /><br />
+
+            <label for="country">Country:</label><br />
+            <select id="country" name="country" required>
+                <option value="">Select a country</option>
+                <option value="Ghana">Ghana</option>
+                <option value="Egypt">Egypt</option>
+                <option value="Other">Other</option>
+            </select><br /><br />
+
+            <label for="city">City / Residence:</label><br />
+            <input type="text" id="city" name="city" required><br /><br />
+
+            <label>Current Status with Cellusys:</label><br />
+            <input type="radio" id="statusCurrent" name="status" value="current" required>
+            <label for="statusCurrent">Current student</label><br />
+            <input type="radio" id="statusDropout" name="status" value="dropout">
+            <label for="statusDropout">Former student (dropout)</label><br />
+            <input type="radio" id="statusNew" name="status" value="new">
+            <label for="statusNew">New applicant</label><br /><br />
+
+        </fieldset>
+
+        <fieldset>
+            <label for="motivation">Why do you want to join Cellusys CodeCamp?</label><br />
+            <textarea id="motivation" name="motivation" rows="5" cols="60" required></textarea><br /><br />
+        </fieldset>
+
+        <input type="submit" value="Submit Application">
+    </form>
+</body>
+</html>

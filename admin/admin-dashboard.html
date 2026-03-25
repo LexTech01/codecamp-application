@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Cellusys CodeCamp</title>
+    <link rel="stylesheet" href="../css/admin-dashboard.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Poppins:wght@100..900&amp;family=Share+Tech&amp;display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
+            <ul>
+                <li><a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="applicants/list.html"><i class="fas fa-users"></i> Applicants</a></li>
+                <li><a href="interview.html"><i class="fas fa-video"></i> Interviews</a></li>
+                <li><a href="reviews/puzzles-review.html"><i class="fas fa-eye"></i> Reviews</a></li>
+                <li><a href="decisions.html"><i class="fas fa-check-circle"></i> Decisions</a></li>
+                <li><a href="#"><i class="fas fa-user"></i> Profile</a></li>
+            </ul>
+            <div class="logout">
+                <a href="../admin-login.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <h1>Admin Dashboard</h1>
+                <div class="user-section">
+                    <span class="notification">3</span>
+                    <img src="../assets/images/profile.jpg" alt="Admin" class="profile-pic">
+                </div>
+            </div>
+            <div class="welcome">
+                <h2>Welcome back, Admin!</h2>
+                <p>Here's what's happening with CodeCamp applications today.</p>
+            </div>
+            <section class="stats">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3>150</h3>
+                    <p>Total Applicants</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-hourglass-half"></i>
+                    <h3>45</h3>
+                    <p>Pending Reviews</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3>20</h3>
+                    <p>Scheduled Interviews</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>12</h3>
+                    <p>Accepted</p>
+                </div>
+            </section>
+            <section class="applicants-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i> Recent Applicants
+                </h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Stage</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>John Doe</td>
+                                <td>john@example.com</td>
+                                <td>Technical Test</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('1')">View</button>
+                                    <button class="btn-edit">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Jane Smith</td>
+                                <td>jane@example.com</td>
+                                <td>Interview</td>
+                                <td><span class="status review">Review</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('2')">View</button>
+                                    <button class="btn-edit">Schedule</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Bob Johnson</td>
+                                <td>bob@example.com</td>
+                                <td>Decision</td>
+                                <td><span class="status accepted">Accepted</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('3')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Alice Brown</td>
+                                <td>alice@example.com</td>
+                                <td>Technical Test</td>
+                                <td><span class="status rejected">Rejected</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('4')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Charlie Wilson</td>
+                                <td>charlie@example.com</td>
+                                <td>Review</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('5')">View</button>
+                                    <button class="btn-edit">Review</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="actions-bar">
+                    <button class="btn-primary">New Interview</button>
+                    <button class="btn-primary">Export CSV</button>
+                    <button class="btn-primary">View All</button>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

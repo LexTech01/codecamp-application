@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicants List - Admin</title>
+    <link rel="stylesheet" href="../../css/admin-dashboard.css">
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Poppins:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
+            <ul>
+                <li><a href="../admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="list.html"><i class="fas fa-users"></i> Applicants</a></li>
+                <li><a href="../interview.html"><i class="fas fa-video"></i> Interviews</a></li>
+                <li><a href="../reviews/puzzles-review.html"><i class="fas fa-eye"></i> Reviews</a></li>
+                <li><a href="../decisions.html"><i class="fas fa-check-circle"></i> Decisions</a></li>
+            </ul>
+            <div class="logout">
+                <a href="../../admin-login.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <h1>Applicants List</h1>
+                <div class="user-section">
+                    <span class="notification">150</span>
+                    <img src="../../assets/images/profile.jpg" alt="Admin" class="profile-pic">
+                </div>
+            </div>
+            <section class="applicants-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list-ul"></i> All Applicants
+                </h2>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" placeholder="Search applicants..." style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 300px;">
+                    <button class="btn-primary" style="margin-left: 10px;">Filter</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Stage</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>John Doe</td>
+                                <td>john@example.com</td>
+                                <td>+1-234-567</td>
+                                <td>Technical Test</td>
+                                <td>85%</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('1')">View</button>
+                                    <button class="btn-edit">Edit</button>
+                                    <button class="btn-delete">Delete</button>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td>2</td>
+                                <td>Jane Smith</td>
+                                <td>jane@example.com</td>
+                                <td>+1-234-568</td>
+                                <td>Interview</td>
+                                <td>92%</td>
+                                <td><span class="status review">In Review</span></td>
+                                <td class="actions">
+                                    <button class="btn-view" onclick="viewDetails('2')">View</button>
+                                    <button class="btn-edit">Interview</button>
+                                </td>
+                            </tr>
+                           
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 30px;">
+                    <span>Page 1 of 8</span>
+                    <button>Previous</button>
+                    <button>Next</button>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

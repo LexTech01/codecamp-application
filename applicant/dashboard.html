@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dashboard</title>
+    <link rel="stylesheet" href="../css/applicant-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Share+Tech&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2>CodeCamp</h2>
+            <ul>
+<li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+<li><a href="challenges/puzzles.html"><i class="fas fa-puzzle-piece"></i> Challenges</a></li>
+<li><a href="interview.html"><i class="fas fa-user-tie"></i> Interview</a></li>
+<li><a href="profiles.html"><i class="fas fa-user"></i> Profile</a></li>
+<li><a href="status.html"><i class="fas fa-chart-line"></i> Status</a></li>
+<li><a href="results/result.html"><i class="fas fa-trophy"></i> Results</a></li>
+                
+            </ul>
+            <div>
+                <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <div class="main-content">
+            <div class="topbar">
+                <h3>Dashboard</h3>
+                <div>                                       <span class="notification">3</span>
+                    <img src="assets/images/profile.jpg" alt="Profile Picture" class="profile-pic">
+                </div>
+            </div>
+            <h1>Welcome, Winfred!</h1>
+            <p>Here you can access your challenges, view your profile, and track your progress. Keep up the momentum!</p>
+
+            <div class="progress">
+                <ul>
+                    <li><i class="fas fa-user"></i> Personal Info
+                        <p class="progress-status">Completed</p>
+                    </li>
+                    <li><i class="fas fa-puzzle-piece"></i> Tecnical Test
+                        <p class="progress-status">Active</p>
+                    </li>
+                    <li><i class="fas fa-user-tie"></i> Interview
+                    <p class="progress-status">Locked</p>
+                </li>
+                    <li><i class="fas fa-check-circle"></i> Final Decision
+                    <p class="progress-status">Locked</p></li>
+                </ul>
+            </div>
+            <section class="nextStage">
+                <div>
+                <h5><i class="fas fa-rocket"></i> Next Stage</h5>
+                <h2>Take the Squares Challenge</h2>
+                <p>Congratulations on reaching the next stage of the application process! The technical test is designed to assess your problem-solving abilities.
+                </p>
+                <p>Make sure to review the instructions carefully. This is your opportunity to showcase your skills and demonstrate why you are a great fit for the CodeCamp program. Good luck!
+                </p>
+               
+                <button>Start Now</button>
+                <button>View Details</button>
+                </div>
+                 <div id="nextstage-img">
+                    <img src="../assets/images/squares.gif" alt="">
+                </div>
+            </section>
+            
+            <section class="records">
+                <div class="recordContainer">
+                    <h3></h3>
+                    <p></p>
+                    <p></p>
+                </div>
+                <div class="recordContainer">
+                    <h3><i class="fas fa-clock"></i> Time Limit</h3>
+                    <p>60:00</p>
+                    <p>Minutes to Complete</p>
+                </div>
+                <div class="recordContainer">
+                    <h3><i class="fas fa-code"></i> Program</h3>
+                    <p>Software Engineering</p>
+                </div>
+                <div class="recordContainer">
+                    <h3><i class="fas fa-question-circle"></i> Need Help?</h3>
+                    <p>Contact our support team for assistance.</p>
+                    <button>Contact Support</button>
+                </div>
+            </section>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

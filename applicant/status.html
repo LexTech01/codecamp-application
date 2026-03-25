@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status - CodeCamp</title>
+    <link rel="stylesheet" href="../css/applicant-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Share+Tech&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2>CodeCamp</h2>
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="challenges/puzzles.html"><i class="fas fa-puzzle-piece"></i> Challenges</a></li>
+                <li><a href="interview.html"><i class="fas fa-user-tie"></i> Interview</a></li>
+                <li><a href="profiles.html"><i class="fas fa-user"></i> Profile</a></li>
+                <li><a href="status.html"><i class="fas fa-chart-line"></i> Status</a></li>
+                <li><a href="results/result.html"><i class="fas fa-trophy"></i> Results</a></li>
+            </ul>
+            <div>
+                <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <div class="main-content">
+            <div class="topbar">
+                <h3>Application Status</h3>
+                <div>
+                    <span class="notification">3</span>
+                    <img src="assets/images/profile.jpg" alt="Profile Picture" class="profile-pic">
+                </div>
+            </div>
+
+            <section>
+                <h1>Current Status</h1>
+                <div class="status-badge status-active">Technical Test - Active</div>
+                <p>Your application is progressing well! Complete the Squares Challenge to unlock the next stage.</p>
+                <div>
+                    <button>Continue Challenge</button>
+                    <button>View Details</button>
+                </div>
+            </section>
+
+            <section>
+                <h2>Application Timeline</h2>
+                <div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-check"></i></div>
+                        <div>
+                            <h4>Personal Info</h4>
+                            <span class="status-badge status">Completed</span>
+                            <p>Submitted on 2024-10-01</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-spinner"></i></div>
+                        <div>
+                            <h4>Technical Test</h4>
+                            <span class="status-badge status">Active</span>
+                            <p">Puzzles: 85% (45min), Squares: Pending</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-lock"></i></div>
+                        <div>
+                            <h4>Interview</h4>
+                            <span class="status-badge status">Locked</span>
+                            <p>Available after Technical Test</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-lock"></i></div>
+                        <div>
+                            <h4>Final Decision</h4>
+                            <span class="status-badge status">Locked</span>
+                            <p>Pending review</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="records">
+                <div class="recordContainer">
+                    <h3><i class="fas fa-clock"></i> Next Deadline</h3>
+                    <p>24 Hours</p>
+                    <p>Complete Squares Challenge</p>
+                </div>
+                <div class="recordContainer">
+                    <h3><i class="fas fa-users"></i> Applicants</h3>
+                    <p>150</p>
+                    <p>Total in this stage</p>
+                </div>
+                <div class="recordContainer status-card">
+                    <h3><i class="fas fa-chart-line"></i> Your Rank</h3>
+                    <p>#12</p>
+                    <p>Among applicants</p>
+                </div>
+                <div class="recordContainer">
+                    <h3><i class="fas fa-envelope"></i> Notifications</h3>
+                    <p>3 unread</p>
+                    <button>View All</button>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
