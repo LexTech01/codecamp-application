@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Assessment — {{ assessment.title }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+{% endblock %}
+{% block body %}
+<div id="assessmentTest"
+     data-assessment-id="{{ assessment.id }}"
+     data-duration="{{ assessment.duration_minutes }}">
+  <div class="assessment-layout">
+    <aside class="assessment-sidebar">
+      <a href="{{ url_for('student.assessment_list') }}" style="font-size:0.85rem;margin-bottom:24px;display:block"><i class="fa-solid fa-arrow-left"></i> Exit Test</a>
+      <h3 style="font-size:1rem;margin-bottom:8px">{{ assessment.title }}</h3>
+      <div class="timer-display">
+        <div class="timer-value" id="timerValue">{{ '%02d'|format(assessment.duration_minutes) }}:00</div>
+        <div class="timer-label">Time Remaining</div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Progress</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <p id="progressText" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px">0/{{ questions|length }} answered</p>
+      <div class="question-nav-grid" id="questionNav"></div>
+      <button class="btn btn-primary btn-block mt-3" id="submitTest" style="margin-top:24px">Submit Test</button>
+    </aside>
+    <main class="assessment-main">
+      <div class="question-header">
+        <span class="question-number" id="questionNumber">Question 1</span>
+        <span class="badge badge-primary" id="questionPoints">10 pts</span>
+      </div>
+      <h2 class="question-text" id="questionText"></h2>
+      <div class="options-list" id="optionsList"></div>
+      <div class="assessment-nav">
+        <button class="btn btn-secondary" id="prevQuestion"><i class="fa-solid fa-arrow-left"></i> Previous</button>
+        <button class="btn btn-primary" id="nextQuestion">Next <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </main>
+  </div>
+</div>
+<script id="questionsData" type="application/json">{{ questions|tojson }}</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
+{% endblock %}

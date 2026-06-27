@@ -1,0 +1,63 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Cohort Placement — Cellusys Admin{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-layer-group" style="margin-right:10px;color:var(--success)"></i> Cohort Placement</h1>
+  <p>Place passed applicants into their CodeCamp cohorts.</p>
+</div>
+
+<div class="table-wrap card" style="padding:0;overflow:hidden">
+  <table class="table">
+    <thead>
+      <tr><th>Applicant</th><th>Program</th><th>Status</th><th>Cohort</th><th style="text-align:right">Assign Cohort</th></tr>
+    </thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--nav-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0">
+              {{ app.user.full_name[:2]|upper }}
+            </div>
+            <div>
+              <strong style="font-size:0.9rem">{{ app.user.full_name }}</strong>
+              <div class="text-muted" style="font-size:0.78rem">{{ app.user.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:0.9rem">{{ app.field_of_study or '—' }}</td>
+        <td>
+          {% set stage_colors = {
+            'submitted':'badge-muted','test_invited':'badge-info','test_completed':'badge-primary',
+            'interview_scheduled':'badge-warning','interview_completed':'badge-primary',
+            'accepted':'badge-success','rejected':'badge-error','waitlisted':'badge-warning',
+            'onboarding':'badge-info','enrolled':'badge-success',
+          } %}
+          <span class="badge {{ stage_colors.get(app.pipeline_stage, 'badge-muted') }}">{{ app.status_label }}</span>
+        </td>
+        <td>
+          {% if app.cohort_name %}
+            <strong style="font-size:0.9rem">{{ app.cohort_name }}</strong>
+            {% if app.cohort_assigned_at %}
+            <div class="text-muted" style="font-size:0.78rem">{{ app.cohort_assigned_at.strftime('%b %d, %Y') }}</div>
+            {% endif %}
+          {% else %}
+            <span class="text-muted" style="font-size:0.85rem">Not assigned</span>
+          {% endif %}
+        </td>
+        <td style="text-align:right">
+          <form method="POST" action="{{ url_for('admin.assign_cohort', app_id=app.id) }}" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+            <input type="text" name="cohort_name" class="form-input" placeholder="e.g. SE Cohort 2026" value="{{ app.cohort_name or '' }}" style="max-width:180px;padding:8px" required>
+            <input type="text" name="cohort_notes" class="form-input" placeholder="Notes" value="{{ app.cohort_notes or '' }}" style="max-width:160px;padding:8px">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted" style="padding:48px 16px">No accepted applicants yet</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

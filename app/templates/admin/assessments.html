@@ -1,0 +1,43 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Assessments — Cellusys Admin{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-file-pen" style="margin-right:10px;color:var(--accent-secondary)"></i> Aptitude Assessment</h1>
+  <p>This test is preconfigured in the application and cannot be edited from the admin panel.</p>
+</div>
+
+<div class="dashboard-grid">
+  {% for a in assessments %}
+  <div class="card col-6" style="position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:{% if a.is_active %}var(--success){% else %}var(--text-muted){% endif %}"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:{% if a.is_active %}rgba(40,167,69,0.12){% else %}var(--bg-tertiary){% endif %};display:flex;align-items:center;justify-content:center">
+          <i class="fa-solid fa-file-pen" style="font-size:1.2rem;color:{% if a.is_active %}var(--success){% else %}var(--text-muted){% endif %}"></i>
+        </div>
+        <div>
+          <h3 style="font-size:1.05rem;margin-bottom:2px">{{ a.title }}</h3>
+          <span class="badge {% if a.is_active %}badge-success{% else %}badge-muted{% endif %}">{% if a.is_active %}Active{% else %}Inactive{% endif %}</span>
+        </div>
+      </div>
+    </div>
+    <p class="text-muted" style="font-size:0.9rem;line-height:1.5;margin-bottom:20px">{{ a.description[:150] }}...</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;text-align:center;padding:12px;background:var(--bg-tertiary);border-radius:var(--radius-md)">
+        <div style="font-weight:800;font-size:1.3rem;color:var(--accent-primary)">{{ a.questions.count() }}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Questions</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:12px;background:var(--bg-tertiary);border-radius:var(--radius-md)">
+        <div style="font-weight:800;font-size:1.3rem;color:var(--accent-secondary)">{{ a.duration_minutes }} min</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Duration</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:12px;background:var(--bg-tertiary);border-radius:var(--radius-md)">
+        <div style="font-weight:800;font-size:1.3rem;color:var(--warning)">{{ a.pass_score }}%</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Pass Threshold</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

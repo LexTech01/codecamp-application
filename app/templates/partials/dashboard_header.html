@@ -1,0 +1,122 @@
+<div class="dashboard-topbar">
+  <button class="mobile-menu-btn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+  <div class="flex items-center gap-2" style="margin-left:auto">
+    <div class="dropdown notif-dropdown">
+      <div class="notif-bell">
+        <i class="fa-solid fa-bell"></i>
+        {% if unread_notifications > 0 %}
+        <span class="notif-badge">{{ unread_notifications }}</span>
+        {% endif %}
+      </div>
+      <div class="dropdown-menu notif-menu">
+        <div class="notif-menu-head">
+          <strong>Notifications</strong>
+          <a href="#" class="mark-all-read">Mark all read</a>
+        </div>
+        <div class="notif-list"></div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <img src="{{ url_for('static', filename='images/cellusys.ico') }}"
+           alt="Avatar" class="avatar" onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+      <span style="font-size:0.9rem;font-weight:500">{{ current_user.first_name }}</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.notif-menu {
+  min-width: 360px;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+.notif-menu-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+.notif-menu-head strong {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.mark-all-read {
+  font-size: 0.78rem;
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.mark-all-read:hover {
+  text-decoration: underline;
+}
+.notif-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--transition);
+}
+.notif-item:last-child {
+  border-bottom: none;
+}
+.notif-item:hover {
+  background: var(--bg-tertiary);
+}
+.notif-item.unread {
+  background: rgba(0, 74, 173, 0.04);
+}
+.notif-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+  opacity: 0;
+}
+.notif-item.unread .notif-item-dot {
+  opacity: 1;
+}
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.notif-item-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+.notif-item-msg {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.notif-item-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+.notif-empty {
+  padding: 32px 18px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+</style>

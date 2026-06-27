@@ -1,0 +1,37 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <a href="{{ url_for('admin.dashboard') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys" width="36" height="36" style="border-radius:50%">
+      <span>Cellusys Admin</span>
+    </a>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-chart-simple"></i></span> Dashboard
+    </a>
+    <a href="{{ url_for('admin.applicants') }}" class="sidebar-link {% if request.endpoint == 'admin.applicants' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-users"></i></span> Applicants
+    </a>
+    <a href="{{ url_for('admin.pipeline') }}" class="sidebar-link {% if request.endpoint == 'admin.pipeline' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-list-check"></i></span> Pipeline
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-chart-line"></i></span> Analytics
+    </a>
+    <a href="{{ url_for('admin.interviews') }}" class="sidebar-link {% if request.endpoint == 'admin.interviews' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span> Interviews
+    </a>
+    <a href="{{ url_for('admin.cohorts') }}" class="sidebar-link {% if request.endpoint in ['admin.cohorts', 'admin.assign_cohort'] %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-layer-group"></i></span> Cohorts
+    </a>
+    <a href="{{ url_for('admin.manage_announcements') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_announcements' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Announcements
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+      <span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span> Logout
+    </a>
+  </div>
+</aside>
+<div class="sidebar-overlay"></div>

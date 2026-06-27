@@ -1,0 +1,75 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Analytics — Cellusys Admin{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-chart-line" style="margin-right:10px;color:var(--accent-secondary)"></i> Analytics Dashboard</h1>
+  <p>Recruitment metrics and assessment statistics.</p>
+</div>
+
+<div class="stats-row">
+  <div class="card stat-card" style="border-left:4px solid var(--accent-primary)">
+    <div class="flex items-center gap-2" style="margin-bottom:8px">
+      <i class="fa-solid fa-users" style="font-size:1.2rem;color:var(--accent-primary)"></i>
+      <div class="stat-label" style="margin-top:0">Total Applicants</div>
+    </div>
+    <div class="stat-value">{{ stats.total }}</div>
+  </div>
+  <div class="card stat-card" style="border-left:4px solid var(--warning)">
+    <div class="flex items-center gap-2" style="margin-bottom:8px">
+      <i class="fa-solid fa-chart-simple" style="font-size:1.2rem;color:var(--warning)"></i>
+      <div class="stat-label" style="margin-top:0">Avg Test Score</div>
+    </div>
+    <div class="stat-value">{{ stats.avg_score }}%</div>
+  </div>
+  <div class="card stat-card" style="border-left:4px solid var(--accent-secondary)">
+    <div class="flex items-center gap-2" style="margin-bottom:8px">
+      <i class="fa-solid fa-file-pen" style="font-size:1.2rem;color:var(--accent-secondary)"></i>
+      <div class="stat-label" style="margin-top:0">Tests Taken</div>
+    </div>
+    <div class="stat-value">{{ stats.attempts }}</div>
+  </div>
+  <div class="card stat-card" style="border-left:4px solid var(--success)">
+    <div class="flex items-center gap-2" style="margin-bottom:8px">
+      <i class="fa-solid fa-check-circle" style="font-size:1.2rem;color:var(--success)"></i>
+      <div class="stat-label" style="margin-top:0">Accepted</div>
+    </div>
+    <div class="stat-value">{{ stats.stages.get('accepted', 0) }}</div>
+  </div>
+</div>
+
+<div class="dashboard-grid mt-3">
+  <div class="card col-6">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-chart-pie" style="margin-right:8px;color:var(--accent-primary)"></i> Pipeline Distribution</h3>
+    </div>
+    <div class="chart-container">
+      <canvas id="pipelineChart"
+        data-labels='["New","Review","Test","Interview","Accepted","Rejected"]'
+        data-values='[{{ stats.stages.get("submitted",0) }},{{ stats.stages.get("under_review",0) }},{{ stats.stages.get("test_invited",0) + stats.stages.get("test_completed",0) }},{{ stats.stages.get("interview_scheduled",0) }},{{ stats.stages.get("accepted",0) }},{{ stats.stages.get("rejected",0) }}]'></canvas>
+    </div>
+  </div>
+  <div class="card col-6">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-chart-bar" style="margin-right:8px;color:var(--warning)"></i> Score Distribution</h3>
+    </div>
+    <div class="chart-container">
+      <canvas id="scoresChart" data-values='[2,5,8,12,6]'></canvas>
+    </div>
+  </div>
+  <div class="card col-12">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-funnel-dollar" style="margin-right:8px;color:var(--accent-secondary)"></i> Funnel Breakdown</h3>
+    </div>
+    <div class="chart-container">
+      <canvas id="funnelChart"
+        data-labels='["Submitted","Under Review","Test","Interview","Accepted"]'
+        data-values='[{{ stats.total }},{{ stats.stages.get("under_review",0) }},{{ stats.stages.get("test_completed",0) }},{{ stats.stages.get("interview_scheduled",0) }},{{ stats.stages.get("accepted",0) }}]'></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

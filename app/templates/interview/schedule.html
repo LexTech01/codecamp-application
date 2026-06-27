@@ -1,0 +1,69 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Schedule Interview — Cellusys{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/interview.css') }}">{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Schedule Your Interview</h1>
+  <p>Select a date and time that works for you.</p>
+</div>
+
+{% if booking and booking.status == 'scheduled' and booking.slot %}
+<div class="existing-booking">
+  <h3><i class="fa-solid fa-check"></i> Interview Confirmed</h3>
+  <p class="mt-2"><strong>{{ booking.slot.formatted_date }}</strong></p>
+  <p>{{ booking.slot.formatted_time }}</p>
+  <button class="btn btn-danger btn-sm mt-3" id="cancelBooking" data-booking-id="{{ booking.id }}" style="margin-top:16px">Cancel Interview</button>
+</div>
+{% else %}
+
+<div id="confirmPanel" class="hidden booking-confirm-panel card">
+  <div class="booking-confirm-icon"><i class="fa-solid fa-check"></i></div>
+  <h2>You're Scheduled!</h2>
+  <p class="text-muted mt-2">Your interview has been confirmed.</p>
+  <p class="mt-3"><strong id="confirmDate"></strong></p>
+  <p id="confirmTime" class="text-gradient" style="font-size:1.25rem;font-weight:700"></p>
+  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary mt-3" style="margin-top:24px">Back to Dashboard</a>
+</div>
+
+<div class="interview-layout" id="bookingPanel">
+  <div class="interview-sidebar">
+    <div class="interviewer-avatar">{{ interviewer.first_name[0] if interviewer else 'A' }}{{ interviewer.last_name[0] if interviewer else 'M' }}</div>
+    <h2 class="interviewer-name">{{ interviewer.full_name if interviewer else 'Cellusys Interviewer' }}</h2>
+    <p class="interviewer-title">{{ profile.title if profile else 'Technical Interviewer' }}</p>
+    <p class="text-muted" style="font-size:0.9rem;line-height:1.6">{{ profile.bio if profile else 'In-person interviews at Musuku Roundabout, Accra, Ghana. Classes run three times per week for the duration of the program.' }}</p>
+    <div class="interview-meta">
+      <div class="meta-item"><i class="fa-solid fa-stopwatch"></i> <div><strong>30 minutes</strong><span>Video call</span></div></div>
+      <div class="meta-item"><i class="fa-solid fa-globe"></i> <div><strong>Web conferencing</strong><span>Link sent after booking</span></div></div>
+      <div class="meta-item"><i class="fa-solid fa-clock"></i> <div><strong id="timezoneDisplay">Loading timezone...</strong></div></div>
+    </div>
+  </div>
+  <div class="interview-calendar-panel">
+    <div class="calendar-header">
+      <h3>Select a Date & Time</h3>
+      <div class="calendar-nav">
+        <button class="cal-nav-btn" id="prevMonth"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="monthLabel" style="font-weight:600;min-width:160px;text-align:center"></span>
+        <button class="cal-nav-btn" id="nextMonth"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="time-slots-section mt-3">
+      <h3>Available Times</h3>
+      <div class="time-slots-grid" id="timeSlotsGrid">
+        <p class="text-muted">Select a date to see available times</p>
+      </div>
+      <p class="timezone-display"><i class="fa-solid fa-globe"></i> <span id="tzLabel"></span></p>
+    </div>
+    <button class="btn btn-primary" id="confirmBooking" disabled>Confirm Booking</button>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block page_js %}
+<script>
+  document.getElementById('tzLabel') && (document.getElementById('tzLabel').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone);
+  document.getElementById('timezoneDisplay') && (document.getElementById('timezoneDisplay').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone);
+</script>
+<script src="{{ url_for('static', filename='js/interview.js') }}"></script>
+{% endblock %}

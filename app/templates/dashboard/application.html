@@ -1,0 +1,144 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Application — Cellusys{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">{% endblock %}
+{% block content %}
+<div class="application-container">
+  <div class="page-header">
+    <h1>CodeCamp Application</h1>
+    <p>Complete your personal details and programme selection.</p>
+  </div>
+
+    <div class="wizard-progress">
+      {% for s, label in [(1,'Personal Details'),(2,'Programme Selection')] %}
+      <div class="wizard-step-indicator {% if s == step %}active{% elif s < step %}done{% endif %}">
+        <div class="wizard-num">{{ s }}</div>
+        <span class="wizard-step-label">{{ label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <form method="POST" id="applicationForm">
+      <input type="hidden" name="current_step" id="current_step" value="{{ step }}">
+
+      <div class="wizard-panel {% if step == 1 %}active{% endif %}" id="step1">
+        <div class="application-section-heading">
+          <i class="fa-solid fa-address-card"></i>
+          <div>
+            <h3>Personal Details</h3>
+            <p>Tell us who you are and how to reach you.</p>
+          </div>
+        </div>
+        <div class="grid grid-2 gap-2" style="gap:16px">
+          <div class="form-group">
+            <label class="form-label">First name</label>
+            <div class="field-error" data-error-for="first_name"></div>
+            <input type="text" name="first_name" class="form-input" value="{{ current_user.first_name or '' }}" placeholder="e.g. Kofi" autocomplete="given-name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last name</label>
+            <div class="field-error" data-error-for="last_name"></div>
+            <input type="text" name="last_name" class="form-input" value="{{ current_user.last_name or '' }}" placeholder="e.g. Mensah" autocomplete="family-name" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <div class="field-error" data-error-for="email"></div>
+          <input type="email" name="email" class="form-input" value="{{ current_user.email or '' }}" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">WhatsApp number</label>
+          <div class="field-error" data-error-for="whatsapp"></div>
+          <input type="tel" name="whatsapp" class="form-input" value="{{ current_user.phone or '' }}" placeholder="+233 20 000 0000" autocomplete="tel" required>
+        </div>
+
+        <div class="grid grid-2 gap-2" style="gap:16px">
+          <div class="form-group">
+            <label class="form-label">Date of birth</label>
+            <div class="field-error" data-error-for="date_of_birth"></div>
+            <input type="date" name="date_of_birth" id="dob" class="form-input" value="{{ application.date_of_birth or '' }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <div class="field-error" data-error-for="gender"></div>
+            <select name="gender" class="form-select" required>
+              <option value="">Select gender</option>
+              {% for gender in ['Male','Female'] %}
+              <option value="{{ gender }}" {% if application.gender == gender %}selected{% endif %}>{{ gender }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Applicant Location</label>
+          <div class="field-error" data-error-for="applicant_location"></div>
+          <input type="text" name="applicant_location" class="form-input" value="{{ application.applicant_location or '' }}" placeholder="e.g. Accra, Ghana" required>
+        </div>
+      </div>
+
+      <div class="wizard-panel {% if step == 2 %}active{% endif %}" id="step2">
+        <div class="application-section-heading">
+          <i class="fa-solid fa-layer-group"></i>
+          <div>
+            <h3>Programme Selection</h3>
+            <p>Choose your campus and preferred training track.</p>
+          </div>
+        </div>
+        <div class="application-note">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Welcome, <strong>{{ current_user.first_name or 'applicant' }}</strong>. Please confirm your programme details below.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Applying for</label>
+          <div class="field-error" data-error-for="campus_location"></div>
+          <div class="grid grid-2 gap-2" style="gap:12px">
+            {% for value, title, hint in [('CodeCamp Accra','CodeCamp Accra','Residents in Accra only'),('CodeCamp Cairo','CodeCamp Cairo','Residents in Cairo only')] %}
+            <label class="selection-card">
+              <input type="radio" name="campus_location" value="{{ value }}" {% if application.campus_location == value %}checked{% endif %} required>
+              <span>
+                <strong>{{ title }}</strong>
+                <small>{{ hint }}</small>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Course applying for</label>
+          <div class="field-error" data-error-for="field_of_study"></div>
+          <div class="grid grid-2 gap-2" style="gap:12px">
+            {% for value, title, hint in [('Software Engineering','Software Engineering','Programming track'),('Networking and Telecommunications','Networking & Telecom','Infrastructure track')] %}
+            <label class="selection-card">
+              <input type="radio" name="field_of_study" value="{{ value }}" {% if application.field_of_study == value %}checked{% endif %} required>
+              <span>
+                <strong>{{ title }}</strong>
+                <small>{{ hint }}</small>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Referral code <span class="text-muted">(Optional)</span></label>
+          <input type="text" name="referral_code" class="form-input" value="{{ application.referral_code or '' }}" placeholder="Enter code if you have one">
+        </div>
+      </div>
+
+    <div class="wizard-actions">
+      <button type="button" class="btn btn-secondary" id="wizardPrev" {% if step == 1 %}style="visibility:hidden"{% endif %}><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <div class="flex gap-2">
+        <button type="button" class="btn btn-primary" id="wizardNext" {% if step == 2 %}style="display:none"{% endif %}>Next <i class="fa-solid fa-arrow-right"></i></button>
+        <button type="submit" name="action" value="submit" class="btn btn-primary" id="wizardSubmit" {% if step != 2 %}style="display:none"{% endif %}>Submit Application <i class="fa-solid fa-check"></i></button>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block page_js %}<script src="{{ url_for('static', filename='js/forms.js') }}"></script>{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Profile — Cellusys{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Profile Settings</h1>
+  <p>Update your personal details.</p>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card col-12">
+    <div class="profile-settings-hero" style="padding:24px 28px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div>
+          <h2 style="font-size:1.2rem;font-weight:700;color:var(--text-primary);margin:0">{{ current_user.full_name }}</h2>
+          <p style="color:var(--text-muted);font-size:0.88rem;margin:2px 0 0">{{ current_user.email }}</p>
+        </div>
+      </div>
+      <span class="badge badge-info">{{ current_user.role|title }}</span>
+    </div>
+
+    <div style="padding:24px 28px 28px">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="pd-grid">
+          <div class="pd-field">
+            <label class="pd-label">First Name</label>
+            {{ form.first_name(class="pd-input", placeholder="First name") }}
+          </div>
+          <div class="pd-field">
+            <label class="pd-label">Last Name</label>
+            {{ form.last_name(class="pd-input", placeholder="Last name") }}
+          </div>
+          <div class="pd-field">
+            <label class="pd-label">Email Address</label>
+            {{ form.email(class="pd-input", placeholder="you@example.com") }}
+          </div>
+          <div class="pd-field">
+            <label class="pd-label">WhatsApp Number</label>
+            {{ form.phone(class="pd-input", placeholder="+233 20 000 0000") }}
+          </div>
+          <div class="pd-field">
+            <label class="pd-label">Gender</label>
+            <div class="pd-value">{{ application.gender if application and application.gender else 'Not provided' }}</div>
+          </div>
+        </div>
+        {{ form.submit(class="btn btn-primary", style="margin-top:20px") }}
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.pd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.pd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pd-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pd-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.92rem;
+  transition: all var(--transition);
+}
+.pd-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(0,74,173,0.12);
+}
+.pd-value {
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+@media (max-width: 600px) {
+  .pd-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}

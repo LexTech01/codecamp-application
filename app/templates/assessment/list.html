@@ -1,0 +1,43 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Aptitude Tests — Cellusys{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Aptitude Assessments</h1>
+  <p>Complete your technical aptitude test to advance in the recruitment pipeline.</p>
+</div>
+<div class="grid grid-2 gap-3">
+  {% for assessment in assessments %}
+  <div class="card hover-lift">
+    <div class="flex justify-between items-center mb-2">
+      <h3>{{ assessment.title }}</h3>
+      {% if attempts.get(assessment.id) and attempts[assessment.id].completed_at %}
+      <span class="badge badge-success">Completed</span>
+      {% else %}
+      <span class="badge badge-info">Available</span>
+      {% endif %}
+    </div>
+    <p class="text-muted mb-3" style="margin-bottom:20px">{{ assessment.description }}</p>
+    <div class="flex gap-2 text-muted" style="font-size:0.85rem;margin-bottom:20px">
+      <span><i class="fa-solid fa-stopwatch"></i> {{ assessment.duration_minutes }} min</span>
+      <span>• Pass: {{ assessment.pass_score }}%</span>
+      <span>• {{ assessment.questions.count() }} questions</span>
+    </div>
+    {% set attempt = attempts.get(assessment.id) %}
+    {% if attempt and attempt.completed_at %}
+    <p>Score: <strong class="text-gradient">{{ attempt.score }}%</strong></p>
+    {% if attempt.passed %}
+    <a href="{{ url_for('student.assessment_result', attempt_id=attempt.id) }}" class="btn btn-secondary btn-sm mt-2" style="margin-top:12px">View Results</a>
+    {% else %}
+    <p class="text-muted" style="font-size:0.85rem;margin-top:12px">Failed - You can retake the test</p>
+    <a href="{{ url_for('student.take_assessment', assessment_id=assessment.id) }}" class="btn btn-primary btn-sm mt-2" style="margin-top:12px">Retake Test</a>
+    {% endif %}
+    {% elif application and application.pipeline_stage in ['test_invited','test_completed','interview_scheduled','interview_completed'] %}
+    <a href="{{ url_for('student.take_assessment', assessment_id=assessment.id) }}" class="btn btn-primary">Start Assessment</a>
+    {% else %}
+    <p class="text-muted">Available after application submission</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

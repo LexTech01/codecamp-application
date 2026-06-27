@@ -1,0 +1,213 @@
+/* Aptitude test interface */
+.assessment-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 64px);
+  gap: 0;
+}
+
+.assessment-sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  padding: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.timer-display {
+  background: linear-gradient(135deg, rgba(0, 74, 173, 0.12), rgba(239, 68, 68, 0.08));
+  border: 1px solid rgba(0, 74, 173, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.timer-value {
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-primary);
+}
+
+.timer-value.warning { color: var(--warning); animation: pulse 1s infinite; }
+.timer-value.danger { color: var(--error); animation: pulse 0.5s infinite; }
+
+.timer-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.question-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.q-nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+
+.q-nav-btn.answered {
+  background: rgba(0, 194, 255, 0.15);
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
+}
+
+.q-nav-btn.current {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+}
+
+.assessment-main {
+  padding: 40px 48px;
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.assessment-main .question-header {
+  justify-content: center;
+  gap: 16px;
+}
+
+.assessment-main .options-list {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.assessment-main .options-list .option-item {
+  text-align: left;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.question-number {
+  font-size: 0.85rem;
+  color: var(--accent-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.question-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.option-item:hover {
+  border-color: var(--accent-secondary);
+  background: rgba(0, 194, 255, 0.05);
+}
+
+.option-item.selected {
+  border-color: var(--accent-primary);
+  background: rgba(0, 74, 173, 0.08);
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
+}
+
+.option-radio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.option-item.selected .option-radio {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+}
+
+.option-item.selected .option-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+}
+
+.assessment-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Result page */
+.result-hero {
+  text-align: center;
+  padding: 48px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(0, 74, 173, 0.08), rgba(0, 102, 204, 0.08));
+  border: 1px solid var(--glass-border);
+  margin-bottom: 32px;
+}
+
+.result-score {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.result-score.pass { color: var(--success); }
+.result-score.fail { color: var(--error); }
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 32px;
+}
+
+@media (max-width: 900px) {
+  .assessment-layout { grid-template-columns: 1fr; }
+  .assessment-sidebar { position: static; height: auto; padding: 20px; }
+}
+

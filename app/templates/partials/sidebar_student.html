@@ -1,0 +1,38 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <a href="{{ url_for('student.dashboard') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys" width="36" height="36" style="border-radius:50%">
+      <span>Cellusys CodeCamp</span>
+    </a>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="{{ url_for('student.dashboard') }}" class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-chart-simple"></i></span> Dashboard
+    </a>
+    <a href="{{ url_for('student.application') }}" class="sidebar-link {% if request.endpoint == 'student.application' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-file-lines"></i></span> Application
+    </a>
+    <a href="{{ url_for('student.assessment_list') }}" class="sidebar-link {% if 'assessment' in request.endpoint %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-brain"></i></span> Aptitude Test
+    </a>
+    <a href="{{ url_for('student.interview_schedule') }}" class="sidebar-link {% if request.endpoint == 'student.interview_schedule' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span> Interview
+    </a>
+    <a href="{{ url_for('student.announcements') }}" class="sidebar-link {% if request.endpoint == 'student.announcements' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Announcements
+    </a>
+    <a href="{{ url_for('student.profile') }}" class="sidebar-link {% if request.endpoint == 'student.profile' %}active{% endif %}">
+      <span class="icon"><i class="fa-solid fa-gear"></i></span> Profile
+    </a>
+  </nav>
+
+
+
+
+  <div class="sidebar-footer">
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+      <span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span> Logout
+    </a>
+  </div>
+</aside>
+<div class="sidebar-overlay"></div>

@@ -1,0 +1,284 @@
+/* Calendly-inspired interview scheduling */
+.interview-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 0;
+  height: calc(100vh - 160px);
+  min-height: 400px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.interview-sidebar {
+  padding: 24px 20px;
+  border-right: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.interviewer-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.interviewer-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.interviewer-title {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+.interview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.meta-item strong { color: var(--text-primary); display: block; font-size: 0.85rem; }
+
+.interview-calendar-panel {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 6px;
+}
+
+.cal-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-size: 0.85rem;
+}
+
+.cal-nav-btn:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 74, 173, 0.1);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.cal-day-header {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 4px;
+  text-transform: uppercase;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+}
+
+.cal-day:hover:not(.disabled):not(.empty) {
+  background: rgba(0, 194, 255, 0.1);
+  border-color: var(--accent-secondary);
+}
+
+.cal-day.selected {
+  background: var(--accent-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow-glow);
+}
+
+.cal-day.available {
+  font-weight: 600;
+  color: var(--accent-secondary);
+}
+
+.cal-day.disabled,
+.cal-day.empty {
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.cal-day.today {
+  border: 1px solid var(--accent-primary);
+}
+
+/* Time slots section - fills remaining space */
+.time-slots-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.time-slots-section h3 {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  align-content: start;
+}
+
+.time-slot-btn {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+  text-align: center;
+}
+
+.time-slot-btn:hover {
+  border-color: var(--accent-secondary);
+  background: rgba(0, 194, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.time-slot-btn.selected {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow-glow);
+}
+
+.timezone-display {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.booking-confirm-panel {
+  text-align: center;
+  padding: 40px 32px;
+}
+
+.booking-confirm-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--success), #059669);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin: 0 auto 20px;
+}
+
+.existing-booking {
+  background: rgba(0, 194, 255, 0.08);
+  border: 1px solid rgba(0, 194, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+#confirmBooking {
+  flex-shrink: 0;
+  margin-top: 12px !important;
+}
+
+.page-header {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .interview-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: auto;
+    border-radius: var(--radius-lg);
+  }
+  .interview-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 18px;
+  }
+  .interview-calendar-panel { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+  .interviewer-avatar { width: 48px; height: 48px; font-size: 1rem; }
+  .interviewer-name { font-size: 1rem; }
+  .calendar-grid { gap: 2px; }
+  .cal-day-header { font-size: 0.65rem; }
+  .cal-day { font-size: 0.75rem; }
+}

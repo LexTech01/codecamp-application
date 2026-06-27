@@ -1,0 +1,111 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Admin Dashboard — Cellusys{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Admin Dashboard</h1>
+  <p>Recruitment overview and key metrics.</p>
+</div>
+
+<div class="stats-row">
+  <div class="card stat-card" style="border-left:4px solid var(--accent-primary)">
+    <div class="flex items-center gap-2" style="margin-bottom:12px">
+      <i class="fa-solid fa-users" style="font-size:1.4rem;color:var(--accent-primary)"></i>
+      <div class="stat-label" style="margin-top:0">Total Applicants</div>
+    </div>
+    <div class="stat-value">{{ stats.total_applicants }}</div>
+  </div>
+  <div class="card stat-card" style="border-left:4px solid var(--error)">
+    <div class="flex items-center gap-2" style="margin-bottom:12px">
+      <i class="fa-solid fa-xmark" style="font-size:1.4rem;color:var(--error)"></i>
+      <div class="stat-label" style="margin-top:0">Rejected</div>
+    </div>
+    <div class="stat-value">{{ stats.rejected }}</div>
+  </div>
+  <div class="card stat-card" style="border-left:4px solid var(--accent-secondary)">
+    <div class="flex items-center gap-2" style="margin-bottom:12px">
+      <i class="fa-solid fa-calendar-check" style="font-size:1.4rem;color:var(--accent-secondary)"></i>
+      <div class="stat-label" style="margin-top:0">Scheduled Interviews</div>
+    </div>
+    <div class="stat-value">{{ stats.interviews }}</div>
+  </div>
+  <div class="card stat-card" style="border-left:4px solid var(--success)">
+    <div class="flex items-center gap-2" style="margin-bottom:12px">
+      <i class="fa-solid fa-check-circle" style="font-size:1.4rem;color:var(--success)"></i>
+      <div class="stat-label" style="margin-top:0">Accepted</div>
+    </div>
+    <div class="stat-value">{{ stats.accepted }}</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card col-8">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-chart-bar" style="margin-right:8px;color:var(--accent-primary)"></i> Recruitment Funnel</h3>
+    </div>
+    <div class="chart-container">
+      <canvas id="funnelChart"
+        data-labels='["Submitted","Test","Interview","Accepted"]'
+        data-values='[{{ stats.total_applicants }},{{ stats.total_applicants - stats.accepted - stats.rejected }},{{ stats.interviews }},{{ stats.accepted }}]'></canvas>
+    </div>
+  </div>
+  <div class="card col-4">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-bolt" style="margin-right:8px;color:var(--warning)"></i> Quick Actions</h3>
+    </div>
+    <div class="flex flex-col gap-2">
+      <a href="{{ url_for('admin.applicants') }}" class="btn btn-primary btn-block" style="justify-content:flex-start"><i class="fa-solid fa-users"></i> Manage Applicants</a>
+      <a href="{{ url_for('admin.pipeline') }}" class="btn btn-secondary btn-block" style="justify-content:flex-start"><i class="fa-solid fa-list-check"></i> View Pipeline</a>
+      <a href="{{ url_for('admin.interviews') }}" class="btn btn-ghost btn-block" style="justify-content:flex-start"><i class="fa-solid fa-calendar-days"></i> Interview Slots</a>
+      <a href="{{ url_for('admin.manage_announcements') }}" class="btn btn-ghost btn-block" style="justify-content:flex-start"><i class="fa-solid fa-bullhorn"></i> Post Announcement</a>
+    </div>
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border-color)">
+      <div class="flex justify-between mb-2">
+        <span class="text-muted" style="font-size:0.85rem">Pass Rate</span>
+        <strong>{{ stats.pass_rate }}%</strong>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:{{ stats.pass_rate }}%"></div></div>
+      <div class="flex justify-between mt-2" style="margin-top:12px">
+        <span class="text-muted" style="font-size:0.85rem">Acceptance Rate</span>
+        <strong>{{ stats.acceptance_rate }}%</strong>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:{{ stats.acceptance_rate }}%"></div></div>
+    </div>
+  </div>
+  <div class="card col-12">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left" style="margin-right:8px;color:var(--text-muted)"></i> Recent Applicants</h3>
+      <a href="{{ url_for('admin.applicants') }}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Applicant</th><th>Stage</th><th>Score</th><th style="text-align:right">Submitted</th></tr></thead>
+        <tbody>
+          {% for app in recent_apps %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--nav-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0">
+                  {{ app.user.full_name[:2]|upper }}
+                </div>
+                <div>
+                  <a href="{{ url_for('admin.applicant_detail', app_id=app.id) }}" style="font-weight:600;font-size:0.9rem">{{ app.user.full_name }}</a>
+                  <div style="font-size:0.78rem;color:var(--text-muted)">{{ app.user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-info">{{ app.status_label }}</span></td>
+            <td>{{ app.test_score or '—' }}{% if app.test_score %}%{% endif %}</td>
+            <td style="text-align:right;font-size:0.85rem;color:var(--text-muted)">{{ app.submitted_at.strftime('%b %d, %Y') if app.submitted_at else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

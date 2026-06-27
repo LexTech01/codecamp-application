@@ -1,0 +1,107 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Interviews — Cellusys Admin{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/interview.css') }}">{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Interview Management</h1>
+  <p>Manage availability, slots, and bookings.</p>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card col-6">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-plus-circle" style="margin-right:8px;color:var(--success)"></i> Create Time Slots</h3>
+    </div>
+    <form method="POST" action="{{ url_for('admin.create_slots') }}">
+      <div class="form-group"><label class="form-label">Date</label>
+        <input type="date" name="slot_date" class="form-input" required></div>
+      <p class="text-muted mb-2" style="font-size:0.85rem;margin-bottom:12px">Select preset times (hold Ctrl/Cmd for multiple):</p>
+      <div class="form-group">
+        <select name="times" class="form-select" multiple size="6" required style="min-height:180px">
+          <option value="09:00-09:30">09:00 - 09:30</option>
+          <option value="09:30-10:00">09:30 - 10:00</option>
+          <option value="10:00-10:30">10:00 - 10:30</option>
+          <option value="11:00-11:30">11:00 - 11:30</option>
+          <option value="14:00-14:30">14:00 - 14:30</option>
+          <option value="15:00-15:30">15:00 - 15:30</option>
+          <option value="16:00-16:30">16:00 - 16:30</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-calendar-plus"></i> Create Slots</button>
+    </form>
+  </div>
+  <div class="card col-6">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-list" style="margin-right:8px;color:var(--accent-secondary)"></i> Upcoming Slots</h3>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      {% for slot in slots[:10] %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-tertiary)">
+        <div>
+          <strong style="font-size:0.9rem">{{ slot.slot_date.strftime('%b %d, %Y') }}</strong>
+          <span style="color:var(--text-muted);font-size:0.85rem;margin-left:8px">{{ slot.formatted_time }}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge {% if slot.booking %}badge-warning{% else %}badge-success{% endif %}">
+            {% if slot.booking %}Booked{% else %}Open{% endif %}
+          </span>
+          {% if not slot.booking %}
+          <form method="POST" action="{{ url_for('admin.delete_slot', slot_id=slot.id) }}" data-confirm="Delete this slot?">
+            <button type="submit" class="btn btn-danger btn-sm" style="padding:6px 10px"><i class="fa-solid fa-trash" style="font-size:0.8rem"></i></button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <p class="text-muted" style="text-align:center;padding:24px">No slots created yet</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card col-12">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-calendar-check" style="margin-right:8px;color:var(--warning)"></i> Bookings</h3>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Candidate</th><th>Date / Time</th><th>Status</th><th>Rating</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td>
+              <a href="{{ url_for('admin.applicant_detail', app_id=b.candidate.application.id) }}" style="font-weight:600;font-size:0.9rem">
+                {{ b.candidate.full_name }}
+              </a>
+            </td>
+            <td style="font-size:0.9rem">{% if b.slot %}{{ b.slot.formatted_date }} {{ b.slot.formatted_time }}{% else %}—{% endif %}</td>
+            <td>
+              {% set status_colors = {'scheduled':'badge-warning','completed':'badge-success','no_show':'badge-error','cancelled':'badge-muted'} %}
+              <span class="badge {{ status_colors.get(b.status, 'badge-info') }}">{{ b.status }}</span>
+            </td>
+            <td>
+              {% if b.rating %}
+              <span style="font-weight:700">{% for i in range(b.rating) %}★{% endfor %}{% for i in range(5 - b.rating) %}☆{% endfor %}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('admin.update_booking', booking_id=b.id) }}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <select name="status" class="form-select" style="width:auto;padding:6px;min-width:120px">
+                  <option value="scheduled" {% if b.status=='scheduled' %}selected{% endif %}>Scheduled</option>
+                  <option value="completed" {% if b.status=='completed' %}selected{% endif %}>Completed</option>
+                  <option value="no_show" {% if b.status=='no_show' %}selected{% endif %}>No-show</option>
+                  <option value="cancelled" {% if b.status=='cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+                <input type="number" name="rating" min="1" max="5" placeholder="1-5" class="form-input" style="width:60px;padding:6px" value="{{ b.rating or '' }}">
+                <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted" style="padding:48px 16px">No bookings yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

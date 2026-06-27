@@ -1,0 +1,35 @@
+{% extends "dashboard_layout.html" %}
+{% block title %}Test Results — Cellusys{% endblock %}
+{% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">{% endblock %}
+{% block content %}
+<div class="result-hero">
+  <h2>Assessment Complete</h2>
+  <div class="result-score {% if attempt.passed %}pass{% else %}fail{% endif %}">{{ attempt.score }}%</div>
+  <span class="badge {% if attempt.passed %}badge-success{% else %}badge-warning{% endif %} mt-2" style="margin-top:16px">
+    {% if attempt.passed %}Passed — Great job!{% else %}Below pass threshold ({{ assessment.pass_score }}%){% endif %}
+  </span>
+</div>
+<div class="result-stats">
+  <div class="card stat-card text-center">
+    <div class="stat-value" style="font-size:1.5rem">{{ attempt.earned_points }}</div>
+    <div class="stat-label">Points Earned</div>
+  </div>
+  <div class="card stat-card text-center">
+    <div class="stat-value" style="font-size:1.5rem">{{ attempt.total_points }}</div>
+    <div class="stat-label">Total Points</div>
+  </div>
+  <div class="card stat-card text-center">
+    <div class="stat-value" style="font-size:1.5rem">{% if attempt.time_taken_seconds %}{{ (attempt.time_taken_seconds // 60) }}m{% else %}—{% endif %}</div>
+    <div class="stat-label">Time Taken</div>
+  </div>
+</div>
+<div class="flex gap-2 mt-4" style="margin-top:32px">
+  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+  {% if attempt.passed %}
+  <a href="{{ url_for('student.interview_schedule') }}" class="btn btn-secondary">Schedule Interview</a>
+  {% else %}
+  <a href="{{ url_for('student.take_assessment', assessment_id=attempt.assessment_id) }}" class="btn btn-secondary">Retry Test</a>
+  {% endif %}
+</div>
+{% endblock %}
