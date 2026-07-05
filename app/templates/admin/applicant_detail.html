@@ -65,6 +65,7 @@
     {# ── Test completed: decide next step ── #}
     {% if stage == "test_completed" %}
     <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Candidate has completed the assessment. Choose next step:</p>
       <div style="display:flex;flex-direction:column;gap:10px">
         <button type="submit" name="pipeline_stage" value="interview_scheduled" class="btn btn-primary btn-block" style="justify-content:flex-start">
@@ -86,6 +87,7 @@
     {# ── Interview completed: accept / waitlist / reject ── #}
     {% elif stage == "interview_completed" %}
     <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Interview complete. Make a final decision:</p>
       <div style="display:flex;flex-direction:column;gap:10px">
         <button type="submit" name="pipeline_stage" value="accepted" class="btn btn-primary btn-block" style="justify-content:flex-start">
@@ -107,6 +109,7 @@
     {# ── Accepted: move to onboarding ── #}
     {% elif stage == "accepted" %}
     <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Candidate accepted. Proceed to cohort placement:</p>
       <button type="submit" name="pipeline_stage" value="onboarding" class="btn btn-primary btn-block" style="justify-content:flex-start">
         <i class="fa-solid fa-layer-group"></i> Move to Onboarding
@@ -116,6 +119,7 @@
     {# ── Onboarding: mark as enrolled ── #}
     {% elif stage == "onboarding" %}
     <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Candidate is onboarding. Mark as enrolled:</p>
       <button type="submit" name="pipeline_stage" value="enrolled" class="btn btn-primary btn-block" style="justify-content:flex-start">
         <i class="fa-solid fa-graduation-cap"></i> Mark as Enrolled
@@ -125,6 +129,7 @@
     {# ── Rejected / Waitlisted: allow reinstatement ── #}
     {% elif stage in ("rejected", "waitlisted") %}
     <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">This candidate can be reinstated to take the test:</p>
       <button type="submit" name="pipeline_stage" value="test_invited" class="btn btn-primary btn-block" style="justify-content:flex-start">
         <i class="fa-solid fa-rotate-left"></i> Reinstate for Test
@@ -136,6 +141,78 @@
       <p style="font-size:0.85rem;margin-top:4px;color:var(--text-primary)">{{ application.rejection_reason }}</p>
     </div>
     {% endif %}
+
+    {# ── Test invited: wait or reject ── #}
+    {% elif stage == "test_invited" %}
+    <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Candidate has been invited to the test. Awaiting submission.</p>
+      <div style="margin-top:12px">
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="form-label" style="font-size:0.8rem">Rejection Reason</label>
+          <textarea name="rejection_reason" class="form-textarea" placeholder="Why is this being rejected?" style="min-height:60px"></textarea>
+        </div>
+        <button type="submit" name="pipeline_stage" value="rejected" class="btn btn-danger btn-block">Reject Application</button>
+      </div>
+    </form>
+
+    {# ── Interview scheduled: manage booking link ── #}
+    {% elif stage == "interview_scheduled" %}
+    <div style="margin-bottom:16px">
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Interview is scheduled. Manage from the interviews page or mark as rejected:</p>
+      <a href="{{ url_for('admin.interviews') }}" class="btn btn-secondary btn-block" style="justify-content:flex-start">
+        <i class="fa-solid fa-calendar-days"></i> Go to Interviews
+      </a>
+    </div>
+    <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group" style="margin-bottom:8px">
+        <label class="form-label" style="font-size:0.8rem">Rejection Reason</label>
+        <textarea name="rejection_reason" class="form-textarea" placeholder="Why is this being rejected?" style="min-height:60px"></textarea>
+      </div>
+      <button type="submit" name="pipeline_stage" value="rejected" class="btn btn-danger btn-block">Reject Application</button>
+    </form>
+
+    {# ── Submitted: review or move to test ── #}
+    {% elif stage == "submitted" %}
+    <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Review the application and choose next step:</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="submit" name="pipeline_stage" value="under_review" class="btn btn-primary btn-block" style="justify-content:flex-start">
+          <i class="fa-solid fa-magnifying-glass"></i> Move to Under Review
+        </button>
+        <button type="submit" name="pipeline_stage" value="test_invited" class="btn btn-secondary btn-block" style="justify-content:flex-start">
+          <i class="fa-solid fa-file-pen"></i> Invite to Test
+        </button>
+      </div>
+      <div style="margin-top:12px">
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="form-label" style="font-size:0.8rem">Rejection Reason</label>
+          <textarea name="rejection_reason" class="form-textarea" placeholder="Why is this being rejected?" style="min-height:60px"></textarea>
+        </div>
+        <button type="submit" name="pipeline_stage" value="rejected" class="btn btn-danger btn-block">Reject Application</button>
+      </div>
+    </form>
+
+    {# ── Under Review: invite to test ── #}
+    {% elif stage == "under_review" %}
+    <form method="POST" action="{{ url_for('admin.update_stage', app_id=application.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Review complete. Decide next step:</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="submit" name="pipeline_stage" value="test_invited" class="btn btn-primary btn-block" style="justify-content:flex-start">
+          <i class="fa-solid fa-file-pen"></i> Invite to Test
+        </button>
+      </div>
+      <div style="margin-top:12px">
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="form-label" style="font-size:0.8rem">Rejection Reason</label>
+          <textarea name="rejection_reason" class="form-textarea" placeholder="Why is this being rejected?" style="min-height:60px"></textarea>
+        </div>
+        <button type="submit" name="pipeline_stage" value="rejected" class="btn btn-danger btn-block">Reject Application</button>
+      </div>
+    </form>
 
     {# ── No actionable stage ── #}
     {% else %}
@@ -202,12 +279,4 @@
   </div>
   {% endif %}
 </div>
-<script>
-document.querySelector('select[name="pipeline_stage"]').addEventListener('change', function() {
-  document.getElementById('rejectionReasonDiv').style.display = this.value === 'rejected' ? 'block' : 'none';
-});
-if (document.querySelector('select[name="pipeline_stage"]').value === 'rejected') {
-  document.getElementById('rejectionReasonDiv').style.display = 'block';
-}
-</script>
 {% endblock %}

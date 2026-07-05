@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!testEl) return;
 
   const assessmentId = testEl.dataset.assessmentId;
-  const durationMinutes = parseInt(testEl.dataset.duration || '45', 10);
+  const durationMinutes = parseInt(testEl.dataset.duration || '20', 10);
   const dataEl = document.getElementById('questionsData');
   const questions = dataEl ? JSON.parse(dataEl.textContent) : [];
 
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const answers = {};
   let timeLeft = durationMinutes * 60;
   let timerInterval;
+  let submitting = false;
 
   // Anti-refresh warning
   var beforeUnloadHandler = function (e) {
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('submitTest')?.addEventListener('click', async () => {
     const ok = await Cellusys.confirm('Submit your test? You cannot change answers after submission.');
-    if (ok) submitTest();
+    if (ok) { submitting = true; submitTest(); }
   });
 
   function initTimer() {
@@ -118,6 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function submitTest() {
+    if (submitting) return;
+    submitting = true;
     clearInterval(timerInterval);
     window.removeEventListener('beforeunload', beforeUnloadHandler);
     const timeTaken = durationMinutes * 60 - timeLeft;

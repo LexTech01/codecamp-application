@@ -3,7 +3,7 @@
 {% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">{% endblock %}
 {% block content %}
-<div class="result-hero">
+<div class="result-hero" data-aos="fade-up">
   <h2>Assessment Complete</h2>
   <div class="result-score {% if attempt.passed %}pass{% else %}fail{% endif %}">{{ attempt.score }}%</div>
   <span class="badge {% if attempt.passed %}badge-success{% else %}badge-warning{% endif %} mt-2" style="margin-top:16px">
@@ -29,7 +29,11 @@
   {% if attempt.passed %}
   <a href="{{ url_for('student.interview_schedule') }}" class="btn btn-secondary">Schedule Interview</a>
   {% else %}
-  <a href="{{ url_for('student.take_assessment', assessment_id=attempt.assessment_id) }}" class="btn btn-secondary">Retry Test</a>
+    {% if retries_left > 0 %}
+    <a href="{{ url_for('student.take_assessment', assessment_id=attempt.assessment_id) }}" class="btn btn-secondary">Retry Test ({{ retries_left }} left)</a>
+    {% else %}
+    <span class="btn btn-secondary" style="opacity:0.6;cursor:not-allowed">No retries left</span>
+    {% endif %}
   {% endif %}
 </div>
 {% endblock %}

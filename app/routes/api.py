@@ -1,7 +1,7 @@
 """JSON API endpoints for AJAX interactions."""
 import json
 from datetime import datetime, timedelta
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, url_for
 from flask_login import login_required, current_user
 from app import db
 from app.models.application import Application, KANBAN_COLUMNS, VALID_TRANSITIONS, can_advance_to
@@ -92,7 +92,7 @@ def submit_assessment(assessment_id):
                 current_user.id,
                 "Test Passed!",
                 f"You scored {score}%. Interview scheduling is now available.",
-                "/student/interview",
+                url_for("student.interview_schedule"),
             )
         else:
             app_record.pipeline_stage = "test_completed"
@@ -101,7 +101,7 @@ def submit_assessment(assessment_id):
                 current_user.id,
                 "Test Completed",
                 f"You scored {score}%. Minimum pass score is {assessment.pass_score}%. You can retake the test.",
-                "/student/assessment",
+                url_for("student.assessment_list"),
             )
     log_activity(current_user.id, "test_completed", f"Score: {score}% (Attempt {app_record.test_attempts if app_record else 1})")
     db.session.commit()
@@ -188,6 +188,11 @@ def cancel_interview(booking_id):
     booking.status = "cancelled"
     if booking.slot:
         booking.slot.is_available = True
+    app_record = Application.query.filter_by(user_id=current_user.id).first()
+    if app_record and app_record.pipeline_stage == "interview_scheduled":
+        app_record.pipeline_stage = "test_completed"
+        app_record.status = "test_completed"
+        app_record.updated_at = datetime.utcnow()
     db.session.commit()
     return jsonify({"success": True})
 
@@ -217,6 +222,13 @@ def move_pipeline_card():
     app_record.pipeline_stage = new_stage
     app_record.status = new_stage
     app_record.updated_at = datetime.utcnow()
+    create_notification(
+        app_record.user_id,
+        "Application Update",
+        f"Your application status is now: {app_record.status_label}",
+        url_for("student.dashboard"),
+    )
+    log_activity(current_user.id, "pipeline_move", f"App {app_id} -> {new_stage}")
     db.session.commit()
     return jsonify({"success": True, "stage": new_stage})
 

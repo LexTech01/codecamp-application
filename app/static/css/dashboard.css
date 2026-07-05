@@ -144,8 +144,6 @@
   color: white;
 }
 
-.countdown-value { font-size: 1.5rem; font-weight: 800; color: var(--accent-primary); }
-
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

@@ -3,12 +3,11 @@
  */
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('applicationForm');
-  const wizard = document.querySelector('.form-wizard') || form;
-  if (!wizard || !form) return;
+  if (!form) return;
 
-  let currentStep = parseInt(document.getElementById('current_step')?.value || wizard.dataset.currentStep || '1', 10);
-  const totalSteps = parseInt(wizard.dataset.totalSteps || '2', 10);
-  if (form) form.noValidate = true;
+  let currentStep = parseInt(document.getElementById('current_step')?.value || '1', 10);
+  const totalSteps = 2;
+  form.noValidate = true;
 
   showStep(currentStep);
 
@@ -58,23 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         field.style.borderColor = '';
         clearFieldError(field.name);
       }
-    });
-  });
-
-  document.querySelectorAll('.file-upload').forEach(zone => {
-    const input = zone.querySelector('input[type="file"]');
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-    zone.addEventListener('drop', e => {
-      e.preventDefault();
-      zone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        input.files = e.dataTransfer.files;
-        updateFileLabel(zone, e.dataTransfer.files[0].name);
-      }
-    });
-    input?.addEventListener('change', () => {
-      if (input.files[0]) updateFileLabel(zone, input.files[0].name);
     });
   });
 
@@ -153,14 +135,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!error) return;
     error.textContent = '';
     error.classList.remove('visible');
-  }
-
-  function updateFileLabel(zone, name) {
-    const label = zone.querySelector('.file-name');
-    if (label) label.textContent = name;
-    else {
-      const p = zone.querySelector('p');
-      if (p) p.innerHTML = `<strong>${name}</strong> selected`;
-    }
   }
 });

@@ -2,7 +2,7 @@
 {% block title %}Announcements — Cellusys{% endblock %}
 {% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
 {% block content %}
-<div class="announcements-page">
+<div class="announcements-page" data-aos="fade-up">
   <div class="page-header announcements-header">
     <div>
       <h1><i class="fa-solid fa-bullhorn"></i> Announcements</h1>
@@ -22,7 +22,8 @@
       </div>
       <div class="personal-updates-body">
         {% for notif in notifications %}
-        <div class="update-item">
+        <div class="update-item" data-notif-id="{{ notif.id }}">
+          <button class="update-dismiss" title="Dismiss">&times;</button>
           <div class="update-dot"></div>
           <div class="update-content">
             <strong>{{ notif.title }}</strong>
@@ -37,6 +38,7 @@
 
     {% for ann in announcements %}
     <article class="announcement-card {% if ann.id not in read_ids %}unread{% endif %}" data-id="{{ ann.id }}">
+      <button class="announcement-dismiss" title="Dismiss" aria-label="Dismiss announcement">&times;</button>
       <div class="announcement-card-top">
         {% if ann.image_filename %}
         <img src="{{ url_for('static', filename='uploads/' ~ ann.image_filename) }}" alt="" class="announcement-cover">
@@ -45,7 +47,6 @@
           <div class="announcement-meta">
             <div class="announcement-badges">
               {% if ann.is_pinned %}<span class="badge badge-primary"><i class="fa-solid fa-thumbtack"></i> Pinned</span>{% endif %}
-              {% if ann.id not in read_ids %}<span class="badge badge-info"><i class="fa-solid fa-circle"></i> New</span>{% endif %}
             </div>
             <time class="announcement-date">
               <i class="fa-regular fa-calendar"></i> {{ ann.created_at.strftime('%B %d, %Y') }}
@@ -67,8 +68,37 @@
 </div>
 
 <script>
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const csrfHeader = { 'X-CSRFToken': csrfToken };
+
 document.querySelectorAll('.announcement-card.unread').forEach(card => {
-  fetch(`/api/announcements/${card.dataset.id}/read`, { method: 'POST' });
+  fetch(`/api/announcements/${card.dataset.id}/read`, { method: 'POST', headers: csrfHeader });
+});
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.announcement-dismiss');
+  if (!btn) return;
+  const card = btn.closest('.announcement-card');
+  if (!card) return;
+  const id = card.dataset.id;
+  fetch(`/api/announcements/${id}/read`, { method: 'POST', headers: csrfHeader }).catch(() => {});
+  card.style.transition = 'opacity 0.3s, transform 0.3s';
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(30px)';
+  setTimeout(() => card.remove(), 300);
+});
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.update-dismiss');
+  if (!btn) return;
+  const item = btn.closest('.update-item');
+  if (!item) return;
+  const id = item.dataset.notifId;
+  fetch(`/api/notifications/${id}/read`, { method: 'POST', headers: csrfHeader }).catch(() => {});
+  item.style.transition = 'opacity 0.3s, transform 0.3s';
+  item.style.opacity = '0';
+  item.style.transform = 'translateX(30px)';
+  setTimeout(() => item.remove(), 300);
 });
 </script>
 
@@ -149,9 +179,38 @@ document.querySelectorAll('.announcement-card.unread').forEach(card => {
   gap: 14px;
   padding: 14px 24px;
   transition: background var(--transition);
+  position: relative;
 }
 .update-item:hover {
   background: var(--bg-tertiary);
+}
+
+.update-dismiss {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(0,0,0,0.04);
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  opacity: 0;
+}
+.update-item:hover .update-dismiss {
+  opacity: 1;
+}
+.update-dismiss:hover {
+  background: rgba(255,77,77,0.12);
+  color: #e53e3e;
 }
 
 .update-dot {
@@ -197,6 +256,35 @@ document.querySelectorAll('.announcement-card.unread').forEach(card => {
   overflow: hidden;
   transition: all var(--transition);
   box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.announcement-dismiss {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(0,0,0,0.04);
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  opacity: 0;
+}
+.announcement-card:hover .announcement-dismiss {
+  opacity: 1;
+}
+.announcement-dismiss:hover {
+  background: rgba(255,77,77,0.12);
+  color: #e53e3e;
 }
 
 .announcement-card:hover {

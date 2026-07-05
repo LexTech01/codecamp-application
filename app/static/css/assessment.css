@@ -2,7 +2,7 @@
 .assessment-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - var(--navbar-height));
   gap: 0;
 }
 
@@ -11,8 +11,8 @@
   border-right: 1px solid var(--border-color);
   padding: 24px;
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--navbar-height);
+  height: calc(100vh - var(--navbar-height));
   overflow-y: auto;
 }
 

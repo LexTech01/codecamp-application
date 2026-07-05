@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
 
 from config import Config
 
@@ -13,6 +14,7 @@ login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 login_manager.login_message_category = "info"
 limiter = Limiter(key_func=get_remote_address)
+csrf = CSRFProtect()
 
 
 def create_app(config_class=Config):
@@ -25,6 +27,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)
+    csrf.init_app(app)
 
     from app.models.user import User
 
@@ -86,8 +89,8 @@ def seed_database():
     admin = User(
         email="admin@cellusys.com",
         password_hash=generate_password_hash("admin123", method="pbkdf2:sha256"),
-        first_name="Alex",
-        last_name="Morgan",
+        first_name="Alexander",
+        last_name="Winfred",
         role="admin",
         phone="+233 24 123 4567",
         bio="Lead Recruitment Officer at Cellusys CodeCamp, Musuku Roundabout Accra, Ghana",
@@ -286,6 +289,24 @@ def seed_database():
         ),
     ]
     db.session.add_all(announcements)
+
+    # Seed default cohorts
+    from app.models.cohort import Cohort
+    base_date = date.today() + timedelta(days=60)
+    db.session.add_all([
+        Cohort(
+            name="SE Cohort 2026",
+            description="Software Engineering",
+            start_date=base_date,
+            end_date=base_date + timedelta(days=270),
+        ),
+        Cohort(
+            name="NT Cohort 2026",
+            description="Networking & Telecom",
+            start_date=base_date,
+            end_date=base_date + timedelta(days=90),
+        ),
+    ])
 
     # Create interview slots for the next 14 days
     from app.models.interview import InterviewSlot

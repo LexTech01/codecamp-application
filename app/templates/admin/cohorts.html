@@ -1,63 +1,218 @@
 {% extends "dashboard_layout.html" %}
-{% block title %}Cohort Placement — Cellusys Admin{% endblock %}
+{% block title %}Cohorts — Cellusys Admin{% endblock %}
 {% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
 {% block content %}
-<div class="page-header">
-  <h1><i class="fa-solid fa-layer-group" style="margin-right:10px;color:var(--success)"></i> Cohort Placement</h1>
-  <p>Place passed applicants into their CodeCamp cohorts.</p>
+<div class="page-header" style="margin-bottom:16px">
+  <h1 style="font-size:1.4rem"><i class="fa-solid fa-layer-group" style="margin-right:10px;color:var(--success)"></i> Cohort Management</h1>
+  <p style="font-size:0.85rem;margin:0">Create cohorts, assign students, send notifications, and export rosters.</p>
 </div>
 
-<div class="table-wrap card" style="padding:0;overflow:hidden">
-  <table class="table">
-    <thead>
-      <tr><th>Applicant</th><th>Program</th><th>Status</th><th>Cohort</th><th style="text-align:right">Assign Cohort</th></tr>
-    </thead>
-    <tbody>
-      {% for app in applications %}
-      <tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:34px;height:34px;border-radius:50%;background:var(--nav-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0">
-              {{ app.user.full_name[:2]|upper }}
+<div class="dashboard-grid">
+  <!-- Create Cohort -->
+  <div class="card col-4">
+    <div class="card-header">
+      <h3 class="card-title" style="font-size:0.95rem"><i class="fa-solid fa-plus-circle" style="margin-right:8px;color:var(--success)"></i> New Cohort</h3>
+    </div>
+    <form method="POST" action="{{ url_for('admin.create_cohort') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label" style="font-size:0.8rem">Name</label>
+        <input type="text" name="name" class="form-input" placeholder="e.g. SE Cohort 2026" required>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label" style="font-size:0.8rem">Description</label>
+        <input type="text" name="description" class="form-input" placeholder="Software Engineering">
+      </div>
+      <div class="flex gap-2" style="gap:10px">
+        <div class="form-group" style="margin-bottom:10px;flex:1">
+          <label class="form-label" style="font-size:0.8rem">Start Date</label>
+          <input type="date" name="start_date" class="form-input">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;flex:1">
+          <label class="form-label" style="font-size:0.8rem">End Date</label>
+          <input type="date" name="end_date" class="form-input">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-plus"></i> Create Cohort</button>
+    </form>
+  </div>
+
+  <!-- Cohort Cards -->
+  <div class="col-8" style="display:flex;flex-direction:column;gap:16px">
+    {% for name, group in grouped.items() %}
+    {% set c = group.cohort %}
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="card-header" style="padding:14px 20px;margin:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <strong style="font-size:1rem">{{ c.name }}</strong>
+            {% if c.description %}
+            <span class="text-muted" style="font-size:0.78rem;margin-left:8px">{{ c.description }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span class="badge badge-success" style="font-size:0.75rem">{{ group.members|length }} student{% if group.members|length != 1 %}s{% endif %}</span>
+          {% if c.start_date %}
+          <span style="font-size:0.78rem;color:var(--text-muted)"><i class="fa-regular fa-calendar"></i> {{ c.start_date.strftime('%b %d, %Y') }}{% if c.end_date %} – {{ c.end_date.strftime('%b %d, %Y') }}{% endif %}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div style="padding:0 20px 14px">
+        <div class="table-wrap" style="border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:hidden;margin-bottom:12px">
+          <table class="table" style="font-size:0.85rem">
+            <thead>
+              <tr><th style="width:30px"></th><th>Name</th><th>Email</th><th>Program</th><th>Status</th><th style="text-align:right">Assigned</th></tr>
+            </thead>
+            <tbody>
+              {% for app in group.members %}
+              <tr>
+                <td>
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--nav-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.7rem">
+                    {{ app.user.full_name[:2]|upper }}
+                  </div>
+                </td>
+                <td><a href="{{ url_for('admin.applicant_detail', app_id=app.id) }}" style="font-weight:600">{{ app.user.full_name }}</a></td>
+                <td style="font-size:0.8rem;color:var(--text-muted)">{{ app.user.email }}</td>
+                <td style="font-size:0.85rem">{{ app.field_of_study or '—' }}</td>
+                <td><span class="badge badge-info" style="font-size:0.7rem">{{ app.status_label }}</span></td>
+                <td style="text-align:right;font-size:0.78rem;color:var(--text-muted)">{{ app.cohort_assigned_at.strftime('%b %d') if app.cohort_assigned_at else '—' }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">No members assigned yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" style="font-size:0.8rem" onclick="document.getElementById('edit-cohort-{{ c.id }}').classList.toggle('hidden')"><i class="fa-solid fa-pen"></i> Edit</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:0.8rem" onclick="document.getElementById('notify-cohort-{{ c.id }}').classList.toggle('hidden')"><i class="fa-solid fa-bell"></i> Notify</button>
+          <a href="{{ url_for('admin.export_cohort_pdf', cohort_id=c.id) }}" class="btn btn-ghost btn-sm" style="font-size:0.8rem"><i class="fa-solid fa-file-pdf"></i> Export PDF</a>
+        </div>
+
+        <!-- Edit Form -->
+        <form id="edit-cohort-{{ c.id }}" method="POST" action="{{ url_for('admin.edit_cohort', cohort_id=c.id) }}" class="hidden" style="margin-top:12px;padding:14px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-tertiary)">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" style="font-size:0.75rem">Name</label>
+              <input type="text" name="name" class="form-input" value="{{ c.name }}" style="padding:6px 8px;font-size:0.85rem">
             </div>
-            <div>
-              <strong style="font-size:0.9rem">{{ app.user.full_name }}</strong>
-              <div class="text-muted" style="font-size:0.78rem">{{ app.user.email }}</div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" style="font-size:0.75rem">Start Date</label>
+              <input type="date" name="start_date" class="form-input" value="{{ c.start_date.strftime('%Y-%m-%d') if c.start_date else '' }}" style="padding:6px 8px;font-size:0.85rem">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" style="font-size:0.75rem">End Date</label>
+              <input type="date" name="end_date" class="form-input" value="{{ c.end_date.strftime('%Y-%m-%d') if c.end_date else '' }}" style="padding:6px 8px;font-size:0.85rem">
             </div>
           </div>
-        </td>
-        <td style="font-size:0.9rem">{{ app.field_of_study or '—' }}</td>
-        <td>
-          {% set stage_colors = {
-            'submitted':'badge-muted','test_invited':'badge-info','test_completed':'badge-primary',
-            'interview_scheduled':'badge-warning','interview_completed':'badge-primary',
-            'accepted':'badge-success','rejected':'badge-error','waitlisted':'badge-warning',
-            'onboarding':'badge-info','enrolled':'badge-success',
-          } %}
-          <span class="badge {{ stage_colors.get(app.pipeline_stage, 'badge-muted') }}">{{ app.status_label }}</span>
-        </td>
-        <td>
-          {% if app.cohort_name %}
-            <strong style="font-size:0.9rem">{{ app.cohort_name }}</strong>
-            {% if app.cohort_assigned_at %}
-            <div class="text-muted" style="font-size:0.78rem">{{ app.cohort_assigned_at.strftime('%b %d, %Y') }}</div>
-            {% endif %}
-          {% else %}
-            <span class="text-muted" style="font-size:0.85rem">Not assigned</span>
-          {% endif %}
-        </td>
-        <td style="text-align:right">
-          <form method="POST" action="{{ url_for('admin.assign_cohort', app_id=app.id) }}" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-            <input type="text" name="cohort_name" class="form-input" placeholder="e.g. SE Cohort 2026" value="{{ app.cohort_name or '' }}" style="max-width:180px;padding:8px" required>
-            <input type="text" name="cohort_notes" class="form-input" placeholder="Notes" value="{{ app.cohort_notes or '' }}" style="max-width:160px;padding:8px">
-            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i></button>
-          </form>
-        </td>
-      </tr>
-      {% else %}
-      <tr><td colspan="5" class="text-center text-muted" style="padding:48px 16px">No accepted applicants yet</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label" style="font-size:0.75rem">Description</label>
+            <input type="text" name="description" class="form-input" value="{{ c.description or '' }}" style="padding:6px 8px;font-size:0.85rem">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Save Changes</button>
+        </form>
+
+        <!-- Notify Form -->
+        <form id="notify-cohort-{{ c.id }}" method="POST" action="{{ url_for('admin.notify_cohort', cohort_id=c.id) }}" class="hidden" style="margin-top:12px;padding:14px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-tertiary)">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px">Send a notification to all {{ group.members|length }} member(s) of <strong>{{ c.name }}</strong>.</p>
+          <div class="form-group" style="margin-bottom:8px">
+            <label class="form-label" style="font-size:0.75rem">Title</label>
+            <input type="text" name="title" class="form-input" placeholder="e.g. Cohort Orientation" required style="padding:6px 8px;font-size:0.85rem">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label" style="font-size:0.75rem">Message</label>
+            <textarea name="message" class="form-textarea" placeholder="Your message to the cohort..." required style="min-height:60px;font-size:0.85rem"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane"></i> Send Notification</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if not grouped %}
+    <div class="card" style="text-align:center;padding:48px 24px">
+      <i class="fa-solid fa-layer-group" style="font-size:2rem;color:var(--text-muted);opacity:0.3;margin-bottom:12px"></i>
+      <h3 style="font-size:1.1rem;margin-bottom:4px">No Cohorts Yet</h3>
+      <p style="font-size:0.9rem;color:var(--text-muted)">Create a cohort and assign students to get started.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Unassigned Students -->
+  {% if unassigned %}
+  <div class="card col-12" style="padding:0;overflow:hidden">
+    <div class="card-header" style="padding:14px 20px;margin:0">
+      <h3 class="card-title" style="font-size:0.95rem"><i class="fa-solid fa-users" style="margin-right:8px;color:var(--warning)"></i> Unassigned Students ({{ unassigned|length }})</h3>
+    </div>
+    <form method="POST" action="{{ url_for('admin.assign_cohort', cohort_id=0) }}" id="assign-form" style="padding:0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="table-wrap" style="border:0">
+        <table class="table" style="font-size:0.85rem">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="select-all-unassigned" style="cursor:pointer"></th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Program</th>
+              <th>Status</th>
+              <th style="text-align:right">
+                <select name="cohort_id" id="assign-cohort-select" class="form-select" style="width:auto;padding:4px 8px;font-size:0.78rem" required>
+                  <option value="">Assign to cohort…</option>
+                  {% for c in cohorts %}
+                  <option value="{{ c.id }}">{{ c.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-left:6px">Assign</button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in unassigned %}
+            <tr>
+              <td><input type="checkbox" name="app_ids" value="{{ app.id }}" class="unassigned-checkbox" style="cursor:pointer"></td>
+              <td><a href="{{ url_for('admin.applicant_detail', app_id=app.id) }}" style="font-weight:600">{{ app.user.full_name }}</a></td>
+              <td style="font-size:0.8rem;color:var(--text-muted)">{{ app.user.email }}</td>
+              <td>{{ app.field_of_study or '—' }}</td>
+              <td><span class="badge badge-info" style="font-size:0.7rem">{{ app.status_label }}</span></td>
+              <td style="text-align:right;font-size:0.78rem;color:var(--text-muted)">{{ app.updated_at.strftime('%b %d, %Y') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+  </div>
+  {% endif %}
 </div>
+
+<style>
+.hidden { display: none !important; }
+</style>
+<script>
+document.getElementById('select-all-unassigned')?.addEventListener('change', function() {
+  document.querySelectorAll('.unassigned-checkbox').forEach(cb => cb.checked = this.checked);
+});
+document.getElementById('assign-form')?.addEventListener('submit', function(e) {
+  const cohortSelect = document.getElementById('assign-cohort-select');
+  if (!cohortSelect.value) {
+    e.preventDefault();
+    alert('Select a cohort to assign to.');
+    return;
+  }
+  const checked = this.querySelectorAll('.unassigned-checkbox:checked');
+  if (!checked.length) {
+    e.preventDefault();
+    alert('Select at least one student.');
+    return;
+  }
+  // Patch the action URL with the selected cohort ID
+  this.action = this.action.replace('/0/', '/' + cohortSelect.value + '/');
+});
+</script>
 {% endblock %}

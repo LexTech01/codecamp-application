@@ -14,6 +14,7 @@
       <h3 class="card-title"><i class="fa-solid fa-plus-circle" style="margin-right:8px;color:var(--success)"></i> Create Time Slots</h3>
     </div>
     <form method="POST" action="{{ url_for('admin.create_slots') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-group"><label class="form-label">Date</label>
         <input type="date" name="slot_date" class="form-input" required></div>
       <p class="text-muted mb-2" style="font-size:0.85rem;margin-bottom:12px">Select preset times (hold Ctrl/Cmd for multiple):</p>
@@ -48,6 +49,7 @@
           </span>
           {% if not slot.booking %}
           <form method="POST" action="{{ url_for('admin.delete_slot', slot_id=slot.id) }}" data-confirm="Delete this slot?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-danger btn-sm" style="padding:6px 10px"><i class="fa-solid fa-trash" style="font-size:0.8rem"></i></button>
           </form>
           {% endif %}
@@ -85,6 +87,7 @@
             </td>
             <td>
               <form method="POST" action="{{ url_for('admin.update_booking', booking_id=b.id) }}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <select name="status" class="form-select" style="width:auto;padding:6px;min-width:120px">
                   <option value="scheduled" {% if b.status=='scheduled' %}selected{% endif %}>Scheduled</option>
                   <option value="completed" {% if b.status=='completed' %}selected{% endif %}>Completed</option>

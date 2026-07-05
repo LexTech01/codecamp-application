@@ -54,7 +54,7 @@
       <h3 class="card-title"><i class="fa-solid fa-chart-bar" style="margin-right:8px;color:var(--warning)"></i> Score Distribution</h3>
     </div>
     <div class="chart-container">
-      <canvas id="scoresChart" data-values='[2,5,8,12,6]'></canvas>
+      <canvas id="scoresChart" data-values='{{ stats.score_buckets }}'></canvas>
     </div>
   </div>
   <div class="card col-12">

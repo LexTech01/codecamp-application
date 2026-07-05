@@ -7,6 +7,7 @@ from app.models.announcement import Announcement, AnnouncementRead
 from app.models.notification import Notification
 from app.models.activity import ActivityLog
 from app.models.contact import ContactMessage
+from app.models.cohort import Cohort
 
 __all__ = [
     "User",
@@ -22,4 +23,5 @@ __all__ = [
     "Notification",
     "ActivityLog",
     "ContactMessage",
+    "Cohort",
 ]

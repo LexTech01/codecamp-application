@@ -31,13 +31,11 @@ def save_upload(file, subfolder=""):
 def log_activity(user_id, action, details=None):
     entry = ActivityLog(user_id=user_id, action=action, details=details)
     db.session.add(entry)
-    db.session.commit()
 
 
 def create_notification(user_id, title, message, link=None):
     notif = Notification(user_id=user_id, title=title, message=message, link=link)
     db.session.add(notif)
-    db.session.commit()
     return notif
 
 

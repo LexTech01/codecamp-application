@@ -10,6 +10,7 @@ from app.models.application import Application, KANBAN_COLUMNS, PIPELINE_STAGES,
 from app.models.assessment import Assessment, Question, TestAttempt
 from app.models.interview import InterviewSlot, InterviewBooking, InterviewerProfile
 from app.models.announcement import Announcement
+from app.models.cohort import Cohort
 import os
 import uuid
 from werkzeug.utils import secure_filename
@@ -73,12 +74,22 @@ def applicants():
         )
     if stage:
         query = query.filter_by(pipeline_stage=stage)
-    pagination = query.order_by(Application.updated_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
+    pagination = query.order_by(
+        Application.field_of_study.asc(),
+        Application.country.asc(),
+        Application.applicant_location.asc(),
+        Application.updated_at.desc(),
+    ).paginate(page=page, per_page=per_page, error_out=False)
+
+    grouped_applications = {}
+    for app in pagination.items:
+        program = app.field_of_study or "Unspecified"
+        grouped_applications.setdefault(program, []).append(app)
+
     return render_template(
         "admin/applicants.html",
         applications=pagination.items,
+        grouped_applications=grouped_applications,
         pagination=pagination,
         pipeline_stages=PIPELINE_STAGES,
         q=q,
@@ -112,15 +123,15 @@ def update_stage(app_id):
     new_stage = request.form.get("pipeline_stage")
     if new_stage not in PIPELINE_STAGES:
         flash("Invalid stage.", "error")
-        return redirect(request.referrer or url_for("admin.applicants"))
+        return redirect(url_for("admin.applicant_detail", app_id=app_id))
 
     if new_stage == app_record.pipeline_stage:
         flash("Stage unchanged.", "info")
-        return redirect(request.referrer or url_for("admin.applicants"))
+        return redirect(url_for("admin.applicant_detail", app_id=app_id))
     
     if not can_advance_to(app_record.pipeline_stage, new_stage):
         flash(f"Cannot transition from {app_record.pipeline_stage} to {new_stage}.", "error")
-        return redirect(request.referrer or url_for("admin.applicants"))
+        return redirect(url_for("admin.applicant_detail", app_id=app_id))
     
     if new_stage == "rejected":
         reason = request.form.get("rejection_reason", "")
@@ -156,51 +167,150 @@ def update_stage(app_id):
     log_activity(current_user.id, "stage_update", f"App {app_id} -> {new_stage}")
     db.session.commit()
     flash(f"Stage updated to {app_record.status_label}.", "success")
-    return redirect(request.referrer or url_for("admin.applicants"))
+    return redirect(url_for("admin.applicant_detail", app_id=app_id))
 
 
 @admin_bp.route("/cohorts")
 @login_required
 @admin_required
 def cohorts():
-    applications = Application.query.filter(
-        Application.pipeline_stage.in_(["accepted", "onboarding", "enrolled"])
+    cohorts = Cohort.query.order_by(Cohort.start_date.desc(), Cohort.name).all()
+    unassigned = Application.query.filter(
+        Application.pipeline_stage.in_(["accepted", "onboarding", "enrolled"]),
+        Application.cohort_name.is_(None),
     ).order_by(Application.updated_at.desc()).all()
-    return render_template("admin/cohorts.html", applications=applications)
+    grouped = {}
+    for c in cohorts:
+        members = Application.query.filter_by(cohort_name=c.name).order_by(
+            Application.updated_at.desc()
+        ).all()
+        grouped[c.name] = {"cohort": c, "members": members}
+    return render_template(
+        "admin/cohorts.html",
+        cohorts=cohorts,
+        grouped=grouped,
+        unassigned=unassigned,
+    )
 
 
-@admin_bp.route("/cohorts/<int:app_id>/assign", methods=["POST"])
+@admin_bp.route("/cohorts/create", methods=["POST"])
 @login_required
 @admin_required
-def assign_cohort(app_id):
-    app_record = Application.query.get_or_404(app_id)
-    if app_record.pipeline_stage not in ("accepted", "onboarding", "enrolled"):
-        flash("Only passed applicants can be placed into cohorts.", "error")
-        return redirect(url_for("admin.cohorts"))
-
-    cohort_name = request.form.get("cohort_name", "").strip()
-    if not cohort_name:
+def create_cohort():
+    name = request.form.get("name", "").strip()
+    if not name:
         flash("Cohort name is required.", "error")
         return redirect(url_for("admin.cohorts"))
-
-    app_record.cohort_name = cohort_name
-    app_record.cohort_notes = request.form.get("cohort_notes", "").strip()
-    app_record.cohort_assigned_at = datetime.utcnow()
-    if app_record.pipeline_stage == "accepted":
-        app_record.pipeline_stage = "onboarding"
-        app_record.status = "onboarding"
-    app_record.updated_at = datetime.utcnow()
-
-    create_notification(
-        app_record.user_id,
-        "Cohort Placement",
-        f"You have been placed in {cohort_name}.",
-        url_for("student.announcements"),
+    existing = Cohort.query.filter_by(name=name).first()
+    if existing:
+        flash("A cohort with that name already exists.", "error")
+        return redirect(url_for("admin.cohorts"))
+    start = request.form.get("start_date")
+    end = request.form.get("end_date")
+    cohort = Cohort(
+        name=name,
+        description=request.form.get("description", "").strip(),
+        start_date=datetime.strptime(start, "%Y-%m-%d").date() if start else None,
+        end_date=datetime.strptime(end, "%Y-%m-%d").date() if end else None,
     )
-    log_activity(current_user.id, "cohort_assigned", f"App {app_id} -> {cohort_name}")
+    db.session.add(cohort)
     db.session.commit()
-    flash("Cohort placement saved.", "success")
+    flash(f"Cohort '{name}' created.", "success")
     return redirect(url_for("admin.cohorts"))
+
+
+@admin_bp.route("/cohorts/<int:cohort_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_cohort(cohort_id):
+    cohort = Cohort.query.get_or_404(cohort_id)
+    name = request.form.get("name", "").strip()
+    if name and name != cohort.name:
+        existing = Cohort.query.filter_by(name=name).first()
+        if existing:
+            flash("A cohort with that name already exists.", "error")
+            return redirect(url_for("admin.cohorts"))
+        old_name = cohort.name
+        cohort.name = name
+        Application.query.filter_by(cohort_name=old_name).update(
+            {"cohort_name": name}, synchronize_session=False
+        )
+    cohort.description = request.form.get("description", "").strip()
+    start = request.form.get("start_date")
+    end = request.form.get("end_date")
+    cohort.start_date = datetime.strptime(start, "%Y-%m-%d").date() if start else None
+    cohort.end_date = datetime.strptime(end, "%Y-%m-%d").date() if end else None
+    db.session.commit()
+    flash("Cohort updated.", "success")
+    return redirect(url_for("admin.cohorts"))
+
+
+@admin_bp.route("/cohorts/<int:cohort_id>/assign", methods=["POST"])
+@login_required
+@admin_required
+def assign_cohort(cohort_id):
+    cohort = Cohort.query.get_or_404(cohort_id)
+    app_ids = request.form.getlist("app_ids")
+    if not app_ids:
+        flash("No students selected.", "warning")
+        return redirect(url_for("admin.cohorts"))
+    for app_id in app_ids:
+        app_record = Application.query.get(int(app_id))
+        if app_record and app_record.pipeline_stage in ("accepted", "onboarding", "enrolled"):
+            app_record.cohort_name = cohort.name
+            app_record.cohort_notes = request.form.get("notes", "").strip()
+            app_record.cohort_assigned_at = datetime.utcnow()
+            if app_record.pipeline_stage == "accepted":
+                app_record.pipeline_stage = "onboarding"
+                app_record.status = "onboarding"
+            app_record.updated_at = datetime.utcnow()
+    db.session.commit()
+    flash(f"{len(app_ids)} student(s) assigned to {cohort.name}.", "success")
+    return redirect(url_for("admin.cohorts"))
+
+
+@admin_bp.route("/cohorts/<int:cohort_id>/notify", methods=["POST"])
+@login_required
+@admin_required
+def notify_cohort(cohort_id):
+    cohort = Cohort.query.get_or_404(cohort_id)
+    title = request.form.get("title", "").strip()
+    message = request.form.get("message", "").strip()
+    if not title or not message:
+        flash("Title and message are required.", "error")
+        return redirect(url_for("admin.cohorts"))
+    members = Application.query.filter_by(cohort_name=cohort.name).all()
+    sent = 0
+    for app in members:
+        create_notification(app.user_id, title, message, url_for("student.announcements"))
+        sent += 1
+    db.session.commit()
+    flash(f"Notification sent to {sent} student(s) in {cohort.name}.", "success")
+    return redirect(url_for("admin.cohorts"))
+
+
+@admin_bp.route("/cohorts/<int:cohort_id>/export")
+@login_required
+@admin_required
+def export_cohort_pdf(cohort_id):
+    from flask import make_response
+    from weasyprint import HTML
+
+    cohort = Cohort.query.get_or_404(cohort_id)
+    members = Application.query.filter_by(cohort_name=cohort.name).order_by(
+        Application.updated_at.desc()
+    ).all()
+    html = render_template(
+        "admin/cohort_pdf.html",
+        cohort=cohort,
+        members=members,
+        today=datetime.utcnow(),
+    )
+    pdf = HTML(string=html).write_pdf()
+    resp = make_response(pdf)
+    resp.headers["Content-Type"] = "application/pdf"
+    resp.headers["Content-Disposition"] = f'attachment; filename="{cohort.name.replace(" ", "_")}_roster.pdf"'
+    return resp
 
 
 @admin_bp.route("/pipeline")
@@ -226,11 +336,24 @@ def analytics():
     for stage in PIPELINE_STAGES:
         stages[stage] = Application.query.filter_by(pipeline_stage=stage, is_submitted=True).count()
     attempts = TestAttempt.query.filter(TestAttempt.completed_at.isnot(None)).all()
-    scores = [a.score for a in attempts if a.score]
+    scores = [a.score for a in attempts if a.score is not None]
     avg_score = round(sum(scores) / len(scores), 1) if scores else 0
+    score_buckets = [
+        sum(1 for s in scores if 0 <= s < 20),
+        sum(1 for s in scores if 20 <= s < 40),
+        sum(1 for s in scores if 40 <= s < 60),
+        sum(1 for s in scores if 60 <= s < 80),
+        sum(1 for s in scores if 80 <= s <= 100),
+    ]
     return render_template(
         "admin/analytics.html",
-        stats={"total": total, "stages": stages, "avg_score": avg_score, "attempts": len(attempts)},
+        stats={
+            "total": total,
+            "stages": stages,
+            "avg_score": avg_score,
+            "attempts": len(attempts),
+            "score_buckets": score_buckets,
+        },
     )
 
 
@@ -277,12 +400,35 @@ def interviews():
 @login_required
 @admin_required
 def create_slots():
-    slot_date = datetime.strptime(request.form.get("slot_date"), "%Y-%m-%d").date()
+    slot_date_str = request.form.get("slot_date")
+    if not slot_date_str:
+        flash("Date is required.", "error")
+        return redirect(url_for("admin.interviews"))
+    slot_date = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
+    if slot_date <= date.today():
+        flash("Slot date must be in the future.", "error")
+        return redirect(url_for("admin.interviews"))
+    
     times = request.form.getlist("times")
+    if not times:
+        flash("Select at least one time slot.", "error")
+        return redirect(url_for("admin.interviews"))
+    
+    created = 0
     for t in times:
-        start_str, end_str = t.split("-")
+        if "-" not in t:
+            continue
+        start_str, end_str = t.split("-", 1)
         start = datetime.strptime(start_str.strip(), "%H:%M").time()
         end = datetime.strptime(end_str.strip(), "%H:%M").time()
+        if start >= end:
+            continue
+        # Check for duplicate
+        existing = InterviewSlot.query.filter_by(
+            slot_date=slot_date, start_time=start, end_time=end
+        ).first()
+        if existing:
+            continue
         slot = InterviewSlot(
             interviewer_id=current_user.id,
             slot_date=slot_date,
@@ -290,8 +436,12 @@ def create_slots():
             end_time=end,
         )
         db.session.add(slot)
+        created += 1
     db.session.commit()
-    flash("Time slots created.", "success")
+    if created:
+        flash(f"{created} time slot(s) created.", "success")
+    else:
+        flash("No slots were created. Check for duplicates or invalid times.", "warning")
     return redirect(url_for("admin.interviews"))
 
 
@@ -301,8 +451,19 @@ def create_slots():
 def update_booking(booking_id):
     booking = InterviewBooking.query.get_or_404(booking_id)
     new_status = request.form.get("status", booking.status)
+    
+    valid_booked_transitions = {
+        "scheduled": ["completed", "no_show", "cancelled"],
+        "completed": ["cancelled"],
+        "no_show": ["cancelled"],
+        "cancelled": ["scheduled"],
+    }
+    if new_status not in valid_booked_transitions.get(booking.status, []):
+        flash(f"Cannot change status from {booking.status} to {new_status}.", "error")
+        return redirect(url_for("admin.interviews"))
+    
     booking.status = new_status
-    booking.admin_notes = request.form.get("admin_notes")
+    booking.admin_notes = request.form.get("admin_notes", "").strip()
     booking.rating = request.form.get("rating", type=int)
     
     app_record = Application.query.filter_by(user_id=booking.user_id).first()
@@ -314,7 +475,8 @@ def update_booking(booking_id):
             if booking.rating:
                 app_record.interview_rating = booking.rating
     elif new_status == "no_show":
-        # Auto-reject for no-show
+        if booking.slot:
+            booking.slot.is_available = True
         if app_record:
             app_record.pipeline_stage = "rejected"
             app_record.status = "rejected"
@@ -325,7 +487,15 @@ def update_booking(booking_id):
                 "Your application was rejected due to not showing up for your scheduled interview.",
                 url_for("student.dashboard"),
             )
+    elif new_status == "cancelled":
+        if booking.slot:
+            booking.slot.is_available = True
+        if app_record and app_record.pipeline_stage == "interview_scheduled":
+            app_record.pipeline_stage = "test_completed"
+            app_record.status = "test_completed"
+            app_record.updated_at = datetime.utcnow()
     
+    log_activity(current_user.id, "booking_update", f"Booking {booking_id} -> {new_status}")
     db.session.commit()
     flash("Booking updated.", "success")
     return redirect(url_for("admin.interviews"))
@@ -374,12 +544,13 @@ def manage_announcements():
         db.session.add(ann)
         db.session.commit()
 
-        # enforce max 6 posts: delete oldest extras and their files
+        # enforce max 6 posts: delete oldest non-pinned extras
         total = Announcement.query.count()
         if total > 6:
-            extras = Announcement.query.order_by(Announcement.created_at.asc()).limit(total - 6).all()
+            extras = Announcement.query.filter_by(is_pinned=False).order_by(
+                Announcement.created_at.asc()
+            ).limit(total - 6).all()
             for ex in extras:
-                # delete file if present
                 if ex.image_filename:
                     try:
                         fp = os.path.join(current_app.config["UPLOAD_FOLDER"], ex.image_filename)

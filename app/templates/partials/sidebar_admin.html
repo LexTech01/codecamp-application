@@ -9,7 +9,7 @@
     <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
       <span class="icon"><i class="fa-solid fa-chart-simple"></i></span> Dashboard
     </a>
-    <a href="{{ url_for('admin.applicants') }}" class="sidebar-link {% if request.endpoint == 'admin.applicants' %}active{% endif %}">
+    <a href="{{ url_for('admin.applicants') }}" class="sidebar-link {% if request.endpoint in ['admin.applicants', 'admin.applicant_detail', 'admin.update_stage'] %}active{% endif %}">
       <span class="icon"><i class="fa-solid fa-users"></i></span> Applicants
     </a>
     <a href="{{ url_for('admin.pipeline') }}" class="sidebar-link {% if request.endpoint == 'admin.pipeline' %}active{% endif %}">
@@ -21,7 +21,7 @@
     <a href="{{ url_for('admin.interviews') }}" class="sidebar-link {% if request.endpoint == 'admin.interviews' %}active{% endif %}">
       <span class="icon"><i class="fa-solid fa-calendar-days"></i></span> Interviews
     </a>
-    <a href="{{ url_for('admin.cohorts') }}" class="sidebar-link {% if request.endpoint in ['admin.cohorts', 'admin.assign_cohort'] %}active{% endif %}">
+    <a href="{{ url_for('admin.cohorts') }}" class="sidebar-link {% if request.endpoint in ['admin.cohorts', 'admin.assign_cohort', 'admin.create_cohort', 'admin.edit_cohort', 'admin.notify_cohort', 'admin.export_cohort_pdf'] %}active{% endif %}">
       <span class="icon"><i class="fa-solid fa-layer-group"></i></span> Cohorts
     </a>
     <a href="{{ url_for('admin.manage_announcements') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_announcements' %}active{% endif %}">

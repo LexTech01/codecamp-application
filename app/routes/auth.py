@@ -20,6 +20,7 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
             log_activity(user.id, "login", f"User {user.email} logged in")
+            db.session.commit()
             next_page = request.args.get("next")
             if user.is_admin:
                 return redirect(next_page or url_for("admin.dashboard"))
@@ -52,9 +53,9 @@ def signup():
             "Complete your application to begin the recruitment journey.",
             url_for("student.application"),
         )
+        log_activity(user.id, "signup", f"New account: {user.email}")
         db.session.commit()
         login_user(user)
-        log_activity(user.id, "signup", f"New account: {user.email}")
         flash("Account created! Complete your application to get started.", "success")
         return redirect(url_for("student.application"))
     return render_template("auth/signup.html", form=form)
@@ -73,6 +74,7 @@ def forgot_password():
 def logout():
     if current_user.is_authenticated:
         log_activity(current_user.id, "logout")
+        db.session.commit()
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for("main.index"))

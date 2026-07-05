@@ -3,7 +3,7 @@
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
 {% block body %}
 <div class="auth-page">
-  <div class="auth-container fade-in-up">
+  <div class="auth-container" data-aos="fade-up">
     <div class="auth-visual">
       <video class="auth-video" src="{{ url_for('static', filename='videos/campvid.mp4') }}" autoplay muted loop playsinline></video>
       <div class="auth-visual-content">
@@ -27,11 +27,16 @@
             {{ form.email(class="form-input", placeholder="you@email.com") }}
             {% for e in form.email.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
           </div>
-          <div class="form-group">
+          <div class="form-group password-field">
             <label class="form-label">{{ form.password.label }}</label>
-            {{ form.password(class="form-input", placeholder="••••••••") }}
+            <div class="password-wrapper">
+              {{ form.password(class="form-input", placeholder="••••••••") }}
+              <button type="button" class="password-toggle" tabindex="-1" aria-label="Toggle password visibility">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
           </div>
-          <div class="flex justify-between items-center mb-3" style="margin-bottom:20px">
+          <div class="flex justify-between items-center mb-3 auth-login-row" style="margin-bottom:20px">
             <label class="form-checkbox">{{ form.remember() }} Remember me</label>
             <a href="{{ url_for('auth.forgot_password') }}" style="font-size:0.85rem">Forgot password?</a>
           </div>

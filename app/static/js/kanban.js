@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
       draggedCard = null;
+      originalParent = null;
+      originalNextSibling = null;
     });
   });
 

@@ -8,7 +8,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.forms.auth_forms import ProfileForm
 from app.models.user import User
-from app.models.application import Application, PIPELINE_STAGES, VALID_TRANSITIONS, can_advance_to
+from app.models.application import Application
 from app.models.assessment import Assessment, Question, TestAttempt
 from app.models.interview import InterviewSlot, InterviewBooking, InterviewerProfile
 from app.models.announcement import Announcement, AnnouncementRead
@@ -21,7 +21,6 @@ student_bp = Blueprint("student", __name__)
 
 # Main progression stages (in order)
 STAGE_PROGRESSION = [
-    "draft",
     "submitted",
     "under_review",
     "test_invited",
@@ -56,7 +55,7 @@ def check_stage_access(allowed_stages):
                     # User has passed this stage, allow review access
                     return f(*args, **kwargs)
             
-            flash(f"This feature is not available at your current stage ({current_stage}).", "warning")
+            flash(f"This feature is not available at your current stage.", "warning")
             return redirect(url_for("student.dashboard"))
         wrapper.__name__ = f.__name__
         return wrapper
@@ -83,14 +82,13 @@ def dashboard():
         booking=booking,
         test_attempt=test_attempt,
         announcements=announcements,
-        pipeline_stages=PIPELINE_STAGES[:9],
     )
 
 
 @student_bp.route("/application", methods=["GET", "POST"])
 @login_required
 @student_required
-@check_stage_access(["draft", "submitted", "under_review", "test_invited"])
+@check_stage_access(["submitted", "under_review", "test_invited"])
 def application():
     app_record = Application.query.filter_by(user_id=current_user.id).first()
     if not app_record:
@@ -176,6 +174,16 @@ def assessment_list():
 @check_stage_access(["test_invited", "test_completed"])
 def take_assessment(assessment_id):
     assessment = Assessment.query.get_or_404(assessment_id)
+    # Enforce max retry limit (3 attempts)
+    app_record = Application.query.filter_by(user_id=current_user.id).first()
+    max_attempts = 3
+    if app_record and (app_record.test_attempts or 0) >= max_attempts:
+        last = TestAttempt.query.filter_by(
+            user_id=current_user.id, assessment_id=assessment_id
+        ).filter(TestAttempt.completed_at.isnot(None)).order_by(TestAttempt.completed_at.desc()).first()
+        if last and not last.passed:
+            flash(f"You've used all {max_attempts} attempts. Please contact support.", "warning")
+            return redirect(url_for("student.dashboard"))
     # Get all completed attempts for this assessment
     completed = TestAttempt.query.filter_by(
         user_id=current_user.id, assessment_id=assessment_id
@@ -195,9 +203,9 @@ def take_assessment(assessment_id):
         attempt = TestAttempt(user_id=current_user.id, assessment_id=assessment_id)
         db.session.add(attempt)
         db.session.commit()
-        app_record = Application.query.filter_by(user_id=current_user.id).first()
         if app_record and app_record.pipeline_stage == "test_invited":
             log_activity(current_user.id, "test_started")
+            db.session.commit()
     question_objs = Question.query.filter_by(assessment_id=assessment_id).order_by(Question.order_num, Question.id).all()
     questions = [q.to_dict() for q in question_objs]
     return render_template(
@@ -214,7 +222,17 @@ def take_assessment(assessment_id):
 def assessment_result(attempt_id):
     attempt = TestAttempt.query.filter_by(id=attempt_id, user_id=current_user.id).first_or_404()
     assessment = Assessment.query.get(attempt.assessment_id)
-    return render_template("assessment/result.html", attempt=attempt, assessment=assessment)
+    app_record = Application.query.filter_by(user_id=current_user.id).first()
+    max_attempts = 3
+    attempts_used = app_record.test_attempts if app_record else 0
+    retries_left = max(0, max_attempts - attempts_used)
+    return render_template(
+        "assessment/result.html",
+        attempt=attempt,
+        assessment=assessment,
+        retries_left=retries_left,
+        max_attempts=max_attempts,
+    )
 
 
 @student_bp.route("/interview")
@@ -223,6 +241,13 @@ def assessment_result(attempt_id):
 @check_stage_access(["test_completed", "interview_scheduled", "interview_completed"])
 def interview_schedule():
     app_record = Application.query.filter_by(user_id=current_user.id).first()
+    if app_record and app_record.pipeline_stage == "test_completed":
+        last_attempt = TestAttempt.query.filter_by(user_id=current_user.id).order_by(
+            TestAttempt.completed_at.desc()
+        ).first()
+        if not last_attempt or not last_attempt.passed:
+            flash("You must pass the assessment before accessing the interview.", "warning")
+            return redirect(url_for("student.dashboard"))
     booking = InterviewBooking.query.filter_by(user_id=current_user.id).filter(
         InterviewBooking.status.in_(["scheduled", "completed"])
     ).first()
@@ -241,16 +266,21 @@ def interview_schedule():
 @login_required
 @student_required
 def announcements():
-    all_announcements = Announcement.query.order_by(
-        Announcement.is_pinned.desc(), Announcement.created_at.desc()
-    ).all()
-    notifications = Notification.query.filter_by(user_id=current_user.id).order_by(
-        Notification.created_at.desc()
-    ).all()
     read_ids = {
         r.announcement_id
         for r in AnnouncementRead.query.filter_by(user_id=current_user.id).all()
     }
+    query = Announcement.query
+    if read_ids:
+        query = query.filter(~Announcement.id.in_(read_ids))
+    all_announcements = query.order_by(
+        Announcement.is_pinned.desc(), Announcement.created_at.desc()
+    ).all()
+    notifications = Notification.query.filter_by(
+        user_id=current_user.id, is_read=False
+    ).order_by(
+        Notification.created_at.desc()
+    ).all()
     return render_template(
         "dashboard/announcements.html",
         announcements=all_announcements,

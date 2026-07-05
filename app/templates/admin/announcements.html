@@ -13,6 +13,7 @@
       <h3 class="card-title" style="font-size:0.95rem"><i class="fa-solid fa-plus-circle" style="margin-right:8px;color:var(--success)"></i> New Announcement</h3>
     </div>
     <form method="POST" enctype="multipart/form-data" style="padding:16px 20px 20px;flex:1;overflow-y:auto;display:flex;flex-direction:column">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-group" style="margin-bottom:12px">
         <label class="form-label" style="font-size:0.8rem;margin-bottom:4px">Title</label>
         <input type="text" name="title" class="form-input" placeholder="Announcement title" required>
@@ -49,6 +50,7 @@
           <p class="text-muted" style="font-size:0.78rem;margin:0">{{ ann.created_at.strftime('%b %d, %Y · %H:%M') }}</p>
         </div>
         <form method="POST" action="{{ url_for('admin.delete_announcement', ann_id=ann.id) }}" data-confirm="Delete this post?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger btn-sm" style="padding:6px 10px"><i class="fa-solid fa-trash" style="font-size:0.8rem"></i></button>
         </form>
       </div>

@@ -3,7 +3,7 @@
 {% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
 {% block content %}
 <div class="student-dashboard">
-  <div class="sd-header">
+  <div class="sd-header" data-aos="fade-down">
     <div class="sd-header-text">
       <h1>Welcome back, {{ current_user.first_name }}</h1>
       <p>Track your recruitment journey and upcoming tasks.</p>
@@ -13,7 +13,7 @@
 
   <div class="sd-grid">
     <!-- Journey Progress -->
-    <div class="sd-card sd-card-full">
+    <div class="sd-card sd-card-full" data-aos="fade-up">
       <div class="sd-card-head">
         <div class="sd-card-head-left">
           <div class="sd-icon-wrap sd-icon-journey"><i class="fa-solid fa-map"></i></div>
@@ -39,8 +39,10 @@
             <div class="sd-step-node">
               {% if idx < stage_idx %}
               <i class="fa-solid fa-check"></i>
-              {% else %}
+              {% elif idx == stage_idx %}
               <i class="fa-solid {{ icon }}"></i>
+              {% else %}
+              <i class="fa-solid fa-lock"></i>
               {% endif %}
             </div>
             <span class="sd-step-label">{{ label }}</span>
@@ -51,8 +53,9 @@
     </div>
 
     <!-- Next Step -->
+    {% set test_passed = test_attempt and test_attempt.completed_at and test_attempt.passed %}
     {% if application %}
-    <div class="sd-card sd-card-next {{ 'sd-next-' + application.pipeline_stage if application.pipeline_stage in ['submitted','test_invited','test_completed','interview_scheduled','interview_completed','accepted','rejected','waitlisted','onboarding','enrolled'] else 'sd-next-default' }}">
+    <div class="sd-card sd-card-next {{ 'sd-next-' + application.pipeline_stage if application.pipeline_stage in ['submitted','test_invited','test_completed','interview_scheduled','interview_completed','accepted','rejected','waitlisted','onboarding','enrolled'] else 'sd-next-default' }}" data-aos="fade-up" data-aos-delay="100">
       <div class="sd-next-inner">
         <div class="sd-next-icon-block">
           {% if not application.is_submitted %}
@@ -95,9 +98,15 @@
           <p>You're invited to take the aptitude test. Complete it to move to the interview stage.</p>
           <a href="{{ url_for('student.assessment_list') }}" class="sd-btn">Take Test Now <i class="fa-solid fa-arrow-right"></i></a>
           {% elif application.pipeline_stage == 'test_completed' %}
+          {% if test_passed %}
           <h3>Schedule Your Interview</h3>
-          <p>Great! You've completed the aptitude test. Pick an interview slot to continue.</p>
+          <p>Great! You passed the aptitude test. Pick an interview slot to continue.</p>
           <a href="{{ url_for('student.interview_schedule') }}" class="sd-btn">Schedule Interview <i class="fa-solid fa-arrow-right"></i></a>
+          {% else %}
+          <h3>Retake the Aptitude Test</h3>
+          <p>You didn't meet the pass score. Review and try again to move forward.</p>
+          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn">Retake Test <i class="fa-solid fa-arrow-right"></i></a>
+          {% endif %}
           {% elif application.pipeline_stage == 'interview_scheduled' %}
           <h3>Interview Scheduled</h3>
           <p>Your interview is booked. Prepare well and join us at the designated time.</p>
@@ -129,7 +138,7 @@
     <!-- Mini Cards Row -->
     <div class="sd-card-row">
       <!-- Profile -->
-      <div class="sd-card sd-card-mini">
+      <div class="sd-card sd-card-mini" data-aos="fade-up" data-aos-delay="150">
         <div class="sd-mini-head">
           <div class="sd-mini-icon sd-icon-profile"><i class="fa-solid fa-user"></i></div>
           <div class="sd-mini-title">Profile</div>
@@ -142,13 +151,19 @@
       </div>
 
       <!-- Aptitude Test -->
-      <div class="sd-card sd-card-mini">
+      {% set test_locked = application.pipeline_stage in ['under_review'] %}
+      <div class="sd-card sd-card-mini {{ 'sd-card-locked' if test_locked else '' }}" data-aos="fade-up" data-aos-delay="200">
         <div class="sd-mini-head">
-          <div class="sd-mini-icon sd-icon-test"><i class="fa-solid fa-brain"></i></div>
+          <div class="sd-mini-icon sd-icon-test"><i class="fa-solid {{ 'fa-lock' if test_locked else 'fa-brain' }}"></i></div>
           <div class="sd-mini-title">Aptitude Test</div>
         </div>
         <div class="sd-mini-body sd-mini-center">
-          {% if test_attempt and test_attempt.completed_at %}
+          {% if test_locked %}
+          <div class="sd-mini-empty">
+            <i class="fa-solid fa-lock"></i>
+            <span>Locked — submit application first</span>
+          </div>
+          {% elif test_attempt and test_attempt.completed_at %}
           <div class="sd-mini-score">
             <span class="sd-mini-score-val">{{ test_attempt.score }}%</span>
             <span class="sd-mini-score-label">Attempt {{ application.test_attempts or 1 }}</span>
@@ -166,13 +181,19 @@
       </div>
 
       <!-- Interview -->
-      <div class="sd-card sd-card-mini">
+      {% set interview_locked = not test_passed %}
+      <div class="sd-card sd-card-mini {{ 'sd-card-locked' if interview_locked else '' }}" data-aos="fade-up" data-aos-delay="250">
         <div class="sd-mini-head">
-          <div class="sd-mini-icon sd-icon-interview"><i class="fa-solid fa-calendar"></i></div>
+          <div class="sd-mini-icon sd-icon-interview"><i class="fa-solid {{ 'fa-lock' if interview_locked else 'fa-calendar' }}"></i></div>
           <div class="sd-mini-title">Interview</div>
         </div>
         <div class="sd-mini-body sd-mini-center">
-          {% if booking and booking.slot %}
+          {% if interview_locked %}
+          <div class="sd-mini-empty">
+            <i class="fa-solid fa-lock"></i>
+            <span>Locked — pass the test first</span>
+          </div>
+          {% elif booking and booking.slot %}
           <div class="sd-mini-detail">
             <div class="sd-mini-detail-row"><i class="fa-regular fa-calendar"></i> {{ booking.slot.formatted_date }}</div>
             <div class="sd-mini-detail-row"><i class="fa-regular fa-clock"></i> {{ booking.slot.formatted_time }}</div>
@@ -582,6 +603,11 @@
 
 .sd-badge-pass { background: rgba(16,185,129,0.12); color: #10b981; }
 .sd-badge-fail { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+.sd-card-locked { opacity: 0.55; }
+.sd-card-locked .sd-mini-icon { background: rgba(107,114,128,0.1); color: var(--text-muted); }
+.sd-card-locked .sd-mini-empty i { font-size: 1.4rem; color: var(--text-muted); opacity: 0.4; }
+.sd-card-locked .sd-mini-empty span { font-size: 0.75rem; color: var(--text-muted); }
 
 @media (max-width: 900px) {
   .sd-grid { grid-template-columns: 1fr; }

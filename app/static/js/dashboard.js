@@ -3,7 +3,7 @@
  */
 document.addEventListener('DOMContentLoaded', () => {
   initCharts();
-  initCounterAnimation();
+  initHeroSlider();
 });
 
 function initCharts() {
@@ -91,38 +91,21 @@ function initCharts() {
   }
 }
 
-function initCounterAnimation() {
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const target = parseInt(el.dataset.count, 10);
-    const duration = 1500;
-    const start = performance.now();
-
-    function update(now) {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(target * eased).toLocaleString();
-      if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
-  });
-}
-
 // hero image slider
-const slides = document.querySelectorAll(".slide");
+function initHeroSlider() {
+  const slides = document.querySelectorAll(".slide");
+  if (!slides.length) return;
 
-let currentIndex = 0;
+  let currentIndex = 0;
 
-function changeSlide() {
-    slides[currentIndex].classList.remove("active");
+  function changeSlide() {
+      slides[currentIndex].classList.remove("active");
+      currentIndex++;
+      if (currentIndex >= slides.length) {
+          currentIndex = 0;
+      }
+      slides[currentIndex].classList.add("active");
+  }
 
-    currentIndex++;
-
-    if (currentIndex >= slides.length) {
-        currentIndex = 0;
-    }
-
-    slides[currentIndex].classList.add("active");
+  setInterval(changeSlide, 6000);
 }
-
-// Change image every 6 seconds
-setInterval(changeSlide, 6000);

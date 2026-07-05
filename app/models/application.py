@@ -138,10 +138,10 @@ class Application(db.Model):
 
 VALID_TRANSITIONS = {
     "draft": ["submitted"],
-    "submitted": ["under_review", "rejected"],
+    "submitted": ["under_review", "test_invited", "rejected"],
     "under_review": ["test_invited", "rejected", "waitlisted"],
     "test_invited": ["test_completed", "rejected"],
-    "test_completed": ["interview_scheduled", "rejected"],
+    "test_completed": ["interview_scheduled", "accepted", "rejected"],
     "interview_scheduled": ["interview_completed", "rejected", "no_show"],
     "interview_completed": ["accepted", "rejected", "waitlisted"],
     "rejected": ["waitlisted"],
@@ -152,6 +152,9 @@ VALID_TRANSITIONS = {
 }
 
 ADMIN_DECISION_TRANSITIONS = {
+    "submitted": ["under_review", "test_invited", "rejected"],
+    "under_review": ["test_invited", "rejected", "waitlisted"],
+    "test_invited": ["test_completed", "rejected"],
     "test_completed": ["interview_scheduled", "accepted", "rejected", "waitlisted"],
     "interview_scheduled": ["rejected"],
     "interview_completed": ["accepted", "rejected", "waitlisted"],

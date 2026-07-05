@@ -70,14 +70,14 @@
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  height: 100%;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
@@ -109,9 +109,10 @@
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  margin-bottom: 12px;
-  flex-shrink: 0;
+  grid-auto-rows: 1fr;
+  gap: 3px;
+  flex: 1;
+  min-height: 0;
 }
 
 .cal-day-header {
@@ -124,7 +125,6 @@
 }
 
 .cal-day {
-  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,13 +164,13 @@
   border: 1px solid var(--accent-primary);
 }
 
-/* Time slots section - fills remaining space */
+/* Time slots section */
 .time-slots-section {
-  flex: 1;
+  flex: 0 0 auto;
+  max-height: 140px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 0;
 }
 
 .time-slots-section h3 {
@@ -254,6 +254,33 @@
 #confirmBooking {
   flex-shrink: 0;
   margin-top: 12px !important;
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  letter-spacing: 0.02em;
+}
+
+#confirmBooking:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 74, 173, 0.35);
+}
+
+#confirmBooking:disabled {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  border: 1px solid var(--border-color);
 }
 
 .page-header {

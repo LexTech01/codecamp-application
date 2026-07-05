@@ -3,7 +3,7 @@
 {% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">{% endblock %}
 {% block content %}
-<div class="application-container">
+<div class="application-container" data-aos="fade-up">
   <div class="page-header">
     <h1>CodeCamp Application</h1>
     <p>Complete your personal details and programme selection.</p>
@@ -19,6 +19,7 @@
     </div>
 
     <form method="POST" id="applicationForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="current_step" id="current_step" value="{{ step }}">
 
       <div class="wizard-panel {% if step == 1 %}active{% endif %}" id="step1">

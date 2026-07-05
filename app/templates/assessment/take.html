@@ -5,9 +5,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
 {% endblock %}
 {% block body %}
-<div id="assessmentTest"
+<div id="assessmentTest" data-aos="fade-up"
      data-assessment-id="{{ assessment.id }}"
-     data-duration="{{ assessment.duration_minutes }}">
+     data-duration="20">
   <div class="assessment-layout">
     <aside class="assessment-sidebar">
       <a href="{{ url_for('student.assessment_list') }}" style="font-size:0.85rem;margin-bottom:24px;display:block"><i class="fa-solid fa-arrow-left"></i> Exit Test</a>

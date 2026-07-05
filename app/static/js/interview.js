@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCalendar();
     } catch (e) {
       console.error(e);
+      const panel = document.querySelector('.interview-calendar-panel');
+      if (panel) {
+        panel.innerHTML = '<div class="card" style="padding:40px;text-align:center"><p style="color:var(--error);margin-bottom:12px">Failed to load available dates.</p><button class="btn btn-primary" onclick="location.reload()">Try Again</button></div>';
+      }
     }
 
     document.getElementById('prevMonth')?.addEventListener('click', () => {
