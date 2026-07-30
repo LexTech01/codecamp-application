@@ -5,9 +5,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y \
-    libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 \
-    libffi-dev shared-mime-info nginx \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    pkg-config \
+    libffi-dev \
+    shared-mime-info \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
