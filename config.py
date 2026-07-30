@@ -16,6 +16,10 @@ class Config:
         "DATABASE_URL",
         "sqlite:///" + os.path.join(BASE_DIR, "instance", "cellusys.db"),
     )
+    # Auto-rewrite Supabase direct URI to use connection pooler (port 6543)
+    # Direct port 5432 routes via IPv6 which is unreachable from some networks (Render, etc.)
+    if _db_url.startswith("postgresql://") and ".supabase.co:5432" in _db_url:
+        _db_url = _db_url.replace(".supabase.co:5432", ".pooler.supabase.com:6543")
     if _db_url.startswith("postgresql://") and "sslmode=" not in _db_url:
         sep = "&" if "?" in _db_url else "?"
         _db_url += f"{sep}sslmode=require"
