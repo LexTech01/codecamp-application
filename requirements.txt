@@ -14,8 +14,7 @@ python-dotenv==1.0.1
 SQLAlchemy==2.0.30
 psycopg2-binary==2.9.9
 
-# PDF
-WeasyPrint==61.2
+# PDF (requires system libs: pango, cairo — works on Render)
 
 # File Storage (optional — uncomment when ready)
 # cloudinary==1.36.0
