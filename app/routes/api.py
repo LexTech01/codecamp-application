@@ -1,10 +1,11 @@
 """JSON API endpoints for AJAX interactions."""
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify, url_for
 from flask_login import login_required, current_user
 from app import db
-from app.models.application import Application, KANBAN_COLUMNS, VALID_TRANSITIONS, can_advance_to
+from app.models.application import Application
+from app.pipeline import pipeline
 from app.models.assessment import Assessment, Question, TestAttempt
 from app.models.interview import InterviewSlot, InterviewBooking
 from app.models.announcement import AnnouncementRead
@@ -77,13 +78,13 @@ def submit_assessment(assessment_id):
     attempt.total_points = total
     attempt.score = score
     attempt.passed = score >= assessment.pass_score
-    attempt.completed_at = datetime.utcnow()
+    attempt.completed_at = datetime.now(timezone.utc)
     attempt.time_taken_seconds = time_taken
     app_record = Application.query.filter_by(user_id=current_user.id).first()
     if app_record:
         app_record.test_score = score
         app_record.test_attempts = (app_record.test_attempts or 0) + 1
-        app_record.last_test_attempt_date = datetime.utcnow()
+        app_record.last_test_attempt_date = datetime.now(timezone.utc)
         
         if attempt.passed:
             app_record.pipeline_stage = "test_completed"
@@ -116,7 +117,7 @@ def submit_assessment(assessment_id):
 @api_bp.route("/interview/available-dates")
 @login_required
 def available_dates():
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     end = today + timedelta(days=30)
     slots = InterviewSlot.query.filter(
         InterviewSlot.slot_date >= today,
@@ -165,7 +166,7 @@ def book_interview():
     if app_record:
         app_record.pipeline_stage = "interview_scheduled"
         app_record.status = "interview_scheduled"
-        app_record.updated_at = datetime.utcnow()
+        app_record.updated_at = datetime.now(timezone.utc)
     create_notification(
         current_user.id,
         "Interview Scheduled",
@@ -192,7 +193,7 @@ def cancel_interview(booking_id):
     if app_record and app_record.pipeline_stage == "interview_scheduled":
         app_record.pipeline_stage = "test_completed"
         app_record.status = "test_completed"
-        app_record.updated_at = datetime.utcnow()
+        app_record.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({"success": True})
 
@@ -205,27 +206,20 @@ def move_pipeline_card():
     data = request.get_json() or {}
     app_id = data.get("application_id")
     column = data.get("column")
-    stage_map = {
-        "new": "submitted",
-        "review": "under_review",
-        "test": "test_invited",
-        "interview": "interview_scheduled",
-        "accepted": "accepted",
-        "rejected": "rejected",
-    }
-    new_stage = stage_map.get(column, "submitted")
+    new_stage = pipeline.stage_for_kanban(column)
     app_record = Application.query.get_or_404(app_id)
     
-    if new_stage not in VALID_TRANSITIONS.get(app_record.pipeline_stage, []):
+    if not pipeline.can_advance(app_record.pipeline_stage, new_stage):
         return jsonify({"error": f"Cannot transition from {app_record.pipeline_stage} to {new_stage}"}), 400
     
     app_record.pipeline_stage = new_stage
     app_record.status = new_stage
-    app_record.updated_at = datetime.utcnow()
+    app_record.updated_at = datetime.now(timezone.utc)
+    notif_title, notif_message = pipeline.notify_content(app_record.pipeline_stage, new_stage)
     create_notification(
         app_record.user_id,
-        "Application Update",
-        f"Your application status is now: {app_record.status_label}",
+        notif_title,
+        notif_message,
         url_for("student.dashboard"),
     )
     log_activity(current_user.id, "pipeline_move", f"App {app_id} -> {new_stage}")

@@ -23,8 +23,14 @@ def index():
     blog_posts = Announcement.query.order_by(Announcement.is_pinned.desc(), Announcement.created_at.desc()).limit(3).all()
     for p in blog_posts:
         _validate_image_filename(p)
+    from app.models.user import User
+    from app.models.application import Application
+    total_applicants = User.query.filter_by(role="student").count()
+    accepted = Application.query.filter(
+        Application.pipeline_stage.in_(["accepted", "onboarding", "enrolled"])
+    ).count()
     stats = {
-        "applicants": 1247,
+        "applicants": total_applicants or 1247,
         "acceptance_rate": 18,
         "placement_rate": 94,
         "cohorts": 12,

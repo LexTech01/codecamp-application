@@ -1,5 +1,5 @@
 """Assessment and test attempt models."""
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
 
 
@@ -12,7 +12,7 @@ class Assessment(db.Model):
     duration_minutes = db.Column(db.Integer, default=45)
     pass_score = db.Column(db.Float, default=70.0)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     questions = db.relationship("Question", backref="assessment", lazy="dynamic", cascade="all, delete-orphan")
     attempts = db.relationship("TestAttempt", backref="assessment", lazy="dynamic")
@@ -55,7 +55,7 @@ class TestAttempt(db.Model):
     total_points = db.Column(db.Integer, default=0)
     earned_points = db.Column(db.Integer, default=0)
     passed = db.Column(db.Boolean, default=False)
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime)
     time_taken_seconds = db.Column(db.Integer)
 

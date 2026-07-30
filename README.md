@@ -5,12 +5,12 @@ A Flask recruitment platform for **Cellusys CodeCamp** — 100% scholarships for
 ## Quick Start
 
 ```bash
-cd ~/Desktop/cellusys
+cd ~/Desktop/cellusys-application
 pip install -r requirements.txt
 python3 run.py
 ```
 
-Open http://localhost:5500
+Open http://localhost:5555
 
 ## Demo Accounts
 

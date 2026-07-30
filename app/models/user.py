@@ -1,5 +1,5 @@
 """User model with authentication support."""
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
@@ -18,7 +18,7 @@ class User(UserMixin, db.Model):
     avatar = db.Column(db.String(255), default="default-avatar.svg")
     bio = db.Column(db.Text)
     theme = db.Column(db.String(10), default="dark")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     application = db.relationship("Application", backref="user", uselist=False, lazy=True)
     notifications = db.relationship("Notification", backref="user", lazy="dynamic")

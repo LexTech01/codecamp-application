@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelector('.mark-all-read')?.addEventListener('click', async e => {
     e.preventDefault();
-    await fetch('/api/notifications/read-all', { method: 'POST' });
+    await Cellusys.fetchJSON('/api/notifications/read-all', { method: 'POST' });
     document.querySelectorAll('.notif-item.unread').forEach(i => {
       i.classList.remove('unread');
       i.classList.add('read');

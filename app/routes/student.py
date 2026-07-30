@@ -1,6 +1,6 @@
 """Student dashboard and feature routes."""
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import (
     Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app,
 )
@@ -16,21 +16,9 @@ from app.models.notification import Notification
 from app.models.activity import ActivityLog
 from app.utils.decorators import student_required
 from app.utils.helpers import save_upload, log_activity, create_notification, parse_json_safe
+from app.pipeline import pipeline
 
 student_bp = Blueprint("student", __name__)
-
-# Main progression stages (in order)
-STAGE_PROGRESSION = [
-    "submitted",
-    "under_review",
-    "test_invited",
-    "test_completed",
-    "interview_scheduled",
-    "interview_completed",
-    "accepted",
-    "onboarding",
-    "enrolled",
-]
 
 
 def check_stage_access(allowed_stages):
@@ -40,21 +28,13 @@ def check_stage_access(allowed_stages):
         def wrapper(*args, **kwargs):
             app_record = Application.query.filter_by(user_id=current_user.id).first()
             current_stage = app_record.pipeline_stage if app_record else None
-            
-            # Allow access if current stage is in allowed stages
+
             if current_stage in allowed_stages:
                 return f(*args, **kwargs)
-            
-            # Allow access if current stage is past all allowed stages
-            if current_stage in STAGE_PROGRESSION and any(s in STAGE_PROGRESSION for s in allowed_stages):
-                current_idx = STAGE_PROGRESSION.index(current_stage)
-                max_allowed_idx = max(
-                    STAGE_PROGRESSION.index(s) for s in allowed_stages if s in STAGE_PROGRESSION
-                )
-                if current_idx > max_allowed_idx:
-                    # User has passed this stage, allow review access
-                    return f(*args, **kwargs)
-            
+
+            if current_stage and pipeline.check_access(current_stage, allowed_stages):
+                return f(*args, **kwargs)
+
             flash(f"This feature is not available at your current stage.", "warning")
             return redirect(url_for("student.dashboard"))
         wrapper.__name__ = f.__name__
@@ -106,7 +86,7 @@ def application():
             app_record.is_submitted = True
             app_record.pipeline_stage = "test_invited"
             app_record.status = "test_invited"
-            app_record.submitted_at = datetime.utcnow()
+            app_record.submitted_at = datetime.now(timezone.utc)
             app_record.current_step = 2
             log_activity(current_user.id, "application_submitted")
             create_notification(

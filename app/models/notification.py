@@ -1,5 +1,5 @@
 """User notifications."""
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
 
 
@@ -12,4 +12,4 @@ class Notification(db.Model):
     message = db.Column(db.Text)
     link = db.Column(db.String(255))
     is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

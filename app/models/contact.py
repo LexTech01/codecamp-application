@@ -1,5 +1,5 @@
 """Contact form submissions."""
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
 
 
@@ -11,4 +11,4 @@ class ContactMessage(db.Model):
     email = db.Column(db.String(120), nullable=False)
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

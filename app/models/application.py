@@ -1,29 +1,7 @@
 """Application model for bootcamp recruitment pipeline."""
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
-
-# Recruitment pipeline stages
-PIPELINE_STAGES = [
-    "submitted",
-    "under_review",
-    "test_invited",
-    "test_completed",
-    "interview_scheduled",
-    "interview_completed",
-    "accepted",
-    "rejected",
-    "waitlisted",
-    "onboarding",
-    "enrolled",
-]
-
-KANBAN_COLUMNS = {
-    "new": ["submitted"],
-    "test": ["test_invited", "test_completed"],
-    "interview": ["interview_scheduled", "interview_completed"],
-    "accepted": ["accepted", "onboarding", "enrolled"],
-    "rejected": ["rejected", "waitlisted"],
-}
+from app.pipeline import pipeline
 
 
 class Application(db.Model):
@@ -93,78 +71,18 @@ class Application(db.Model):
     is_submitted = db.Column(db.Boolean, default=False)
 
     submitted_at = db.Column(db.DateTime)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     @property
     def status_label(self):
-        labels = {
-            "draft": "Draft",
-            "submitted": "Submitted",
-            "under_review": "Under Review",
-            "test_invited": "Test Invited",
-            "test_completed": "Test Completed",
-            "interview_scheduled": "Interview Scheduled",
-            "interview_completed": "Interview Completed",
-            "accepted": "Accepted",
-            "rejected": "Rejected",
-            "waitlisted": "Waitlisted",
-            "onboarding": "Onboarding",
-            "enrolled": "Enrolled",
-        }
-        return labels.get(self.pipeline_stage, self.pipeline_stage.replace("_", " ").title())
+        return pipeline.status_label(self.pipeline_stage)
 
     @property
     def progress_percent(self):
-        stages = [
-            "submitted", "test_invited", "test_completed",
-            "interview_scheduled", "interview_completed", "accepted",
-        ]
-        if self.pipeline_stage in ("rejected", "waitlisted"):
-            return 100
-        if self.pipeline_stage in ("onboarding", "enrolled"):
-            return 100
-        try:
-            idx = stages.index(self.pipeline_stage)
-            return int((idx + 1) / len(stages) * 100)
-        except ValueError:
-            return 10 if self.is_submitted else 0
+        return pipeline.progress_percent(self.pipeline_stage)
 
     def advance_stage(self, new_stage):
         self.pipeline_stage = new_stage
         self.status = new_stage
-        self.updated_at = datetime.utcnow()
-
-
-VALID_TRANSITIONS = {
-    "draft": ["submitted"],
-    "submitted": ["under_review", "test_invited", "rejected"],
-    "under_review": ["test_invited", "rejected", "waitlisted"],
-    "test_invited": ["test_completed", "rejected"],
-    "test_completed": ["interview_scheduled", "accepted", "rejected"],
-    "interview_scheduled": ["interview_completed", "rejected", "no_show"],
-    "interview_completed": ["accepted", "rejected", "waitlisted"],
-    "rejected": ["waitlisted"],
-    "waitlisted": ["test_invited"],
-    "accepted": ["onboarding"],
-    "onboarding": ["enrolled"],
-    "enrolled": ["enrolled"],
-}
-
-ADMIN_DECISION_TRANSITIONS = {
-    "submitted": ["under_review", "test_invited", "rejected"],
-    "under_review": ["test_invited", "rejected", "waitlisted"],
-    "test_invited": ["test_completed", "rejected"],
-    "test_completed": ["interview_scheduled", "accepted", "rejected", "waitlisted"],
-    "interview_scheduled": ["rejected"],
-    "interview_completed": ["accepted", "rejected", "waitlisted"],
-    "accepted": ["onboarding"],
-    "onboarding": ["enrolled"],
-    "rejected": ["test_invited"],
-    "waitlisted": ["test_invited"],
-}
-
-
-def can_advance_to(current_stage, target_stage):
-    """Check if stage transition is valid."""
-    return target_stage in VALID_TRANSITIONS.get(current_stage, [])
+        self.updated_at = datetime.now(timezone.utc)

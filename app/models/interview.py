@@ -1,5 +1,5 @@
 """Interview scheduling models."""
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timezone
 from app import db
 
 
@@ -23,7 +23,7 @@ class InterviewSlot(db.Model):
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
     is_available = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     interviewer = db.relationship("User", foreign_keys=[interviewer_id])
     booking = db.relationship("InterviewBooking", backref="slot", uselist=False)
@@ -47,5 +47,5 @@ class InterviewBooking(db.Model):
     notes = db.Column(db.Text)
     admin_notes = db.Column(db.Text)
     rating = db.Column(db.Integer)  # 1-5
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

@@ -1,15 +1,17 @@
 """Flask application factory."""
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
 
 from config import Config
 
 db = SQLAlchemy()
+migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 login_manager.login_message_category = "info"
@@ -17,14 +19,17 @@ limiter = Limiter(key_func=get_remote_address)
 csrf = CSRFProtect()
 
 
-def create_app(config_class=Config):
+def create_app(config_class=Config, config_override=None):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    if config_override:
+        app.config.update(config_override)
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(os.path.join(app.root_path, "..", "instance"), exist_ok=True)
 
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     limiter.init_app(app)
     csrf.init_app(app)
@@ -70,6 +75,18 @@ def create_app(config_class=Config):
             sidebar_notifications=notifications,
             sidebar_activities=activities
         )
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin"
+        return response
+
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "ok"})
 
     return app
 

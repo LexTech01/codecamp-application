@@ -17,8 +17,8 @@ psycopg2-binary==2.9.9
 # PDF
 WeasyPrint==61.2
 
-# File Storage
-cloudinary==1.36.0
+# File Storage (optional — uncomment when ready)
+# cloudinary==1.36.0
 
 # Security
 bcrypt==4.1.3

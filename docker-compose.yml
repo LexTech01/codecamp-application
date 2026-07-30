@@ -1,0 +1,46 @@
+services:
+  # ── Database ───────────────────────────────────────────────────────────
+  # Option A — Supabase (production): remove this entire `db:` block,
+  # set DATABASE_URL in .env to your Supabase URI, and the web service
+  # will connect directly to Supabase.
+  #
+  # Option B — Local PostgreSQL (dev/staging): keep this block, run:
+  #   docker compose up --build
+  db:
+    image: postgres:16-alpine
+    profiles:
+      - local
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: cellusys
+      POSTGRES_USER: cellusys
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cellusys_secret}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cellusys"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    build: .
+    ports:
+      - "${PORT:-80}:80"
+    env_file:
+      - .env
+    # If using local db service:
+    # environment:
+    #   DATABASE_URL: postgresql://cellusys:${DB_PASSWORD:-cellusys_secret}@db:5432/cellusys
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+    volumes:
+      - uploads_data:/app/app/static/uploads
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads_data:

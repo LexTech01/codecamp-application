@@ -8,10 +8,15 @@
   window.__setTheme = function (theme) {
     html.setAttribute("data-theme", theme);
     localStorage.setItem(STORAGE_KEY, theme);
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var token = csrfMeta ? csrfMeta.getAttribute("content") : "";
     if (typeof fetch !== "undefined") {
       fetch("/api/theme", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": token,
+        },
         body: JSON.stringify({ theme }),
       }).catch(function () {});
     }
