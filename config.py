@@ -12,10 +12,14 @@ class Config:
 
     # Database — set DATABASE_URL for PostgreSQL in production
     # Falls back to SQLite at instance/cellusys.db for local dev
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    _db_url = os.environ.get(
         "DATABASE_URL",
         "sqlite:///" + os.path.join(BASE_DIR, "instance", "cellusys.db"),
     )
+    if _db_url.startswith("postgresql://") and "sslmode=" not in _db_url:
+        sep = "&" if "?" in _db_url else "?"
+        _db_url += f"{sep}sslmode=require"
+    SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Flask-Migrate
