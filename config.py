@@ -43,9 +43,9 @@ class Config:
     _redis_url = os.environ.get("REDIS_URL")
     REDIS_URL = _redis_url or "redis://localhost:6379/0"
 
-    # Celery
-    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", _redis_url or "redis://localhost:6379/0")
-    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", _redis_url or "redis://localhost:6379/0")
+    # Celery (disabled by default — requires REDIS_URL)
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", _redis_url or "")
+    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", _redis_url or "")
     RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "true").lower() == "true"
     RATELIMIT_DEFAULT = "200 per day; 50 per hour"
     RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
