@@ -1,6 +1,7 @@
 """Analytics and pipeline view routes."""
 from flask import render_template
 from flask_login import login_required, current_user
+from sqlalchemy import func
 from app import db
 from app.models.application import Application
 from app.pipeline import pipeline
@@ -28,11 +29,27 @@ def pipeline():
 @admin_required
 def analytics():
     total = Application.query.filter_by(is_submitted=True).count()
-    stages = {}
-    for stage in pipeline.STAGES:
-        stages[stage] = Application.query.filter_by(pipeline_stage=stage, is_submitted=True).count()
-    attempts = TestAttempt.query.filter(TestAttempt.completed_at.isnot(None)).all()
-    scores = [a.score for a in attempts if a.score is not None]
+
+    # Single GROUP BY query replacing 13 individual COUNT queries
+    stage_counts = dict(
+        db.session.query(
+            Application.pipeline_stage,
+            func.count(Application.id)
+        ).filter(
+            Application.is_submitted == True
+        ).group_by(
+            Application.pipeline_stage
+        ).all()
+    )
+    stages = {s: stage_counts.get(s, 0) for s in pipeline.STAGES}
+
+    # Single query for all completed attempt scores
+    score_rows = (
+        db.session.query(TestAttempt.score)
+        .filter(TestAttempt.completed_at.isnot(None))
+        .all()
+    )
+    scores = [r[0] for r in score_rows if r[0] is not None]
     avg_score = round(sum(scores) / len(scores), 1) if scores else 0
     score_buckets = [
         sum(1 for s in scores if 0 <= s < 20),
@@ -47,7 +64,7 @@ def analytics():
             "total": total,
             "stages": stages,
             "avg_score": avg_score,
-            "attempts": len(attempts),
+            "attempts": len(scores),
             "score_buckets": score_buckets,
         },
     )

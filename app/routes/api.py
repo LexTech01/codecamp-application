@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify, url_for
 from flask_login import login_required, current_user
+from sqlalchemy.orm.exc import StaleDataError
 from app import db
 from app.models.application import Application
 from app.pipeline import pipeline
@@ -58,6 +59,14 @@ def submit_assessment(assessment_id):
     answers = data.get("answers", {})
     time_taken = data.get("time_taken", 0)
     assessment = Assessment.query.get_or_404(assessment_id)
+
+    # Reject if already completed — prevents score overwrite
+    existing_completed = TestAttempt.query.filter_by(
+        user_id=current_user.id, assessment_id=assessment_id
+    ).filter(TestAttempt.completed_at.isnot(None)).first()
+    if existing_completed:
+        return jsonify({"error": "Assessment already submitted"}), 400
+
     attempt = TestAttempt.query.filter_by(
         user_id=current_user.id, assessment_id=assessment_id
     ).filter(TestAttempt.completed_at.is_(None)).first()
@@ -85,7 +94,7 @@ def submit_assessment(assessment_id):
         app_record.test_score = score
         app_record.test_attempts = (app_record.test_attempts or 0) + 1
         app_record.last_test_attempt_date = datetime.now(timezone.utc)
-        
+
         if attempt.passed:
             app_record.pipeline_stage = "test_completed"
             app_record.status = "test_completed"
@@ -150,23 +159,30 @@ def slots_for_date(date_str):
 def book_interview():
     data = request.get_json() or {}
     slot_id = data.get("slot_id")
-    slot = InterviewSlot.query.get_or_404(slot_id)
+
+    # Atomic check-then-set with row lock (PostgreSQL) — prevents double-booking
+    slot = InterviewSlot.query.with_for_update().get_or_404(slot_id)
     if slot.booking:
+        db.session.rollback()
         return jsonify({"error": "Slot no longer available"}), 400
+
     existing = InterviewBooking.query.filter_by(user_id=current_user.id).filter(
         InterviewBooking.status == "scheduled"
     ).first()
     if existing:
         existing.status = "cancelled"
         existing.slot.is_available = True
+
     booking = InterviewBooking(user_id=current_user.id, slot_id=slot.id)
     slot.is_available = False
     db.session.add(booking)
+
     app_record = Application.query.filter_by(user_id=current_user.id).first()
     if app_record:
         app_record.pipeline_stage = "interview_scheduled"
         app_record.status = "interview_scheduled"
         app_record.updated_at = datetime.now(timezone.utc)
+
     create_notification(
         current_user.id,
         "Interview Scheduled",
@@ -214,6 +230,7 @@ def move_pipeline_card():
     
     app_record.pipeline_stage = new_stage
     app_record.status = new_stage
+    app_record.version += 1
     app_record.updated_at = datetime.now(timezone.utc)
     notif_title, notif_message = pipeline.notify_content(app_record.pipeline_stage, new_stage)
     create_notification(
@@ -223,8 +240,12 @@ def move_pipeline_card():
         url_for("student.dashboard"),
     )
     log_activity(current_user.id, "pipeline_move", f"App {app_id} -> {new_stage}")
-    db.session.commit()
-    return jsonify({"success": True, "stage": new_stage})
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "stage": new_stage})
+    except StaleDataError:
+        db.session.rollback()
+        return jsonify({"error": "Conflict: another admin modified this application. Please reload."}), 409
 
 
 @api_bp.route("/announcements/<int:ann_id>/read", methods=["POST"])

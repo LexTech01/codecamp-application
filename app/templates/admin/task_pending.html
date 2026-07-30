@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Generating PDF{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto mt-20 text-center">
+  <div class="bg-white rounded-xl shadow-lg p-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Generating PDF</h1>
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-6"></div>
+    <p class="text-gray-600 mb-4">PDF is being generated in the background.</p>
+    <p class="text-gray-500 text-sm">Status: <span id="task-state" class="font-medium">{{ state }}</span></p>
+    <p class="text-gray-400 text-xs mt-2">This page will redirect automatically when ready.</p>
+  </div>
+</div>
+<script>
+const taskId = "{{ task_id }}";
+const check = () => {
+  fetch("/task-status/" + taskId + "/raw")
+    .then(r => r.json())
+    .then(data => {
+      if (data.state === "SUCCESS") window.location.href = data.redirect;
+      else if (data.state === "FAILURE") document.getElementById("task-state").textContent = "Failed — please try again";
+      else { document.getElementById("task-state").textContent = data.state; setTimeout(check, 2000); }
+    })
+    .catch(() => setTimeout(check, 3000));
+};
+setTimeout(check, 2000);
+</script>
+{% endblock %}

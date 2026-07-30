@@ -39,13 +39,31 @@ class Config:
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@cellusys.com")
 
-    # Flask-Limiter
+    # Redis
+    _redis_url = os.environ.get("REDIS_URL")
+    REDIS_URL = _redis_url or "redis://localhost:6379/0"
+
+    # Celery
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", _redis_url or "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", _redis_url or "redis://localhost:6379/0")
     RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "true").lower() == "true"
     RATELIMIT_DEFAULT = "200 per day; 50 per hour"
     RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
 
+    # Flask-Caching
+    CACHE_TYPE = os.environ.get("CACHE_TYPE", "RedisCache" if _redis_url else "NullCache")
+    CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL", _redis_url or "redis://localhost:6379/2")
+    CACHE_DEFAULT_TIMEOUT = 60
+
+    # Flask-Session
+    SESSION_TYPE = os.environ.get("SESSION_TYPE", "redis" if _redis_url else "filesystem")
+    SESSION_REDIS_URL = os.environ.get("SESSION_REDIS_URL", _redis_url or "redis://localhost:6379/1")
+    SESSION_PERMANENT = True
+    SESSION_USE_SIGNER = True
+    SESSION_KEY_PREFIX = "cellusys:session:"
+
     # Session
-    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
+    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true").lower() == "true"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     PERMANENT_SESSION_LIFETIME = 86400

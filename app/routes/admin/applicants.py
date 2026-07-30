@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
+from sqlalchemy.orm.exc import StaleDataError
 from app import db
 from app.models.user import User
 from app.models.application import Application
@@ -104,6 +105,7 @@ def update_stage(app_id):
     
     app_record.pipeline_stage = new_stage
     app_record.status = new_stage
+    app_record.version += 1
     app_record.updated_at = datetime.now(timezone.utc)
     
     notif_title, notif_message = pipeline.notify_content(old_stage, new_stage)
@@ -117,6 +119,10 @@ def update_stage(app_id):
         url_for("student.dashboard"),
     )
     log_activity(current_user.id, "stage_update", f"App {app_id} -> {new_stage}")
-    db.session.commit()
-    flash(f"Stage updated to {app_record.status_label}.", "success")
+    try:
+        db.session.commit()
+        flash(f"Stage updated to {app_record.status_label}.", "success")
+    except StaleDataError:
+        db.session.rollback()
+        flash("Conflict: another admin modified this application. Please reload and try again.", "error")
     return redirect(url_for("admin.applicant_detail", app_id=app_id))

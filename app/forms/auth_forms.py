@@ -34,6 +34,14 @@ class ForgotPasswordForm(FlaskForm):
     submit = SubmitField("Send Reset Link")
 
 
+class PasswordForm(FlaskForm):
+    password = PasswordField("New Password", validators=[DataRequired(), Length(6, 128)])
+    confirm_password = PasswordField(
+        "Confirm Password", validators=[DataRequired(), EqualTo("password")]
+    )
+    submit = SubmitField("Reset Password")
+
+
 class ProfileForm(FlaskForm):
     first_name = StringField("First Name", validators=[Length(2, 80)])
     last_name = StringField("Last Name", validators=[Length(2, 80)])

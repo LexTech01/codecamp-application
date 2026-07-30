@@ -70,9 +70,14 @@ class Application(db.Model):
     current_step = db.Column(db.Integer, default=1)
     is_submitted = db.Column(db.Boolean, default=False)
 
+    # Optimistic locking
+    version = db.Column(db.Integer, default=1, nullable=False)
+
     submitted_at = db.Column(db.DateTime)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __mapper_args__ = {"version_id_col": version}
 
     @property
     def status_label(self):
@@ -85,4 +90,5 @@ class Application(db.Model):
     def advance_stage(self, new_stage):
         self.pipeline_stage = new_stage
         self.status = new_stage
+        self.version += 1
         self.updated_at = datetime.now(timezone.utc)

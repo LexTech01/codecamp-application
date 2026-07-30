@@ -1,5 +1,7 @@
 """Flask application factory."""
+import logging
 import os
+import sentry_sdk
 from flask import Flask, jsonify
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -7,8 +9,13 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
+from flask_mail import Mail
+from flask_session import Session as FlaskSession
+from flask_caching import Cache
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config
+
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -17,6 +24,9 @@ login_manager.login_view = "auth.login"
 login_manager.login_message_category = "info"
 limiter = Limiter(key_func=get_remote_address)
 csrf = CSRFProtect()
+mail = Mail()
+flask_session = FlaskSession()
+cache = Cache()
 
 
 def create_app(config_class=Config, config_override=None):
@@ -24,6 +34,32 @@ def create_app(config_class=Config, config_override=None):
     app.config.from_object(config_class)
     if config_override:
         app.config.update(config_override)
+
+    # ── Logging ─────────────────────────────────────────────────────
+    log_level = logging.DEBUG if app.debug else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    app.logger.setLevel(log_level)
+    app.logger.info("Application starting")
+
+    # ── ProxyFix — trust nginx forwarding headers ─────────────────────
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+    # ── Sentry ──────────────────────────────────────────────────────
+    sentry_dsn = os.environ.get("SENTRY_DSN")
+    if sentry_dsn:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            traces_sample_rate=0.1,
+            profiles_sample_rate=0.05,
+            enable_tracing=True,
+        )
+        app.logger.info("Sentry initialized")
+    else:
+        app.logger.debug("SENTRY_DSN not set — error tracking disabled")
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(os.path.join(app.root_path, "..", "instance"), exist_ok=True)
@@ -33,6 +69,9 @@ def create_app(config_class=Config, config_override=None):
     login_manager.init_app(app)
     limiter.init_app(app)
     csrf.init_app(app)
+    mail.init_app(app)
+    flask_session.init_app(app)
+    cache.init_app(app)
 
     from app.models.user import User
 
@@ -61,15 +100,16 @@ def create_app(config_class=Config, config_override=None):
         if current_user.is_authenticated:
             from app.models.notification import Notification
             from app.models.activity import ActivityLog
-            unread = Notification.query.filter_by(
-                user_id=current_user.id, is_read=False
-            ).count()
-            notifications = Notification.query.filter_by(
-                user_id=current_user.id
-            ).order_by(Notification.created_at.desc()).limit(5).all()
-            activities = ActivityLog.query.filter_by(
-                user_id=current_user.id
-            ).order_by(ActivityLog.created_at.desc()).limit(5).all()
+            _uid = current_user.id
+            _key = f"sidebar:{_uid}"
+            _data = cache.get(_key)
+            if _data is None:
+                unread = Notification.query.filter_by(user_id=_uid, is_read=False).count()
+                notifications = Notification.query.filter_by(user_id=_uid).order_by(Notification.created_at.desc()).limit(5).all()
+                activities = ActivityLog.query.filter_by(user_id=_uid).order_by(ActivityLog.created_at.desc()).limit(5).all()
+                cache.set(_key, (unread, notifications, activities), timeout=15)
+            else:
+                unread, notifications, activities = _data
         return dict(
             unread_notifications=unread,
             sidebar_notifications=notifications,
@@ -83,6 +123,30 @@ def create_app(config_class=Config, config_override=None):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin"
         return response
+
+    @app.before_request
+    def log_request_start():
+        from flask import request
+        if request.path.startswith("/static/"):
+            return
+        app.logger.debug("%s %s", request.method, request.path)
+
+    @app.after_request
+    def log_request_end(response):
+        from flask import request
+        if request.path.startswith("/static/"):
+            return response
+        app.logger.debug("%s %s → %s", request.method, request.path, response.status_code)
+        return response
+
+    @app.errorhandler(500)
+    def handle_500(e):
+        app.logger.error("Internal server error: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+    @app.errorhandler(404)
+    def handle_404(e):
+        return jsonify({"error": "Not found"}), 404
 
     @app.route("/health")
     def health():

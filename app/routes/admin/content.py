@@ -1,6 +1,7 @@
 """Content management routes: announcements and assessments."""
 import os
 import uuid
+import logging
 from flask import render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
@@ -9,6 +10,8 @@ from app.models.announcement import Announcement
 from app.models.assessment import Assessment
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
+
+logger = logging.getLogger(__name__)
 
 
 @admin_bp.route("/announcements", methods=["GET", "POST"])
@@ -46,12 +49,12 @@ def manage_announcements():
             ).limit(total - 6).all()
             for ex in extras:
                 if ex.image_filename:
-                    try:
-                        fp = os.path.join(current_app.config["UPLOAD_FOLDER"], ex.image_filename)
-                        if os.path.exists(fp):
+                    fp = os.path.join(current_app.config["UPLOAD_FOLDER"], ex.image_filename)
+                    if os.path.exists(fp):
+                        try:
                             os.remove(fp)
-                    except Exception:
-                        pass
+                        except OSError as e:
+                            logger.warning("Failed to delete old announcement image %s: %s", fp, e)
                 db.session.delete(ex)
             db.session.commit()
 
@@ -67,12 +70,12 @@ def manage_announcements():
 def delete_announcement(ann_id):
     ann = Announcement.query.get_or_404(ann_id)
     if ann.image_filename:
-        try:
-            fp = os.path.join(current_app.config['UPLOAD_FOLDER'], ann.image_filename)
-            if os.path.exists(fp):
+        fp = os.path.join(current_app.config['UPLOAD_FOLDER'], ann.image_filename)
+        if os.path.exists(fp):
+            try:
                 os.remove(fp)
-        except Exception:
-            pass
+            except OSError as e:
+                logger.warning("Failed to delete announcement image %s: %s", fp, e)
     db.session.delete(ann)
     db.session.commit()
     flash('Announcement deleted.', 'success')

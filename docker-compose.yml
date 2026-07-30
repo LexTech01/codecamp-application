@@ -1,11 +1,5 @@
 services:
   # ── Database ───────────────────────────────────────────────────────────
-  # Option A — Supabase (production): remove this entire `db:` block,
-  # set DATABASE_URL in .env to your Supabase URI, and the web service
-  # will connect directly to Supabase.
-  #
-  # Option B — Local PostgreSQL (dev/staging): keep this block, run:
-  #   docker compose up --build
   db:
     image: postgres:16-alpine
     profiles:
@@ -25,22 +19,64 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ── Redis (caching, sessions, rate limiting) ──────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Web ────────────────────────────────────────────────────────────────
   web:
     build: .
     ports:
       - "${PORT:-80}:80"
     env_file:
       - .env
-    # If using local db service:
-    # environment:
-    #   DATABASE_URL: postgresql://cellusys:${DB_PASSWORD:-cellusys_secret}@db:5432/cellusys
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://cellusys:${DB_PASSWORD:-cellusys_secret}@db:5432/cellusys
+      RATELIMIT_STORAGE_URL: redis://redis:6379/0
+      SESSION_REDIS_URL: redis://redis:6379/1
+      CACHE_REDIS_URL: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - uploads_data:/app/app/static/uploads
     restart: unless-stopped
 
+  # ── Celery Worker (background tasks) ────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A app.celery_app.celery worker --loglevel=info --concurrency=2
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://cellusys:${DB_PASSWORD:-cellusys_secret}@db:5432/cellusys
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - exports_data:/app/app/static/exports
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  redis_data:
   uploads_data:
+  exports_data:
