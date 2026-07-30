@@ -1,6 +1,6 @@
-web: flask db upgrade && gunicorn wsgi:app \
+web: flask db upgrade && python3 -c 'from app import create_app, seed_database; app = create_app(); app.app_context().push(); seed_database()' && gunicorn wsgi:app \
     --bind 0.0.0.0:$PORT \
-    --workers 4 \
+    --workers 2 \
     --timeout 120 \
     --access-logfile - \
     --error-logfile - \

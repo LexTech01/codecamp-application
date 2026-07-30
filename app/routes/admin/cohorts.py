@@ -146,7 +146,6 @@ def notify_cohort(cohort_id):
 @admin_required
 def export_cohort_pdf(cohort_id):
     from flask import make_response, current_app
-    from weasyprint import HTML
 
     cohort = Cohort.query.get_or_404(cohort_id)
     members = Application.query.filter_by(cohort_name=cohort.name).order_by(
@@ -164,11 +163,17 @@ def export_cohort_pdf(cohort_id):
         from app.tasks.pdf_tasks import generate_cohort_pdf
         task = generate_cohort_pdf.delay(cohort_id)
         return redirect(url_for("admin.task_status", task_id=task.id))
-    pdf = HTML(string=html).write_pdf()
-    resp = make_response(pdf)
-    resp.headers["Content-Type"] = "application/pdf"
-    resp.headers["Content-Disposition"] = f'attachment; filename="{cohort.name.replace(" ", "_")}_roster.pdf"'
-    return resp
+
+    try:
+        from weasyprint import HTML
+        pdf = HTML(string=html).write_pdf()
+        resp = make_response(pdf)
+        resp.headers["Content-Type"] = "application/pdf"
+        resp.headers["Content-Disposition"] = f'attachment; filename="{cohort.name.replace(" ", "_")}_roster.pdf"'
+        return resp
+    except OSError:
+        flash("PDF generation requires system libraries (pango, cairo) which are not available on this server.", "error")
+        return redirect(url_for("admin.cohorts"))
 
 
 @admin_bp.route("/task-status/<task_id>")
