@@ -29,7 +29,7 @@ email-validator==2.1.1
 sentry-sdk[flask]==2.66.1
 
 # Image Processing
-Pillow==10.3.0
+Pillow==11.1.0
 
 # Caching & Session
 redis==6.4.0
