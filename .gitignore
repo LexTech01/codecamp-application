@@ -32,3 +32,6 @@ app/static/uploads/*
 # Flask
 *.log
 flask_session/
+
+# Runtime cache
+instance/aws-ip-ranges.json

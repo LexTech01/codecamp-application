@@ -1,10 +1,99 @@
 """Cellusys — Application configuration."""
+import json
 import os
+import re
+import socket
+import time
+import urllib.request
+from ipaddress import ip_address, IPv6Network
 from dotenv import load_dotenv
 
 load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+_SUPABASE_DIRECT_RE = re.compile(
+    r"^postgresql://(?P<user>[^:]+):(?P<password>[^@]+)@db\.(?P<ref>[^.]+)\.supabase\.co:5432/(?P<db>[^?]+)(?P<query>\?.*)?$"
+)
+_AWS_RANGES_URL = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+_AWS_RANGES_CACHE = os.path.join(BASE_DIR, "instance", "aws-ip-ranges.json")
+_AWS_RANGES_TTL = 7 * 86400
+
+
+def _aws_region_for_ipv6(addr):
+    """Map an IPv6 address to its AWS region using ip-ranges.json (cached locally)."""
+    try:
+        if not os.path.exists(_AWS_RANGES_CACHE) or time.time() - os.path.getmtime(_AWS_RANGES_CACHE) > _AWS_RANGES_TTL:
+            with urllib.request.urlopen(_AWS_RANGES_URL, timeout=10) as resp:
+                data = json.load(resp)
+            os.makedirs(os.path.dirname(_AWS_RANGES_CACHE), exist_ok=True)
+            with open(_AWS_RANGES_CACHE, "w") as fh:
+                json.dump(data, fh)
+        else:
+            with open(_AWS_RANGES_CACHE) as fh:
+                data = json.load(fh)
+        ip = ip_address(addr)
+        for prefix in data.get("ipv6_prefixes", []):
+            if ip in IPv6Network(prefix["ipv6_prefix"]):
+                return prefix["region"]
+    except Exception:
+        pass
+    return None
+
+
+def _resolve_ipv6(host):
+    """Resolve a host to an IPv6 address.
+
+    Tries dnspython first (direct DNS query — works even where the system
+    resolver mishandles AAAA records), then getaddrinfo as a fallback.
+    """
+    try:
+        import dns.resolver
+
+        answer = dns.resolver.resolve(host, "AAAA")
+        if answer:
+            return str(answer[0])
+    except Exception:
+        pass
+    try:
+        return socket.getaddrinfo(host, 5432, socket.AF_INET6)[0][4][0]
+    except Exception:
+        return None
+
+
+def _pooler_host_that_resolves(region):
+    for idx in range(4):
+        host = f"aws-{idx}-{region}.pooler.supabase.com"
+        try:
+            socket.getaddrinfo(host, 5432)
+            return host
+        except Exception:
+            continue
+    return None
+
+
+def rewrite_supabase_direct_url(url):
+    """Convert a Supabase direct (IPv6-only) URI to the IPv4-compatible shared pooler.
+
+    Supabase free-tier direct connections resolve only to IPv6, which is
+    unreachable from Render. The pooler uses postgres.<ref> as username and an
+    aws-<n>-<region> host; the region is derived from the project's own IPv6
+    address. If anything fails, the original URL is returned untouched.
+    """
+    match = _SUPABASE_DIRECT_RE.match(url)
+    if not match or match.group("user") != "postgres":
+        return url
+    ipv6 = _resolve_ipv6(f"db.{match.group('ref')}.supabase.co")
+    region = _aws_region_for_ipv6(ipv6) if ipv6 else None
+    if not region:
+        return url
+    host = _pooler_host_that_resolves(region)
+    if not host:
+        return url
+    return (
+        f"postgresql://postgres.{match.group('ref')}:{match.group('password')}"
+        f"@{host}:5432/{match.group('db')}{match.group('query') or ''}"
+    )
 
 
 class Config:
@@ -24,6 +113,12 @@ class Config:
     if _db_url.startswith("postgresql://") and "sslmode=" not in _db_url:
         sep = "&" if "?" in _db_url else "?"
         _db_url += f"{sep}sslmode=require"
+    _rewritten = rewrite_supabase_direct_url(_db_url)
+    if _rewritten != _db_url:
+        print("[config] Rewrote Supabase direct URI (IPv6-only) to IPv4 shared pooler host")
+        _db_url = _rewritten
+        if "sslmode=" not in _db_url:
+            _db_url += "?sslmode=require"
     SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
