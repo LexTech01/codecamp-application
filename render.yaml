@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: cellusys-codecamp
+    runtime: python
+    plan: free
+    region: frankfurt
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: flask db upgrade && python3 -c 'from app import create_app, seed_database; app = create_app(); app.app_context().push(); seed_database()' && gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile - --log-level info
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.9"
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
