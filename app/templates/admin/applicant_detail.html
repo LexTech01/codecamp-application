@@ -20,7 +20,7 @@
     <div class="card-header">
       <h3 class="card-title"><i class="fa-solid fa-user" style="margin-right:8px;color:var(--accent-primary)"></i> Application Details</h3>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+    <div class="details-grid" style="display:grid;gap:16px">
       <div style="padding:12px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-tertiary)">
         <small style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:4px">Full Name</small>
         <strong style="font-size:0.9rem">{{ application.user.full_name }}</strong>
@@ -279,4 +279,12 @@
   </div>
   {% endif %}
 </div>
+<style>
+.details-grid { grid-template-columns: repeat(2, 1fr); }
+.details-grid > div { min-width: 0; }
+.details-grid strong { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .details-grid { grid-template-columns: 1fr; }
+}
+</style>
 {% endblock %}

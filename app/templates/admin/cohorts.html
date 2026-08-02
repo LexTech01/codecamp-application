@@ -62,7 +62,7 @@
         </div>
       </div>
       <div style="padding:0 20px 14px">
-        <div class="table-wrap" style="border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:hidden;margin-bottom:12px">
+        <div class="table-wrap" style="border:1px solid var(--border-color);border-radius:var(--radius-md);margin-bottom:12px">
           <table class="table" style="font-size:0.85rem">
             <thead>
               <tr><th style="width:30px"></th><th>Name</th><th>Email</th><th>Program</th><th>Status</th><th style="text-align:right">Assigned</th></tr>
@@ -96,7 +96,7 @@
         <!-- Edit Form -->
         <form id="edit-cohort-{{ c.id }}" method="POST" action="{{ url_for('admin.edit_cohort', cohort_id=c.id) }}" class="hidden" style="margin-top:12px;padding:14px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-tertiary)">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="cohort-edit-grid" style="display:grid;gap:10px;margin-bottom:10px">
             <div class="form-group" style="margin-bottom:0">
               <label class="form-label" style="font-size:0.75rem">Name</label>
               <input type="text" name="name" class="form-input" value="{{ c.name }}" style="padding:6px 8px;font-size:0.85rem">
@@ -193,6 +193,10 @@
 
 <style>
 .hidden { display: none !important; }
+.cohort-edit-grid { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 600px) {
+  .cohort-edit-grid { grid-template-columns: 1fr; }
+}
 </style>
 <script>
 document.getElementById('select-all-unassigned')?.addEventListener('change', function() {

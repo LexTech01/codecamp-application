@@ -1,7 +1,7 @@
 {% extends "dashboard_layout.html" %}
 {% block title %}Interviews — Cellusys Admin{% endblock %}
 {% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/interview.css') }}">{% endblock %}
+{% block extra_css %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static', filename='css/interview.css') }}">{% endblock %}
 {% block content %}
 <div class="page-header">
   <h1>Interview Management</h1>

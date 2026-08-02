@@ -226,6 +226,10 @@ section {
   font-weight: 600;
 }
 
+.about-text-short {
+  display: none;
+}
+
 .container-wrapper {
   display: flex;
   flex-wrap: wrap;

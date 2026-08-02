@@ -7,7 +7,7 @@
   <p style="font-size:0.85rem;margin:0">Publish updates for all students.</p>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:20px;height:calc(100vh - 180px)">
+<div class="ann-split" style="display:grid;gap:20px;height:calc(100vh - 180px)">
   <div class="card" style="display:flex;flex-direction:column;padding:0;overflow:hidden">
     <div class="card-header" style="padding:16px 20px;margin:0">
       <h3 class="card-title" style="font-size:0.95rem"><i class="fa-solid fa-plus-circle" style="margin-right:8px;color:var(--success)"></i> New Announcement</h3>
@@ -63,4 +63,11 @@
     </div>
   </div>
 </div>
+<style>
+.ann-split { grid-template-columns: 1fr 1.6fr; }
+@media (max-width: 900px) {
+  .ann-split { grid-template-columns: 1fr; height: auto; }
+  .ann-split .card { max-height: none; }
+}
+</style>
 {% endblock %}

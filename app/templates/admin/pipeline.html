@@ -19,7 +19,7 @@
   'interview':'Interview Stage','accepted':'Accepted','rejected':'Rejected',
 } %}
 
-<div class="kanban-board" data-readonly="true" style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;min-height:60vh">
+<div class="kanban-board" data-readonly="true" style="display:grid;gap:16px;min-height:60vh">
   {% for key in kanban_keys %}
   <div class="kanban-column" data-column="{{ key }}" style="background:var(--bg-secondary);border-radius:var(--radius-lg);border:1px solid var(--border-color);display:flex;flex-direction:column;min-height:400px">
     <div class="kanban-column-header" style="padding:16px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:10px">
@@ -46,5 +46,16 @@
   </div>
   {% endfor %}
 </div>
+<style>
+.kanban-board {
+  grid-template-columns: repeat(5, 1fr);
+}
+@media (max-width: 1100px) {
+  .kanban-board { grid-template-columns: repeat(2, 1fr); min-height: 0; }
+}
+@media (max-width: 600px) {
+  .kanban-board { grid-template-columns: 1fr; }
+}
+</style>
 {% endblock %}
 {% block page_js %}<script src="{{ url_for('static', filename='js/kanban.js') }}"></script>{% endblock %}

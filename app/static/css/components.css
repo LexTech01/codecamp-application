@@ -431,7 +431,7 @@ select.form-select[size] {
   transition: all var(--transition);
 }
 
-.nav-links a:hover {
+.nav-links > li:not(.nav-actions-in-drawer) > a:hover {
   background: rgba(255,255,255,0.12);
   color: #fff;
 }
@@ -440,6 +440,10 @@ select.form-select[size] {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.nav-actions-in-drawer {
+  display: none;
 }
 
 .nav-icon { margin-right: 6px; }

@@ -1,7 +1,7 @@
 {% extends "dashboard_layout.html" %}
 {% block title %}Schedule Interview — Cellusys{% endblock %}
 {% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/interview.css') }}">{% endblock %}
+{% block extra_css %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static', filename='css/interview.css') }}">{% endblock %}
 {% block content %}
 <div class="page-header" data-aos="fade-down">
   <h1>Schedule Your Interview</h1>
@@ -71,7 +71,7 @@
       <h3>Select a Date & Time</h3>
       <div class="calendar-nav">
         <button class="cal-nav-btn" id="prevMonth"><i class="fa-solid fa-chevron-left"></i></button>
-        <span id="monthLabel" style="font-weight:600;min-width:160px;text-align:center"></span>
+        <span id="monthLabel" style="font-weight:600;min-width:0;flex:1;text-align:center;white-space:nowrap"></span>
         <button class="cal-nav-btn" id="nextMonth"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
     </div>

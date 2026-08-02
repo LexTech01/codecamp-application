@@ -1,7 +1,7 @@
 {% extends "dashboard_layout.html" %}
 {% block title %}Test Results — Cellusys{% endblock %}
 {% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">{% endblock %}
+{% block extra_css %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">{% endblock %}
 {% block content %}
 <div class="result-hero" data-aos="fade-up">
   <h2>Assessment Complete</h2>
@@ -24,7 +24,7 @@
     <div class="stat-label">Time Taken</div>
   </div>
 </div>
-<div class="flex gap-2 mt-4" style="margin-top:32px">
+<div class="flex gap-2 mt-4" style="margin-top:32px;flex-wrap:wrap">
   <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
   {% if attempt.passed %}
   <a href="{{ url_for('student.interview_schedule') }}" class="btn btn-secondary">Schedule Interview</a>

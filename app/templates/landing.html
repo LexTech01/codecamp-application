@@ -6,6 +6,7 @@
 {% block body %}
 <div class="landing-page">
   <header class="navbar">
+    <div class="nav-overlay"></div>
     <div class="navbar-inner container-wide">
       <a href="/" class="logo">
         <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
@@ -17,11 +18,16 @@
         <li><a href="#ourteam"><i class="fa-solid fa-users nav-icon"></i> Team</a></li>
         <li><a href="#contact"><i class="fa-solid fa-envelope nav-icon"></i> Contact</a></li>
         <li><a href="#faq"><i class="fa-solid fa-question-circle nav-icon"></i> FAQ</a></li>
+        <li class="nav-actions-in-drawer">
+          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
+          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+        </li>
       </ul>
       <div class="nav-actions">
         <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
         <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
       </div>
+      <button class="mobile-menu-btn" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
     </div>
   </header>
 
@@ -32,7 +38,7 @@
     <div class="hero-inner">
       <video  id="logo" src="{{ url_for('static', filename='videos/campvid.mp4') }}" autoplay muted loop playsinline ></video>
       <div class="hero-text">
-        <h1><span id="title">Empowering</span><br>The Next Generation<br>of Tech Creatives</h1>
+        <h1><span id="title">Empowering</span> <br>The Next Generation <br>of Tech Creatives</h1>
         <div class="hero-img">
           <div class="skewed-bg"></div>
           <div class="skewed-bg skew1"></div>
@@ -58,22 +64,43 @@
     <p id="about-text" data-aos="fade-up" data-aos-delay="150"><span>Cellusys CodeCamp</span> is a transformative computer coding program powered by <span>Cellusys</span>, designed to empower <span>talented young adults</span> with the skills and knowledge needed to thrive in the tech industry. Our mission is to provide <span>100% scholarships</span> to individuals who have the <span>potential</span> but lack the financial means to access <span>quality coding education</span>. We believe that everyone deserves the opportunity to learn and succeed in the world of technology,regardless of their background or financial situation.
     At <span>Cellusys CodeCamp</span>, we offer comprehensive training in <span>software engineering, networking and telecommunications</span>. Our <span>curriculum</span> is designed to equip students with <span>real-world skills</span> that are in high demand in the tech industry. Through hands-on projects, mentorship, and industry partnerships, we prepare our students for successful careers in technology.
     <span>Join us</span> on this exciting journey to unlock your potential and build a future in tech with Cellusys CodeCamp!</p>
+    <p class="about-text-short" data-aos="fade-up" data-aos-delay="150"><span>Cellusys CodeCamp</span> is a transformative coding program powered by Cellusys, giving talented young adults real-world tech skills through <span>100% scholarships</span>. <span>Join us</span> to unlock your potential and build a future in tech.</p>
     <div class="container-wrapper">
-      <div class="about-container" data-aos="fade-up" data-aos-delay="200">
-        <h3>100% Scholarships</h3>
-        <p>Learn and achieve the skills in tech for free.</p>
+      <div class="about-track">
+        <div class="about-container" data-aos="fade-up" data-aos-delay="200">
+          <h3>100% Scholarships</h3>
+          <p>Learn and achieve the skills in tech for free.</p>
+        </div>
+        <div class="about-container" data-aos="fade-up" data-aos-delay="300">
+          <h3>Internship For<br>Selected Students</h3>
+          <p>Opportunities for outstanding students to gain real-world experience and mentorship.</p>
+        </div>
+        <div class="about-container" data-aos="fade-up" data-aos-delay="400">
+          <h3>Supportive<br>Community</h3>
+          <p>Join a community of like-minded individuals who are passionate about technology and innovation.</p>
+        </div>
+        <div class="about-container" data-aos="fade-up" data-aos-delay="500">
+          <h3>Comprehensive<br>Career Support</h3>
+          <p>Receive guidance and resources to help you launch a successful career in the tech industry.</p>
+        </div>
       </div>
-      <div class="about-container" data-aos="fade-up" data-aos-delay="300">
-        <h3>Internship For<br>Selected Students</h3>
-        <p>Opportunities for outstanding students to gain real-world experience and mentorship.</p>
-      </div>
-      <div class="about-container" data-aos="fade-up" data-aos-delay="400">
-        <h3>Supportive<br>Community</h3>
-        <p>Join a community of like-minded individuals who are passionate about technology and innovation.</p>
-      </div>
-      <div class="about-container" data-aos="fade-up" data-aos-delay="500">
-        <h3>Comprehensive<br>Career Support</h3>
-        <p>Receive guidance and resources to help you launch a successful career in the tech industry.</p>
+      <div class="about-track about-track-clone" aria-hidden="true">
+        <div class="about-container">
+          <h3>100% Scholarships</h3>
+          <p>Learn and achieve the skills in tech for free.</p>
+        </div>
+        <div class="about-container">
+          <h3>Internship For<br>Selected Students</h3>
+          <p>Opportunities for outstanding students to gain real-world experience and mentorship.</p>
+        </div>
+        <div class="about-container">
+          <h3>Supportive<br>Community</h3>
+          <p>Join a community of like-minded individuals who are passionate about technology and innovation.</p>
+        </div>
+        <div class="about-container">
+          <h3>Comprehensive<br>Career Support</h3>
+          <p>Receive guidance and resources to help you launch a successful career in the tech industry.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -273,6 +300,33 @@
       if (!isOpen) item.classList.add('open');
     });
   });
+
+  // Mobile nav toggle
+  (function() {
+    var btn = document.querySelector('.navbar-inner .mobile-menu-btn');
+    var nav = document.querySelector('.nav-links');
+    var overlay = document.querySelector('.nav-overlay');
+    if (!btn || !nav) return;
+    function openNav() {
+      nav.classList.add('open');
+      overlay?.classList.add('active');
+      btn.querySelector('i').className = 'fa-solid fa-xmark';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeNav() {
+      nav.classList.remove('open');
+      overlay?.classList.remove('active');
+      btn.querySelector('i').className = 'fa-solid fa-bars';
+      document.body.style.overflow = '';
+    }
+    btn.addEventListener('click', function() {
+      nav.classList.contains('open') ? closeNav() : openNav();
+    });
+    nav.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', closeNav);
+    });
+    overlay?.addEventListener('click', closeNav);
+  })();
 </script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

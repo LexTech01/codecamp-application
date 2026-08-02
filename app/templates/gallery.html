@@ -18,6 +18,10 @@
         <li><a href="/#programs"><i class="fa-solid fa-book-open nav-icon"></i> Programs</a></li>
         <li><a href="/#contact"><i class="fa-solid fa-envelope nav-icon"></i> Contact</a></li>
         <li><a href="/#blog"><i class="fa-solid fa-blog nav-icon"></i> Blog</a></li>
+        <li class="nav-actions-in-drawer">
+          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
+          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+        </li>
       </ul>
       <div class="nav-actions">
         <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>

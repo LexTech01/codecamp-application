@@ -36,7 +36,7 @@
       <h3 style="margin:0;font-size:1rem">{{ program or 'Unspecified' }}</h3>
       <p style="margin:4px 0 0;font-size:0.85rem;color:var(--text-muted)">{{ program_apps|length }} applicant{% if program_apps|length != 1 %}s{% endif %}</p>
     </div>
-    <div class="table-wrap" style="padding:0;overflow:hidden">
+    <div class="table-wrap" style="padding:0">
       <table class="table">
         <thead>
           <tr>
@@ -107,7 +107,7 @@
 {% endif %}
 
 {% if pagination and pagination.pages > 1 %}
-<div class="flex justify-center gap-1" style="margin-top:24px">
+<div class="flex justify-center gap-1" style="margin-top:24px;flex-wrap:wrap">
   {% if pagination.has_prev %}
   <a href="{{ url_for('admin.applicants', q=q, stage=stage, page=pagination.prev_num) }}" class="btn btn-ghost btn-sm">&laquo; Prev</a>
   {% endif %}

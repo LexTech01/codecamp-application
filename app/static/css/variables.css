@@ -16,7 +16,7 @@
   --shadow-md: 0 8px 24px rgba(0, 74, 173, 0.12);
   --shadow-glow: 0 4px 20px rgba(0, 74, 173, 0.2);
   --shadow-glow-blue: 0 4px 20px rgba(0, 102, 204, 0.25);
-  --nav-gradient: linear-gradient(to right, #004AAD, #0066cc, rgba(42, 71, 169, 0.95));
+  --nav-gradient: linear-gradient(to right, #004AAD, #0066cc, #2A47A9);
   --btn-default: #555555;
   --btn-default-hover: #333333;
   --footer-bg: #333333;
