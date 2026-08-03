@@ -2,6 +2,11 @@
  * Calendly-inspired interview scheduling
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Cancel/Reschedule live in the "existing booking" branch, which has no
+  // .interview-layout — wire them before the calendar guard below.
+  document.getElementById('cancelBooking')?.addEventListener('click', cancelBooking);
+  document.getElementById('rescheduleBooking')?.addEventListener('click', rescheduleBooking);
+
   const schedulePage = document.querySelector('.interview-layout');
   if (!schedulePage) return;
 
@@ -44,8 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     confirmBtn?.addEventListener('click', confirmBooking);
-    document.getElementById('cancelBooking')?.addEventListener('click', cancelBooking);
-    document.getElementById('rescheduleBooking')?.addEventListener('click', rescheduleBooking);
   }
 
   function renderCalendar() {
