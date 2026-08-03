@@ -81,11 +81,14 @@ def submit_assessment(assessment_id):
     time_taken = data.get("time_taken", 0)
     assessment = Assessment.query.get_or_404(assessment_id)
 
-    # Reject if already completed — prevents score overwrite
-    existing_completed = TestAttempt.query.filter_by(
+    # Reject resubmission only after a passed attempt — prevents score overwrite.
+    # A failed attempt allows retakes (mirrors take_assessment's retake logic).
+    last_completed = TestAttempt.query.filter_by(
         user_id=current_user.id, assessment_id=assessment_id
-    ).filter(TestAttempt.completed_at.isnot(None)).first()
-    if existing_completed:
+    ).filter(TestAttempt.completed_at.isnot(None)).order_by(
+        TestAttempt.completed_at.desc()
+    ).first()
+    if last_completed and last_completed.passed:
         return jsonify({"error": "Assessment already submitted"}), 400
 
     attempt = TestAttempt.query.filter_by(
