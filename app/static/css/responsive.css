@@ -157,7 +157,7 @@
   }
 
   .hero-text h1 {
-    font-size: clamp(1.5rem, 3vw, 1.8rem);
+    font-size: clamp(2rem, 4.25vw, 2.4rem);
   }
 
   .hero-text p {
@@ -171,8 +171,10 @@
   }
 
   .landing-hero #logo {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
+    top: auto;
+    bottom: -55px;
   }
 
   #about {
@@ -344,7 +346,7 @@
   }
 
   .hero-text h1 {
-    font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+    font-size: clamp(1.7rem, 4.5vw, 2rem);
   }
 
   .hero-text p {
@@ -567,10 +569,11 @@
   }
 
   .landing-hero #logo {
-    width: 90px;
-    height: 90px;
+    width: 100px;
+    height: 100px;
     left: -3%;
-    top: 115%;
+    top: auto;
+    bottom: -50px;
   }
 
   .prog {
@@ -638,12 +641,12 @@
   }
 
   .hero-text h1 {
-    font-size: clamp(1.35rem, 6vw, 1.4rem);
+    font-size: clamp(1.6rem, 7vw, 1.72rem);
     text-align: center;
     text-align-last: center;
     line-height: 1.4;
-    margin-bottom: 14px;
-    max-width: min(340px, 100%);
+    margin-bottom: 24px;
+    max-width: min(430px, 100%);
   }
 
   .hero-text h1 br:first-of-type {
@@ -652,12 +655,12 @@
 
   .hero-text p {
     font-size: 0.92rem;
-    margin: 14px 0 4px;
+    margin: 18px 0 24px;
   }
 
   .hero-text h3 {
     font-size: 0.9rem;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
   }
 
   .hero-img {
@@ -665,10 +668,10 @@
     right: auto;
     top: auto;
     transform: none;
-    width: min(320px, 84vw);
-    height: min(200px, 52vw);
+    width: min(340px, 90vw);
+    height: min(230px, 58vw);
     border-radius: 14px;
-    margin: 18px 0 4px;
+    margin: 22px 0 24px;
   }
 
   .hero-buttons {
@@ -682,12 +685,43 @@
     width: min(320px, 100%);
   }
 
+  .hero-buttons .btn:first-child {
+    background: var(--accent-primary);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 26px rgba(0, 74, 173, 0.45);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 14px 20px;
+  }
+
+  .hero-buttons .btn:last-child {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow: none;
+    backdrop-filter: none;
+    font-weight: 500;
+    font-size: 0.88rem;
+    padding: 12px 20px;
+  }
+
   .landing-hero #logo {
-    top: calc(100vh - 36px);
-    top: calc(100svh - 36px);
+    top: auto;
+    bottom: -40px;
     left: 12px;
-    width: 72px;
-    height: 72px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .faq-question {
+    min-height: 52px;
+    padding: 14px 18px;
+  }
+
+  .nav-links > li:not(.nav-actions-in-drawer) > a {
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
 
   .auth-container {
@@ -724,6 +758,7 @@
     width: 240px;
     flex-shrink: 0;
     margin-right: 16px;
+    text-align: left;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
   }
@@ -800,31 +835,31 @@
   }
 
   .hero-img {
-    width: min(280px, 82vw);
-    height: min(180px, 50vw);
+    width: min(310px, 86vw);
+    height: min(200px, 54vw);
     border-radius: 12px;
   }
 
   .hero-text h1 {
-    font-size: clamp(1.3rem, 6vw, 1.36rem);
-    max-width: min(320px, 100%);
+    font-size: clamp(1.5rem, 6.5vw, 1.6rem);
+    max-width: min(400px, 100%);
   }
 
   .hero-text p {
     font-size: 0.85rem;
-    margin: 12px 0 4px;
+    margin: 16px 0 20px;
   }
 
   .hero-text h3 {
     font-size: 0.85rem;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
 
   .landing-hero #logo {
-    top: calc(100vh - 32px);
-    top: calc(100svh - 32px);
-    width: 64px;
-    height: 64px;
+    top: auto;
+    bottom: -36px;
+    width: 72px;
+    height: 72px;
   }
 
   .hero-buttons .btn {
@@ -1186,11 +1221,11 @@
 
   /* ── Landing Hero ── */
   .landing-hero { padding: 60px 12px 48px; }
-  .hero-img { width: min(240px, 80vw); height: min(150px, 44vw); border-radius: 10px; }
-  .hero-text h1 { font-size: clamp(1.2rem, 6vw, 1.25rem); max-width: min(300px, 100%); }
-  .hero-text p { font-size: 0.8rem; margin: 10px 0 4px; }
-  .hero-text h3 { font-size: 0.8rem; margin-bottom: 14px; }
-  .landing-hero #logo { top: calc(100vh - 26px); top: calc(100svh - 26px); width: 52px; height: 52px; left: 10px; }
+  .hero-img { width: min(265px, 84vw); height: min(170px, 48vw); border-radius: 10px; }
+  .hero-text h1 { font-size: clamp(1.3rem, 6vw, 1.34rem); max-width: min(330px, 100%); }
+  .hero-text p { font-size: 0.8rem; margin: 16px 0 18px; }
+  .hero-text h3 { font-size: 0.8rem; margin-bottom: 18px; }
+  .landing-hero #logo { top: auto; bottom: -30px; width: 60px; height: 60px; left: 10px; }
   .hero-buttons .btn { padding: 11px 14px; font-size: 0.8rem; border-radius: 8px; }
 
   /* ── About ── */

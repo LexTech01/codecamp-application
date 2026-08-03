@@ -42,7 +42,7 @@
   <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-  <script>AOS.init({ duration: 800, offset: 100, once: false, mirror: true, disable: function() { return window.innerWidth < 768; } });</script>
+  <script>AOS.init({ duration: 800, offset: 60, once: true, mirror: false });</script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

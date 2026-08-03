@@ -2,7 +2,7 @@
   <button class="mobile-menu-btn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
   <div class="flex items-center gap-2" style="margin-left:auto">
     <div class="dropdown notif-dropdown">
-      <div class="notif-bell">
+      <div class="notif-bell"{% if not current_user.is_admin %} data-notifications-href="{{ url_for('student.announcements') }}"{% endif %}>
         <i class="fa-solid fa-bell"></i>
         {% if unread_notifications > 0 %}
         <span class="notif-badge">{{ unread_notifications }}</span>
@@ -17,9 +17,15 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <img src="{{ url_for('static', filename='images/cellusys.ico') }}"
-           alt="Avatar" class="avatar" onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+      {% if not current_user.is_admin %}
+      <a href="{{ url_for('student.profile') }}" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
+        <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Avatar" class="avatar" onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+        <span style="font-size:0.9rem;font-weight:500">{{ current_user.first_name }}</span>
+      </a>
+      {% else %}
+      <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Avatar" class="avatar" onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
       <span style="font-size:0.9rem;font-weight:500">{{ current_user.first_name }}</span>
+      {% endif %}
     </div>
   </div>
 </div>

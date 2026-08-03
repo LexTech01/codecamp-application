@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bell.addEventListener('click', e => {
     e.stopPropagation();
+    const mobile = window.matchMedia('(max-width: 1024px)').matches;
+    const target = bell.dataset.notificationsHref;
+    if (mobile && target) {
+      window.location.href = target;
+      return;
+    }
     dropdown.classList.toggle('open');
     loadNotifications();
   });
