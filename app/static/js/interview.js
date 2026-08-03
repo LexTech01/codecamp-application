@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmBtn?.addEventListener('click', confirmBooking);
     document.getElementById('cancelBooking')?.addEventListener('click', cancelBooking);
+    document.getElementById('rescheduleBooking')?.addEventListener('click', rescheduleBooking);
   }
 
   function renderCalendar() {
@@ -76,7 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isToday) cls += ' today';
       if (isSelected) cls += ' selected';
 
-      html += `<div class="${cls}" data-date="${iso}" ${!isPast && isAvailable ? '' : ''}>${day}</div>`;
+      html += `<div class="${cls}" data-date="${iso}">${day}</div>`;
+    }
+
+    const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const availableInMonth = state.availableDates.filter(d => d.startsWith(monthPrefix)).length;
+    if (!availableInMonth) {
+      html += '<div class="cal-empty">No availability this month yet. Please check back soon.</div>';
     }
 
     calendarGrid.innerHTML = html;
@@ -142,6 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingId = document.getElementById('cancelBooking')?.dataset.bookingId;
     if (!bookingId) return;
     const ok = await Cellusys.confirm('Cancel your interview?');
+    if (!ok) return;
+    await Cellusys.fetchJSON(`/api/interview/cancel/${bookingId}`, { method: 'POST' });
+    location.reload();
+  }
+
+  async function rescheduleBooking() {
+    const bookingId = document.getElementById('rescheduleBooking')?.dataset.bookingId;
+    if (!bookingId) return;
+    const ok = await Cellusys.confirm('Choose a new time? Your current slot will be freed.');
     if (!ok) return;
     await Cellusys.fetchJSON(`/api/interview/cancel/${bookingId}`, { method: 'POST' });
     location.reload();

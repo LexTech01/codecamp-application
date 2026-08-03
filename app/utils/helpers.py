@@ -1,5 +1,6 @@
 """Shared helper utilities."""
 import json
+import logging
 import os
 import uuid
 from datetime import datetime
@@ -37,6 +38,24 @@ def create_notification(user_id, title, message, link=None):
     notif = Notification(user_id=user_id, title=title, message=message, link=link)
     db.session.add(notif)
     return notif
+
+
+def send_mail(recipient, subject, text_body, html_body=None):
+    """Send an email, logging failures without raising.
+
+    Under TESTING Flask-Mail appends to ``mail.outbox`` instead of sending.
+    """
+    from flask_mail import Message
+    from app import mail
+
+    try:
+        msg = Message(subject=subject, recipients=[recipient])
+        msg.body = text_body
+        if html_body:
+            msg.html = html_body
+        mail.send(msg)
+    except Exception:
+        logging.getLogger(__name__).exception("Failed to send email to %s", recipient)
 
 
 def parse_json_safe(data, default=None):

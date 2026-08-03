@@ -13,7 +13,17 @@ logger = logging.getLogger(__name__)
 auth_bp = Blueprint("auth", __name__)
 
 
+def _safe_next(target):
+    """Return ``target`` only if it is a local path (prevents open redirects)."""
+    if not target:
+        return None
+    if target.startswith("/") and not target.startswith("//"):
+        return target
+    return None
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute; 20 per hour")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("admin.dashboard" if current_user.is_admin else "student.dashboard"))
@@ -24,7 +34,7 @@ def login():
             login_user(user, remember=form.remember.data)
             log_activity(user.id, "login", f"User {user.email} logged in")
             db.session.commit()
-            next_page = request.args.get("next")
+            next_page = _safe_next(request.args.get("next"))
             if user.is_admin:
                 return redirect(next_page or url_for("admin.dashboard"))
             return redirect(next_page or url_for("student.dashboard"))
@@ -33,6 +43,7 @@ def login():
 
 
 @auth_bp.route("/signup", methods=["GET", "POST"])
+@limiter.limit("10 per hour; 50 per day")
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for("student.dashboard"))
@@ -70,6 +81,7 @@ def signup():
 
 
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
+@limiter.limit("5 per hour; 20 per day")
 def forgot_password():
     form = ForgotPasswordForm()
     if form.validate_on_submit():
@@ -113,8 +125,10 @@ def forgot_password():
 
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+@limiter.limit("10 per hour")
 def reset_password(token):
-    user = User.query.filter_by(reset_token=token).first()
+    from app.models.user import find_user_by_reset_token
+    user = find_user_by_reset_token(token)
     if not user or not user.reset_token_valid:
         flash("Invalid or expired reset link.", "error")
         return redirect(url_for("auth.forgot_password"))

@@ -27,7 +27,10 @@
     </div>
     <div style="margin-top:10px;font-size:0.9rem;color:var(--text-muted)">Cellusys Academy, Kwabenya Musuku Roundabout</div>
   </div>
-  <button class="btn btn-danger btn-sm mt-3" id="cancelBooking" data-booking-id="{{ booking.id }}" style="margin-top:16px">Cancel Interview</button>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+    <button class="btn btn-ghost" id="rescheduleBooking" data-booking-id="{{ booking.id }}"><i class="fa-solid fa-arrow-rotate-right"></i> Reschedule</button>
+    <button class="btn btn-danger btn-sm" id="cancelBooking" data-booking-id="{{ booking.id }}">Cancel Interview</button>
+  </div>
 </div>
 {% else %}
 
@@ -61,8 +64,8 @@
     <p class="interviewer-title">{{ profile.title if profile else 'Technical Interviewer' }}</p>
     <p class="text-muted" style="font-size:0.9rem;line-height:1.6">{{ profile.bio if profile else 'In-person interviews at Musuku Roundabout, Accra, Ghana. Classes run three times per week for the duration of the program.' }}</p>
     <div class="interview-meta">
-      <div class="meta-item"><i class="fa-solid fa-stopwatch"></i> <div><strong>30 minutes</strong><span>Video call</span></div></div>
-      <div class="meta-item"><i class="fa-solid fa-globe"></i> <div><strong>Web conferencing</strong><span>Link sent after booking</span></div></div>
+      <div class="meta-item"><i class="fa-solid fa-stopwatch"></i> <div><strong>30 minutes</strong><span>In person</span></div></div>
+      <div class="meta-item"><i class="fa-solid fa-location-dot"></i> <div><strong>Cellusys Academy</strong><span>Kwabenya Musuku Roundabout, Accra</span></div></div>
       <div class="meta-item"><i class="fa-solid fa-clock"></i> <div><strong id="timezoneDisplay">Loading timezone...</strong></div></div>
     </div>
   </div>

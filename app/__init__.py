@@ -148,6 +148,13 @@ def create_app(config_class=Config, config_override=None):
     def handle_404(e):
         return jsonify({"error": "Not found"}), 404
 
+    @app.errorhandler(429)
+    def handle_429(e):
+        from flask import request
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Too many attempts. Please slow down and try again later."}), 429
+        return jsonify({"error": "Too many attempts. Please try again later."}), 429
+
     @app.route("/health")
     def health():
         return jsonify({"status": "ok"})

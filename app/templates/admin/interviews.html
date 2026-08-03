@@ -34,6 +34,40 @@
   </div>
   <div class="card col-6">
     <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-repeat" style="margin-right:8px;color:var(--accent-secondary)"></i> Recurring Availability</h3>
+    </div>
+    <form method="POST" action="{{ url_for('admin.create_recurring_slots') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group"><label class="form-label">Start Date</label>
+        <input type="date" name="start_date" class="form-input" required></div>
+      <div class="form-group"><label class="form-label">Weeks (1-12)</label>
+        <input type="number" name="weeks" class="form-input" min="1" max="12" value="4" required></div>
+      <div class="form-group"><label class="form-label">Repeat on</label>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          {% for wd, label in [(0,'Mon'),(1,'Tue'),(2,'Wed'),(3,'Thu'),(4,'Fri'),(5,'Sat'),(6,'Sun')] %}
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" name="weekdays" value="{{ wd }}" {% if wd in [0,1,2,3,4] %}checked{% endif %}> {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <p class="text-muted mb-2" style="font-size:0.85rem;margin-bottom:12px">Times to repeat each selected weekday (hold Ctrl/Cmd for multiple):</p>
+      <div class="form-group">
+        <select name="times" class="form-select" multiple size="6" required style="min-height:180px">
+          <option value="09:00-09:30">09:00 - 09:30</option>
+          <option value="09:30-10:00">09:30 - 10:00</option>
+          <option value="10:00-10:30">10:00 - 10:30</option>
+          <option value="11:00-11:30">11:00 - 11:30</option>
+          <option value="14:00-14:30">14:00 - 14:30</option>
+          <option value="15:00-15:30">15:00 - 15:30</option>
+          <option value="16:00-16:30">16:00 - 16:30</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-calendar-week"></i> Generate Weekly Slots</button>
+    </form>
+  </div>
+  <div class="card col-6">
+    <div class="card-header">
       <h3 class="card-title"><i class="fa-solid fa-list" style="margin-right:8px;color:var(--accent-secondary)"></i> Upcoming Slots</h3>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -68,13 +102,13 @@
       <table class="table">
         <thead><tr><th>Candidate</th><th>Date / Time</th><th>Status</th><th>Rating</th><th>Actions</th></tr></thead>
         <tbody>
-          {% for b in bookings %}
-          <tr>
-            <td>
-              <a href="{{ url_for('admin.applicant_detail', app_id=b.candidate.application.id) }}" style="font-weight:600;font-size:0.9rem">
-                {{ b.candidate.full_name }}
-              </a>
-            </td>
+      {% for b in bookings %}
+      <tr>
+        <td>
+          <a href="{{ url_for('admin.applicant_detail', app_id=b.candidate.application.id) }}" style="font-weight:600;font-size:0.9rem">
+            {{ b.candidate.full_name }}
+          </a>
+        </td>
             <td style="font-size:0.9rem">{% if b.slot %}{{ b.slot.formatted_date }} {{ b.slot.formatted_time }}{% else %}—{% endif %}</td>
             <td>
               {% set status_colors = {'scheduled':'badge-warning','completed':'badge-success','no_show':'badge-error','cancelled':'badge-muted'} %}
@@ -105,6 +139,13 @@
         </tbody>
       </table>
     </div>
+    {% if pagination.pages > 1 %}
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;align-items:center">
+      <a href="{{ url_for('admin.interviews', page=pagination.prev_num) if pagination.has_prev else '#' }}" class="btn btn-ghost btn-sm {% if not pagination.has_prev %}disabled{% endif %}" style="pointer-events:{{ 'auto' if pagination.has_prev else 'none' }};opacity:{{ 1 if pagination.has_prev else 0.5 }}">Prev</a>
+      <span class="text-muted" style="font-size:0.85rem">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+      <a href="{{ url_for('admin.interviews', page=pagination.next_num) if pagination.has_next else '#' }}" class="btn btn-ghost btn-sm {% if not pagination.has_next %}disabled{% endif %}" style="pointer-events:{{ 'auto' if pagination.has_next else 'none' }};opacity:{{ 1 if pagination.has_next else 0.5 }}">Next</a>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

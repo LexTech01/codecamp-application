@@ -11,6 +11,7 @@ def app():
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
         "WTF_CSRF_ENABLED": False,
+        "MAIL_SUPPRESS_SEND": True,
     })
     with app.app_context():
         _db.create_all()

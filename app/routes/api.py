@@ -4,16 +4,37 @@ from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify, url_for
 from flask_login import login_required, current_user
 from sqlalchemy.orm.exc import StaleDataError
-from app import db
+from app import db, limiter
 from app.models.application import Application
 from app.pipeline import pipeline
 from app.models.assessment import Assessment, Question, TestAttempt
 from app.models.interview import InterviewSlot, InterviewBooking
 from app.models.announcement import AnnouncementRead
 from app.models.notification import Notification
-from app.utils.helpers import log_activity, create_notification
+from app.utils.helpers import log_activity, create_notification, send_mail
 
 api_bp = Blueprint("api", __name__)
+
+
+def _interviewee_can_book():
+    """Return True if the current student may book/reschedule an interview."""
+    app_record = Application.query.filter_by(user_id=current_user.id).first()
+    if not app_record:
+        return False
+    if app_record.pipeline_stage == "interview_scheduled":
+        return True
+    if app_record.pipeline_stage == "test_completed":
+        last_attempt = TestAttempt.query.filter_by(user_id=current_user.id).order_by(
+            TestAttempt.completed_at.desc()
+        ).first()
+        return bool(last_attempt and last_attempt.passed)
+    return False
+
+
+def _local_now():
+    """Current wall-clock time (slots are stored in the app's local time — UTC)."""
+    now = datetime.now(timezone.utc)
+    return now.date(), now.time().replace(tzinfo=None)
 
 
 @api_bp.route("/notifications")
@@ -125,46 +146,67 @@ def submit_assessment(assessment_id):
 
 @api_bp.route("/interview/available-dates")
 @login_required
+@limiter.limit("60 per minute")
 def available_dates():
-    today = datetime.now(timezone.utc).date()
+    if not _interviewee_can_book():
+        return jsonify({"error": "Interview not available until the assessment is passed."}), 403
+    today, current_time = _local_now()
     end = today + timedelta(days=30)
     slots = InterviewSlot.query.filter(
         InterviewSlot.slot_date >= today,
         InterviewSlot.slot_date <= end,
         InterviewSlot.is_available == True,
     ).all()
-    dates = sorted(set(s.slot_date.isoformat() for s in slots if not s.booking))
+    dates = sorted({
+        s.slot_date.isoformat()
+        for s in slots
+        if not s.booking and (s.slot_date != today or s.start_time > current_time)
+    })
     return jsonify({"dates": dates})
 
 
 @api_bp.route("/interview/slots/<date_str>")
 @login_required
 def slots_for_date(date_str):
+    if not _interviewee_can_book():
+        return jsonify({"error": "Interview not required until the assessment is passed."}), 403
+    today, current_time = _local_now()
     slot_date = datetime.strptime(date_str, "%Y-%m-%d").date()
     slots = InterviewSlot.query.filter_by(slot_date=slot_date, is_available=True).all()
     available = []
     for s in slots:
-        if not s.booking:
-            available.append({
-                "id": s.id,
-                "start": s.start_time.strftime("%H:%M"),
-                "end": s.end_time.strftime("%H:%M"),
-                "label": s.formatted_time,
-            })
+        if s.booking:
+            continue
+        if s.slot_date == today and s.start_time <= current_time:
+            continue
+        available.append({
+            "id": s.id,
+            "start": s.start_time.strftime("%H:%M"),
+            "end": s.end_time.strftime("%H:%M"),
+            "label": s.formatted_time,
+        })
     return jsonify({"slots": available})
 
 
 @api_bp.route("/interview/book", methods=["POST"])
 @login_required
+@limiter.limit("10 per hour")
 def book_interview():
+    if not _interviewee_can_book():
+        return jsonify({"error": "You must pass the assessment before booking an interview."}), 403
     data = request.get_json() or {}
     slot_id = data.get("slot_id")
+    today, current_time = _local_now()
 
+    # Atomic check-then-set with row lock (PostgreSQL) — prevents double-booking
     # Atomic check-then-set with row lock (PostgreSQL) — prevents double-booking
     slot = InterviewSlot.query.with_for_update().get_or_404(slot_id)
     if slot.booking:
         db.session.rollback()
         return jsonify({"error": "Slot no longer available"}), 400
+    if slot.slot_date < today or (slot.slot_date == today and slot.start_time <= current_time):
+        db.session.rollback()
+        return jsonify({"error": "This time slot has already passed."}), 400
 
     existing = InterviewBooking.query.filter_by(user_id=current_user.id).filter(
         InterviewBooking.status == "scheduled"
@@ -188,8 +230,33 @@ def book_interview():
         "Interview Scheduled",
         f"Your interview is booked for {slot.formatted_date} at {slot.formatted_time}.",
     )
+    create_notification(
+        slot.interviewer_id,
+        "Interview Booked",
+        f"{current_user.full_name} ({current_user.email}) booked {slot.formatted_date} at {slot.formatted_time}.",
+        url_for("admin.interviews"),
+    )
     log_activity(current_user.id, "interview_booked", f"Slot {slot_id}")
     db.session.commit()
+    send_mail(
+        recipient=current_user.email,
+        subject="Cellusys CodeCamp — Interview Confirmed",
+        text_body=(
+            f"Hi {current_user.first_name},\n\n"
+            f"Your interview is confirmed for {slot.formatted_date} at {slot.formatted_time}.\n"
+            f"Location: Cellusys Academy, Kwabenya Musuku Roundabout, Accra, Ghana.\n\n"
+            f"Log in to your dashboard to reschedule or cancel if needed.\n\n"
+            f"Cellusys CodeCamp"
+        ),
+        html_body=(
+            f"<h2>Interview Confirmed</h2>"
+            f"<p>Hi {current_user.first_name},</p>"
+            f"<p>Your interview is confirmed for "
+            f"<strong>{slot.formatted_date}</strong> at <strong>{slot.formatted_time}</strong>.</p>"
+            f"<p>Location: <strong>Cellusys Academy, Kwabenya Musuku Roundabout, Accra, Ghana</strong>.</p>"
+            f"<p>Log in to your dashboard to reschedule or cancel if needed.</p>"
+        ),
+    )
     return jsonify({
         "success": True,
         "date": slot.formatted_date,
@@ -205,12 +272,26 @@ def cancel_interview(booking_id):
     booking.status = "cancelled"
     if booking.slot:
         booking.slot.is_available = True
+        slot_info = (booking.slot.formatted_date, booking.slot.formatted_time)
+    else:
+        slot_info = None
     app_record = Application.query.filter_by(user_id=current_user.id).first()
-    if app_record and app_record.pipeline_stage == "interview_scheduled":
+    if app_record and app_record.pipeline_stage in ("interview_scheduled", "interview_completed"):
         app_record.pipeline_stage = "test_completed"
         app_record.status = "test_completed"
         app_record.updated_at = datetime.now(timezone.utc)
     db.session.commit()
+    if slot_info:
+        send_mail(
+            recipient=current_user.email,
+            subject="Cellusys CodeCamp — Interview Cancelled",
+            text_body=(
+                f"Hi {current_user.first_name},\n\n"
+                f"Your interview on {slot_info[0]} at {slot_info[1]} has been cancelled.\n"
+                f"Log in to reschedule at a time that works for you.\n\n"
+                f"Cellusys CodeCamp"
+            ),
+        )
     return jsonify({"success": True})
 
 

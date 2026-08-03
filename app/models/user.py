@@ -1,9 +1,21 @@
 """User model with authentication support."""
+import hashlib
 import secrets
 from datetime import datetime, timezone, timedelta
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
+
+
+def _hash_reset_token(raw):
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def find_user_by_reset_token(raw):
+    """Look up a user by a raw reset token (stored hashed)."""
+    return User.query.filter_by(
+        reset_token_hash=_hash_reset_token(raw)
+    ).first()
 
 
 class User(UserMixin, db.Model):
@@ -20,7 +32,7 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text)
     theme = db.Column(db.String(10), default="dark")
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    reset_token = db.Column(db.String(128), unique=True, nullable=True)
+    reset_token_hash = db.Column(db.String(64), unique=True, index=True, nullable=True)
     reset_token_expires_at = db.Column(db.DateTime, nullable=True)
 
     application = db.relationship("Application", backref="user", uselist=False, lazy=True)
@@ -36,18 +48,22 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def generate_reset_token(self):
-        self.reset_token = secrets.token_urlsafe(48)
+        raw = secrets.token_urlsafe(48)
+        self.reset_token_hash = _hash_reset_token(raw)
         self.reset_token_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-        return self.reset_token
+        return raw
 
     @property
     def reset_token_valid(self):
-        if not self.reset_token or not self.reset_token_expires_at:
+        if not self.reset_token_hash or not self.reset_token_expires_at:
             return False
-        return datetime.now(timezone.utc) < self.reset_token_expires_at
+        expires = self.reset_token_expires_at
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) < expires
 
     def clear_reset_token(self):
-        self.reset_token = None
+        self.reset_token_hash = None
         self.reset_token_expires_at = None
 
     @property

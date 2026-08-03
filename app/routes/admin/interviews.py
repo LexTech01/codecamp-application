@@ -1,13 +1,45 @@
 """Interview management routes."""
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timedelta, timezone
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
+from sqlalchemy.orm import joinedload
 from app import db
 from app.models.application import Application
 from app.models.interview import InterviewSlot, InterviewBooking
+from app.models.user import User
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
 from app.utils.helpers import log_activity, create_notification
+
+
+def _add_slot(interviewer_id, slot_date, start, end):
+    """Create a slot unless it overlaps an existing slot on the same date."""
+    if start >= end:
+        return False
+    for existing in InterviewSlot.query.filter_by(slot_date=slot_date).all():
+        if start < existing.end_time and end > existing.start_time:
+            return False
+    db.session.add(
+        InterviewSlot(
+            interviewer_id=interviewer_id,
+            slot_date=slot_date,
+            start_time=start,
+            end_time=end,
+        )
+    )
+    return True
+
+
+def _parse_time_range(value):
+    if "-" not in value:
+        return None, None
+    start_str, end_str = value.split("-", 1)
+    try:
+        start = datetime.strptime(start_str.strip(), "%H:%M").time()
+        end = datetime.strptime(end_str.strip(), "%H:%M").time()
+    except ValueError:
+        return None, None
+    return start, end
 
 
 @admin_bp.route("/interviews")
@@ -15,8 +47,22 @@ from app.utils.helpers import log_activity, create_notification
 @admin_required
 def interviews():
     slots = InterviewSlot.query.order_by(InterviewSlot.slot_date.desc()).limit(50).all()
-    bookings = InterviewBooking.query.order_by(InterviewBooking.created_at.desc()).all()
-    return render_template("admin/interviews.html", slots=slots, bookings=bookings)
+    page = request.args.get("page", 1, type=int)
+    bookings_pagination = (
+        InterviewBooking.query
+        .options(
+            joinedload(InterviewBooking.candidate).joinedload(User.application),
+            joinedload(InterviewBooking.slot),
+        )
+        .order_by(InterviewBooking.created_at.desc())
+        .paginate(page=page, per_page=20, error_out=False)
+    )
+    return render_template(
+        "admin/interviews.html",
+        slots=slots,
+        bookings=bookings_pagination.items,
+        pagination=bookings_pagination,
+    )
 
 
 @admin_bp.route("/interviews/slots", methods=["POST"])
@@ -39,31 +85,81 @@ def create_slots():
     
     created = 0
     for t in times:
-        if "-" not in t:
-            continue
-        start_str, end_str = t.split("-", 1)
-        start = datetime.strptime(start_str.strip(), "%H:%M").time()
-        end = datetime.strptime(end_str.strip(), "%H:%M").time()
-        if start >= end:
+        start, end = _parse_time_range(t)
+        if start is None:
             continue
         existing = InterviewSlot.query.filter_by(
             slot_date=slot_date, start_time=start, end_time=end
         ).first()
         if existing:
             continue
-        slot = InterviewSlot(
-            interviewer_id=current_user.id,
-            slot_date=slot_date,
-            start_time=start,
-            end_time=end,
-        )
-        db.session.add(slot)
-        created += 1
+        if _add_slot(current_user.id, slot_date, start, end):
+            created += 1
     db.session.commit()
     if created:
         flash(f"{created} time slot(s) created.", "success")
     else:
         flash("No slots were created. Check for duplicates or invalid times.", "warning")
+    return redirect(url_for("admin.interviews"))
+
+
+@admin_bp.route("/interviews/recurring", methods=["POST"])
+@login_required
+@admin_required
+def create_recurring_slots():
+    """Generate slots repeating weekly from a start date across a weekday set."""
+    start_str = request.form.get("start_date")
+    if not start_str:
+        flash("Start date is required.", "error")
+        return redirect(url_for("admin.interviews"))
+    try:
+        start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+    except ValueError:
+        flash("Invalid start date.", "error")
+        return redirect(url_for("admin.interviews"))
+
+    try:
+        weeks = int(request.form.get("weeks", 4))
+    except (TypeError, ValueError):
+        weeks = 4
+    weeks = max(1, min(weeks, 12))
+
+    weekday_set = set()
+    for wd in request.form.getlist("weekdays"):
+        try:
+            day = int(wd)
+        except (TypeError, ValueError):
+            continue
+        if 0 <= day <= 6:
+            weekday_set.add(day)
+    if not weekday_set:
+        flash("Select at least one weekday.", "error")
+        return redirect(url_for("admin.interviews"))
+
+    times = request.form.getlist("times")
+    if not times:
+        flash("Select at least one time slot.", "error")
+        return redirect(url_for("admin.interviews"))
+
+    monday = start_date - timedelta(days=start_date.weekday())
+    created = 0
+    today = date.today()
+    for w in range(weeks):
+        for day in weekday_set:
+            slot_day = monday + timedelta(weeks=w, days=day)
+            if slot_day <= today:
+                continue
+            for t in times:
+                start, end = _parse_time_range(t)
+                if start is None:
+                    continue
+                if _add_slot(current_user.id, slot_day, start, end):
+                    created += 1
+    db.session.commit()
+    if created:
+        flash(f"{created} recurring time slot(s) created.", "success")
+    else:
+        flash("No slots were created. Check for duplicates, overlaps, or past dates.", "warning")
     return redirect(url_for("admin.interviews"))
 
 
@@ -112,7 +208,7 @@ def update_booking(booking_id):
     elif new_status == "cancelled":
         if booking.slot:
             booking.slot.is_available = True
-        if app_record and app_record.pipeline_stage == "interview_scheduled":
+        if app_record and app_record.pipeline_stage in ("interview_scheduled", "interview_completed"):
             app_record.pipeline_stage = "test_completed"
             app_record.status = "test_completed"
             app_record.updated_at = datetime.now(timezone.utc)
