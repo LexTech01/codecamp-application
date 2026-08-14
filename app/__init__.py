@@ -35,6 +35,29 @@ def create_app(config_class=Config, config_override=None):
     if config_override:
         app.config.update(config_override)
 
+    # ── Production safety guards ────────────────────────────────────────
+    # Fail loudly instead of running with a forgeable secret key or an
+    # ephemeral SQLite database on disk (data would be lost on redeploy).
+    fallback_secret = "lisms-dev-secret-key-change-in-prod"
+    if (
+        not app.debug
+        and not app.testing
+        and (not app.config.get("SECRET_KEY") or app.config["SECRET_KEY"] == fallback_secret)
+    ):
+        raise RuntimeError(
+            "SECRET_KEY must be set to a random value in production "
+            "(e.g. via the SECRET_KEY environment variable)."
+        )
+    if (
+        not app.debug
+        and not app.testing
+        and str(app.config.get("SQLALCHEMY_DATABASE_URI", "")).startswith("sqlite")
+    ):
+        raise RuntimeError(
+            "DATABASE_URL must be set to a PostgreSQL database in production; "
+            "the SQLite fallback is only allowed in debug/testing mode."
+        )
+
     # ── Logging ─────────────────────────────────────────────────────
     log_level = logging.DEBUG if app.debug else logging.INFO
     logging.basicConfig(
@@ -118,10 +141,27 @@ def create_app(config_class=Config, config_override=None):
 
     @app.after_request
     def add_security_headers(response):
+        from flask import request
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
+            "https://unpkg.com https://fonts.googleapis.com; "
+            "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
+            "img-src 'self' data:; "
+            "frame-src https://www.google.com; "
+            "connect-src 'self'; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
+            "frame-ancestors 'none'"
+        )
+        if request.is_secure:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
     @app.before_request
@@ -141,12 +181,24 @@ def create_app(config_class=Config, config_override=None):
 
     @app.errorhandler(500)
     def handle_500(e):
+        from flask import request, render_template
         app.logger.error("Internal server error: %s", e)
-        return jsonify({"error": "Internal server error"}), 500
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Internal server error"}), 500
+        return render_template(
+            "errors/error.html", code=500, title="Something went wrong",
+            message="An unexpected error occurred. Please try again later.",
+        ), 500
 
     @app.errorhandler(404)
     def handle_404(e):
-        return jsonify({"error": "Not found"}), 404
+        from flask import request, render_template
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Not found"}), 404
+        return render_template(
+            "errors/error.html", code=404, title="Page Not Found",
+            message="The page you are looking for does not exist.",
+        ), 404
 
     @app.errorhandler(429)
     def handle_429(e):
@@ -162,44 +214,83 @@ def create_app(config_class=Config, config_override=None):
     return app
 
 
-def seed_database():
-    """Populate database with demo data on first run."""
+def seed_database(force=False):
+    """Populate database with demo content on first run.
+
+    Core content (assessment, questions, announcements, cohorts) is seeded
+    once, in any environment. Demo user accounts (admin@cellusys.com) and
+    their interview slots are only created in debug mode or when SEED_DEMO=1,
+    so a production database never gets publicly-documented credentials.
+    """
+    from flask import current_app
     from app.models.user import User
     from app.models.assessment import Assessment, Question
     from app.models.announcement import Announcement
     from app.models.interview import InterviewerProfile
     from werkzeug.security import generate_password_hash
-    from datetime import date, time, timedelta
+    from datetime import date, timedelta
 
-    if User.query.filter_by(email="admin@cellusys.com").first():
+    create_demo_users = (
+        force
+        or current_app.debug
+        or os.environ.get("SEED_DEMO", "").lower() in ("1", "true", "yes")
+    )
+
+    if Assessment.query.first() is not None or Announcement.query.first() is not None:
+        # Content already seeded — only (optionally) add the demo accounts.
+        if not create_demo_users or User.query.filter_by(email="admin@cellusys.com").first():
+            return
+        db.session.add_all([
+            User(
+                email="admin@cellusys.com",
+                password_hash=generate_password_hash("admin123", method="pbkdf2:sha256"),
+                first_name="Alexander",
+                last_name="Winfred",
+                role="admin",
+                phone="+233 24 123 4567",
+                bio="Lead Recruitment Officer at Cellusys CodeCamp, Musuku Roundabout Accra, Ghana",
+            ),
+            User(
+                email="student@cellusys.com",
+                password_hash=generate_password_hash("student123", method="pbkdf2:sha256"),
+                first_name="Jordan",
+                last_name="Lee",
+                role="student",
+                phone="+233 24 123 4567",
+            ),
+        ])
+        db.session.commit()
         return
 
-    admin = User(
-        email="admin@cellusys.com",
-        password_hash=generate_password_hash("admin123", method="pbkdf2:sha256"),
-        first_name="Alexander",
-        last_name="Winfred",
-        role="admin",
-        phone="+233 24 123 4567",
-        bio="Lead Recruitment Officer at Cellusys CodeCamp, Musuku Roundabout Accra, Ghana",
-    )
-    student = User(
-        email="student@cellusys.com",
-        password_hash=generate_password_hash("student123", method="pbkdf2:sha256"),
-        first_name="Jordan",
-        last_name="Lee",
-        role="student",
-        phone="+233 24 123 4567",
-    )
-    db.session.add_all([admin, student])
-    db.session.flush()
+    demo_admin_id = None
+    if create_demo_users:
+        admin = User(
+            email="admin@cellusys.com",
+            password_hash=generate_password_hash("admin123", method="pbkdf2:sha256"),
+            first_name="Alexander",
+            last_name="Winfred",
+            role="admin",
+            phone="+233 24 123 4567",
+            bio="Lead Recruitment Officer at Cellusys CodeCamp, Musuku Roundabout Accra, Ghana",
+        )
+        student = User(
+            email="student@cellusys.com",
+            password_hash=generate_password_hash("student123", method="pbkdf2:sha256"),
+            first_name="Jordan",
+            last_name="Lee",
+            role="student",
+            phone="+233 24 123 4567",
+        )
+        db.session.add_all([admin, student])
+        db.session.flush()
+        demo_admin_id = admin.id
 
-    InterviewerProfile(
-        user_id=admin.id,
-        title="Senior Technical Interviewer",
-        bio="In-person interviews at Musuku Roundabout, Accra, Ghana. Software Engineering and Networking & Telecom tracks.",
-        timezone="Africa/Accra",
-    )
+        InterviewerProfile(
+            user_id=admin.id,
+            title="Senior Technical Interviewer",
+            bio="In-person interviews at Musuku Roundabout, Accra, Ghana. Software Engineering and Networking & Telecom tracks.",
+            timezone="Africa/Accra",
+        )
 
     assessment = Assessment(
         title="Cellusys Aptitude Assessment",
@@ -361,19 +452,19 @@ def seed_database():
             title="Welcome to Cellusys CodeCamp",
             content="Cellusys CodeCamp offers 100% scholarships for talented young adults at Musuku Roundabout, Accra, Ghana. Complete your application to join Software Engineering or Networking and Telecom tracks.",
             is_pinned=True,
-            author_id=admin.id,
+            author_id=demo_admin_id,
         ),
         Announcement(
             title="Program Duration & Attendance",
             content="The program lasts 9 months for coding (3 months for networking/telecom track). Selected students attend in-person classes three times per week.",
             is_pinned=False,
-            author_id=admin.id,
+            author_id=demo_admin_id,
         ),
         Announcement(
             title="Aptitude Test Guidelines",
             content="Ensure stable internet, quiet environment, and 45 minutes uninterrupted time for your assessment. Pass the test and interview to receive your scholarship.",
             is_pinned=False,
-            author_id=admin.id,
+            author_id=demo_admin_id,
         ),
     ]
     db.session.add_all(announcements)
@@ -396,29 +487,30 @@ def seed_database():
         ),
     ])
 
-    # Create interview slots for the next 14 days
-    from app.models.interview import InterviewSlot
-    from datetime import time as dt_time
+    # Create interview slots for the next 14 days (demo interviewer only)
+    if create_demo_users:
+        from app.models.interview import InterviewSlot
+        from datetime import time as dt_time
 
-    time_ranges = [
-        (dt_time(9, 0), dt_time(9, 30)),
-        (dt_time(10, 0), dt_time(10, 30)),
-        (dt_time(11, 0), dt_time(11, 30)),
-        (dt_time(14, 0), dt_time(14, 30)),
-        (dt_time(15, 0), dt_time(15, 30)),
-        (dt_time(16, 0), dt_time(16, 30)),
-    ]
-    for day_offset in range(1, 15):
-        slot_day = date.today() + timedelta(days=day_offset)
-        if slot_day.weekday() < 5:  # weekdays only
-            for start, end in time_ranges:
-                db.session.add(
-                    InterviewSlot(
-                        interviewer_id=admin.id,
-                        slot_date=slot_day,
-                        start_time=start,
-                        end_time=end,
+        time_ranges = [
+            (dt_time(9, 0), dt_time(9, 30)),
+            (dt_time(10, 0), dt_time(10, 30)),
+            (dt_time(11, 0), dt_time(11, 30)),
+            (dt_time(14, 0), dt_time(14, 30)),
+            (dt_time(15, 0), dt_time(15, 30)),
+            (dt_time(16, 0), dt_time(16, 30)),
+        ]
+        for day_offset in range(1, 15):
+            slot_day = date.today() + timedelta(days=day_offset)
+            if slot_day.weekday() < 5:  # weekdays only
+                for start, end in time_ranges:
+                    db.session.add(
+                        InterviewSlot(
+                            interviewer_id=demo_admin_id,
+                            slot_date=slot_day,
+                            start_time=start,
+                            end_time=end,
+                        )
                     )
-                )
 
     db.session.commit()

@@ -7,11 +7,12 @@ from sqlalchemy.orm.exc import StaleDataError
 from app import db, limiter
 from app.models.application import Application
 from app.pipeline import pipeline
-from app.models.assessment import Assessment, Question, TestAttempt
+from app.models.assessment import Assessment, Question, TestAttempt, MAX_TEST_ATTEMPTS
 from app.models.interview import InterviewSlot, InterviewBooking
 from app.models.announcement import AnnouncementRead
 from app.models.notification import Notification
-from app.utils.helpers import log_activity, create_notification, send_mail
+from app.utils.helpers import log_activity, create_notification, send_mail, calculate_score
+from app.utils.sheets import sync_passed_applicant
 
 api_bp = Blueprint("api", __name__)
 
@@ -75,14 +76,15 @@ def mark_all_read():
 
 @api_bp.route("/assessment/<int:assessment_id>/submit", methods=["POST"])
 @login_required
+@limiter.limit("30 per hour")
 def submit_assessment(assessment_id):
     data = request.get_json() or {}
     answers = data.get("answers", {})
     time_taken = data.get("time_taken", 0)
     assessment = Assessment.query.get_or_404(assessment_id)
+    app_record = Application.query.filter_by(user_id=current_user.id).first()
 
-    # Reject resubmission only after a passed attempt — prevents score overwrite.
-    # A failed attempt allows retakes (mirrors take_assessment's retake logic).
+    # Reject resubmission after a passed attempt — prevents score overwrite.
     last_completed = TestAttempt.query.filter_by(
         user_id=current_user.id, assessment_id=assessment_id
     ).filter(TestAttempt.completed_at.isnot(None)).order_by(
@@ -90,6 +92,13 @@ def submit_assessment(assessment_id):
     ).first()
     if last_completed and last_completed.passed:
         return jsonify({"error": "Assessment already submitted"}), 400
+
+    # Enforce the retry cap server-side (mirrors take_assessment) so the
+    # attempt limit cannot be bypassed by posting directly to this endpoint.
+    if app_record and (app_record.test_attempts or 0) >= MAX_TEST_ATTEMPTS:
+        return jsonify({
+            "error": f"You've used all {MAX_TEST_ATTEMPTS} attempts. Please contact support."
+        }), 403
 
     attempt = TestAttempt.query.filter_by(
         user_id=current_user.id, assessment_id=assessment_id
@@ -105,15 +114,14 @@ def submit_assessment(assessment_id):
         selected = answers.get(str(q.id))
         if selected is not None and int(selected) == q.correct_answer:
             earned += q.points
-    score = round((earned / total * 100) if total else 0, 1)
+    score, passed = calculate_score(earned, total, assessment.pass_score)
     attempt.answers = json.dumps(answers)
     attempt.earned_points = earned
     attempt.total_points = total
     attempt.score = score
-    attempt.passed = score >= assessment.pass_score
+    attempt.passed = passed
     attempt.completed_at = datetime.now(timezone.utc)
     attempt.time_taken_seconds = time_taken
-    app_record = Application.query.filter_by(user_id=current_user.id).first()
     if app_record:
         app_record.test_score = score
         app_record.test_attempts = (app_record.test_attempts or 0) + 1
@@ -139,6 +147,10 @@ def submit_assessment(assessment_id):
             )
     log_activity(current_user.id, "test_completed", f"Score: {score}% (Attempt {app_record.test_attempts if app_record else 1})")
     db.session.commit()
+
+    if app_record and attempt.passed:
+        sync_passed_applicant(app_record, current_user, passed=True)
+
     return jsonify({
         "success": True,
         "score": score,
@@ -201,7 +213,6 @@ def book_interview():
     slot_id = data.get("slot_id")
     today, current_time = _local_now()
 
-    # Atomic check-then-set with row lock (PostgreSQL) — prevents double-booking
     # Atomic check-then-set with row lock (PostgreSQL) — prevents double-booking
     slot = InterviewSlot.query.with_for_update().get_or_404(slot_id)
     if slot.booking:
@@ -270,6 +281,7 @@ def book_interview():
 
 @api_bp.route("/interview/cancel/<int:booking_id>", methods=["POST"])
 @login_required
+@limiter.limit("10 per hour")
 def cancel_interview(booking_id):
     booking = InterviewBooking.query.filter_by(id=booking_id, user_id=current_user.id).first_or_404()
     booking.status = "cancelled"

@@ -9,7 +9,7 @@ from app import db
 from app.forms.auth_forms import ProfileForm
 from app.models.user import User
 from app.models.application import Application
-from app.models.assessment import Assessment, Question, TestAttempt
+from app.models.assessment import Assessment, Question, TestAttempt, MAX_TEST_ATTEMPTS
 from app.models.interview import InterviewSlot, InterviewBooking, InterviewerProfile
 from app.models.announcement import Announcement, AnnouncementRead
 from app.models.notification import Notification
@@ -154,15 +154,14 @@ def assessment_list():
 @check_stage_access(["test_invited", "test_completed"])
 def take_assessment(assessment_id):
     assessment = Assessment.query.get_or_404(assessment_id)
-    # Enforce max retry limit (3 attempts)
+    # Enforce max retry limit
     app_record = Application.query.filter_by(user_id=current_user.id).first()
-    max_attempts = 3
-    if app_record and (app_record.test_attempts or 0) >= max_attempts:
+    if app_record and (app_record.test_attempts or 0) >= MAX_TEST_ATTEMPTS:
         last = TestAttempt.query.filter_by(
             user_id=current_user.id, assessment_id=assessment_id
         ).filter(TestAttempt.completed_at.isnot(None)).order_by(TestAttempt.completed_at.desc()).first()
         if last and not last.passed:
-            flash(f"You've used all {max_attempts} attempts. Please contact support.", "warning")
+            flash(f"You've used all {MAX_TEST_ATTEMPTS} attempts. Please contact support.", "warning")
             return redirect(url_for("student.dashboard"))
     # Get all completed attempts for this assessment
     completed = TestAttempt.query.filter_by(
@@ -203,15 +202,14 @@ def assessment_result(attempt_id):
     attempt = TestAttempt.query.filter_by(id=attempt_id, user_id=current_user.id).first_or_404()
     assessment = Assessment.query.get(attempt.assessment_id)
     app_record = Application.query.filter_by(user_id=current_user.id).first()
-    max_attempts = 3
     attempts_used = app_record.test_attempts if app_record else 0
-    retries_left = max(0, max_attempts - attempts_used)
+    retries_left = max(0, MAX_TEST_ATTEMPTS - attempts_used)
     return render_template(
         "assessment/result.html",
         attempt=attempt,
         assessment=assessment,
         retries_left=retries_left,
-        max_attempts=max_attempts,
+        max_attempts=MAX_TEST_ATTEMPTS,
     )
 
 

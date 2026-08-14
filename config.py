@@ -1,5 +1,6 @@
 """Cellusys — Application configuration."""
 import json
+import logging
 import os
 import re
 import socket
@@ -7,6 +8,9 @@ import time
 import urllib.request
 from ipaddress import ip_address, IPv6Network
 from dotenv import load_dotenv
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+_log = logging.getLogger("cellusys.config")
 
 load_dotenv()
 
@@ -115,7 +119,7 @@ class Config:
         _db_url += f"{sep}sslmode=require"
     _rewritten = rewrite_supabase_direct_url(_db_url)
     if _rewritten != _db_url:
-        print("[config] Rewrote Supabase direct URI (IPv6-only) to IPv4 shared pooler host")
+        _log.info("Rewrote Supabase direct URI (IPv6-only) to IPv4 shared pooler host")
         _db_url = _rewritten
         if "sslmode=" not in _db_url:
             _db_url += "?sslmode=require"
@@ -130,6 +134,15 @@ class Config:
 
     # Flask-Migrate
     FLASK_MIGRATE_LOCK_PATH = os.path.join(BASE_DIR, "instance", "migrate.lock")
+
+    # Google Sheets sync (optional — passed applicants are mirrored to a sheet)
+    GOOGLE_SHEETS_ENABLED = os.environ.get(
+        "GOOGLE_SHEETS_ENABLED", "false"
+    ).lower() in ("1", "true", "yes")
+    GOOGLE_SHEETS_SPREADSHEET_ID = os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID", "")
+    GOOGLE_SHEETS_TAB = os.environ.get("GOOGLE_SHEETS_TAB", "")
+    GOOGLE_SHEETS_CREDENTIALS_JSON = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
+    GOOGLE_SHEETS_CREDENTIALS_FILE = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_FILE", "")
 
     # Upload
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "app", "static", "uploads")
@@ -158,7 +171,7 @@ class Config:
     CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", _redis_url or "")
     RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "true").lower() == "true"
     RATELIMIT_DEFAULT = "200 per day; 50 per hour"
-    RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
+    RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URL", _redis_url or "memory://")
 
     # Flask-Caching
     CACHE_TYPE = os.environ.get("CACHE_TYPE", "RedisCache" if _redis_url else "NullCache")

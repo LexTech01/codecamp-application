@@ -58,6 +58,13 @@ def send_mail(recipient, subject, text_body, html_body=None):
         logging.getLogger(__name__).exception("Failed to send email to %s", recipient)
 
 
+def calculate_score(earned, total, pass_score=70.0):
+    """Compute percentage score and pass/fail against the threshold."""
+    score = round((earned / total * 100) if total else 0, 1)
+    passed = score >= pass_score
+    return score, passed
+
+
 def parse_json_safe(data, default=None):
     if default is None:
         default = {}

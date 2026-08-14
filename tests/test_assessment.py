@@ -96,3 +96,20 @@ def test_first_submit_creates_and_completes_attempt(client, app):
         assert len(attempts) == 1
         assert attempts[0].completed_at is not None
         assert attempts[0].passed is True
+
+
+def test_submit_blocked_after_max_failed_attempts(client, app):
+    """The retry cap must be enforced on the submit endpoint, not only the GET route."""
+    from app.models.assessment import MAX_TEST_ATTEMPTS
+
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    _login(client, uid)
+
+    for _ in range(MAX_TEST_ATTEMPTS):
+        resp = _submit(client, uid, aid, {"1": 1})  # wrong answer -> failed attempt
+        assert resp.status_code == 200
+
+    resp = _submit(client, uid, aid, {"1": 0})
+    assert resp.status_code == 403
+    assert "attempts" in resp.get_json()["error"]

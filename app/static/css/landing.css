@@ -70,8 +70,8 @@ section {
 
 .landing-hero #logo {
   position: absolute;
-  left: -5%;
-  bottom: -55px;
+  left: 24px;
+  bottom: 24px;
   width: 180px;
   height: 180px;
   border-radius: 50%;

@@ -12,16 +12,33 @@ python3 run.py
 
 Open http://localhost:5555
 
-## Demo Accounts
+The local `.env` already sets `FLASK_DEBUG=1`, so `run.py` runs in debug mode locally.
+
+## Demo Accounts (local development only)
+
+Demo accounts are seeded **only** in debug mode or when `SEED_DEMO=1`. They are
+never created on a production database, so the credentials below are safe to
+publish.
 
 | Role    | Email               | Password   |
 |---------|---------------------|------------|
 | Admin   | admin@cellusys.com  | admin123   |
 | Student | student@cellusys.com| student123 |
 
+## Production requirements
+
+Production (Render/Gunicorn) fails fast at startup if any of these are missing,
+instead of silently degrading:
+
+- `SECRET_KEY` — random value (forgeable sessions otherwise)
+- `DATABASE_URL` — PostgreSQL/Supabase URL (SQLite fallback is disabled outside debug)
+
 ## Reseed Database (optional)
 
-Seed data runs only on first launch. To refresh announcements and demo content after theme updates:
+Core content (assessment, questions, announcements, cohorts) is seeded on the
+first boot in any environment. Demo users and interview slots are added only
+when running in debug mode or with `SEED_DEMO=1`. To refresh everything after
+theme updates:
 
 ```bash
 rm instance/cellusys.db

@@ -1,15 +1,6 @@
-"""Unit tests for test scoring logic.
+"""Unit tests for the real scoring logic in app.utils.helpers."""
 
-The scoring formula (duplicated from app/routes/api.py submit_test route):
-    score = round((earned / total * 100) if total else 0, 1)
-    passed = score >= assessment.pass_score  # typically 70.0
-"""
-
-
-def calculate_score(earned, total, pass_score=70.0):
-    score = round((earned / total * 100) if total else 0, 1)
-    passed = score >= pass_score
-    return score, passed
+from app.utils.helpers import calculate_score
 
 
 def test_all_correct():
@@ -76,11 +67,3 @@ def test_single_question():
     score, passed = calculate_score(1, 1)
     assert score == 100.0
     assert passed is True
-
-
-def test_max_attempts_limit():
-    scores = [35.0, 50.0, 68.0]
-    max_attempts = 3
-    assert len(scores) >= max_attempts
-    assert all(s < 70.0 for s in scores)
-    assert not any(s >= 70.0 for s in scores)

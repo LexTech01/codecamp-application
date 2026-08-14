@@ -2,7 +2,7 @@
 import math
 import os
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
-from app import db
+from app import db, limiter
 from app.models.announcement import Announcement
 from app.models.contact import ContactMessage
 
@@ -74,6 +74,7 @@ def gallery():
 
 
 @main_bp.route("/contact", methods=["POST"])
+@limiter.limit("6 per minute; 60 per hour")
 def contact():
     if request.form.get("type") == "newsletter":
         email = request.form.get("email", "").strip()

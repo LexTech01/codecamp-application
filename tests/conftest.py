@@ -16,10 +16,14 @@ def app():
     with app.app_context():
         _db.create_all()
         yield app
-        _db.session.close()
+        _db.session.remove()
         _db.drop_all()
+        _db.engine.dispose()
     os.close(_db_fd)
-    os.unlink(db_path)
+    try:
+        os.unlink(db_path)
+    except PermissionError:
+        pass  # Windows may briefly hold the SQLite file handle open
 
 
 @pytest.fixture

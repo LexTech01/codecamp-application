@@ -2,6 +2,8 @@
 from datetime import datetime, timezone
 from app import db
 
+MAX_TEST_ATTEMPTS = 3
+
 
 class Assessment(db.Model):
     __tablename__ = "assessments"

@@ -162,11 +162,21 @@
     <h2 data-aos="fade-up">Our Team</h2>
     <p data-aos="fade-up" data-aos-delay="100">Meet the dedicated professionals who make Cellusys CodeCamp possible. Our team is passionate about empowering the next generation of tech talent and is committed to providing a supportive and enriching learning environment for all our students. From experienced instructors to industry mentors, our team is here to guide you every step of the way on your coding journey.</p>
     <div class="teams">
-      {% for i in range(6) %}
+      {% set team_members = [
+        ("Richard Clunan", "Managing Director", "richard-clunan.jpg"),
+        ("Steve DeVeries", "Head Of Training/ Telecom Trainer", "steve-deveries.jpg"),
+        ("Raphael Okai", "Software Engineer/ Training Co-ordinator", "raphael-okai.jpg"),
+        ("Mostafa Alayesh", "Software Engineer / Remote Software Engineering Trainer", "mostafa-alayesh.jpg"),
+        ("Ushama Wahab", "Software Engineering Trainer/ Mobile Developer", "ushama-wahab.jpg"),
+        ("Joseph Enninful", "Networking Trainer", "joseph-enninful.jpg"),
+        ("Jefferson Ampadu", "Software Engineering Trainer/ Web Developer", "jefferson-ampadu.jpg"),
+        ("Winfred Alexander Adampa", "Software Engineering Trainer/ Web Developer", "winfred-alexander-adampa.jpg"),
+      ] %}
+      {% for name, role, photo in team_members %}
       <div data-aos="fade-up" data-aos-delay="{{ 100 + loop.index0 * 80 }}">
-        <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Team member" style="width:80px;height:80px;border-radius:50%">
-        <h3>Team Member</h3>
-        <p>Cellusys CodeCamp</p>
+        <img src="{{ url_for('static', filename='images/team/' ~ photo) }}" alt="{{ name }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/cellusys.ico') }}'">
+        <h3>{{ name }}</h3>
+        <p>{{ role }}</p>
       </div>
       {% endfor %}
     </div>
