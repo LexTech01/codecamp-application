@@ -79,7 +79,12 @@ def _load_credentials_info():
 
 
 def _get_client():
-    """Lazily create (once) a thread-safe gspread client with sane timeouts."""
+    """Lazily create (once) a thread-safe, authenticated gspread client.
+
+    The session must be an AuthorizedSession: gspread uses a custom session
+    verbatim (skipping its own authorize step), so passing a plain
+    requests.Session would send every request WITHOUT an access token.
+    """
     global _client
     if _client is not None:
         return _client
@@ -87,6 +92,7 @@ def _get_client():
         if _client is not None:
             return _client
         try:
+            from google.auth.transport.requests import AuthorizedSession
             from google.oauth2.service_account import Credentials
             import gspread
             import requests
@@ -95,7 +101,7 @@ def _get_client():
             if not info:
                 return None
             scoped = Credentials.from_service_account_info(info, scopes=_SCOPES)
-            session = requests.Session()
+            session = AuthorizedSession(scoped)
             session.mount(
                 "https://",
                 requests.adapters.HTTPAdapter(
@@ -109,6 +115,7 @@ def _get_client():
                 ),
             )
             _client = gspread.Client(auth=scoped, session=session)
+            _client.set_timeout((3.05, 30))
             log.info("Google Sheets client initialized")
         except Exception as exc:
             log.error("Failed to initialize Google Sheets client: %s", exc)
@@ -141,9 +148,18 @@ def _ensure_header(tab, header_cells):
     """
     header = [str(c).strip() for c in (header_cells[0] if header_cells else [])]
     if not header or header[0] != SHEET_HEADERS[0]:
-        tab.update("A1", [SHEET_HEADERS], value_input_option="RAW")
+        tab.update(values=[SHEET_HEADERS], range_name="A1", value_input_option="RAW")
         return SHEET_HEADERS, True
     return header, False
+
+
+def _column_letter(index):
+    """1-based column index -> A1 notation letter (1 -> A, 26 -> Z, 27 -> AA)."""
+    letter = ""
+    while index:
+        index, remainder = divmod(index - 1, 26)
+        letter = chr(65 + remainder) + letter
+    return letter
 
 
 def _upsert(tab, row):
@@ -153,11 +169,12 @@ def _upsert(tab, row):
         log.warning("Skipping Google Sheets sync: applicant has no email.")
         return
 
-    values = tab.batch_get(["1:1", "B:B"])
+    email_col = _EMAIL_COL_INDEX + 1
+    email_range = f"{_column_letter(email_col)}:{_column_letter(email_col)}"
+    values = tab.batch_get(["1:1", email_range])
     header_cells = values[0] if values else []
     header, header_written = _ensure_header(tab, header_cells)
 
-    email_col = _EMAIL_COL_INDEX + 1
     if EMAIL_HEADER in header:
         email_col = header.index(EMAIL_HEADER) + 1
 
@@ -174,10 +191,10 @@ def _upsert(tab, row):
             break
 
     if row_idx is not None:
-        tab.update(f"A{row_idx}", [row], value_input_option="RAW")
+        tab.update(values=[row], range_name=f"A{row_idx}", value_input_option="RAW")
         log.info("Updated Google Sheets row %s for %s", row_idx, email)
     else:
-        tab.append_row(row, value_input_option="RAW")
+        tab.append_row(values=row, value_input_option="RAW")
         log.info("Appended Google Sheets row for %s", email)
 
 
