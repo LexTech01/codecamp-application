@@ -35,7 +35,7 @@
 
 .auth-container {
   display: flex;
-  height: 480px;
+  height: 530px;
   width: 55%;
   max-width: 780px;
   background: var(--bg-secondary);
@@ -153,8 +153,13 @@
   justify-content: center;
 }
 
+.signup-card {
+  margin-top: 10px;
+}
+
 .auth-card > form {
   display: flex;
+  
   flex-direction: column;
 }
 
@@ -168,16 +173,16 @@
   color: var(--text-muted);
   margin-bottom: 24px;
   font-size: 0.82rem;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .auth-card .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .auth-card .form-label {
   font-size: 0.75rem;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -185,7 +190,7 @@
 .auth-card .form-input {
   padding: 10px 14px;
   font-size: 0.88rem;
-  min-height: 42px;
+  min-height: 40px;
   border-radius: var(--radius-sm);
 }
 
@@ -231,6 +236,7 @@
   height: 1px;
   background: var(--border-color);
 }
+
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

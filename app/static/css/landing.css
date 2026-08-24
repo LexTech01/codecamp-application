@@ -79,7 +79,7 @@ section {
   box-shadow: 0 8px 30px rgba(0,0,0,0.2);
   border: 3px solid rgba(255,255,255,0.3);
   transition: transform var(--transition);
-  z-index: 3;
+  z-index: 0;
 }
 
 .landing-hero #logo:hover {

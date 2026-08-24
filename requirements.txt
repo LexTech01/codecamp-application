@@ -36,7 +36,6 @@ weasyprint==69.0
 
 # Utilities
 gunicorn==22.0.0
-
-# Google Sheets sync
-gspread==6.1.4
-google-auth==2.36.0
+alembic
+dns
+pytest
