@@ -1,0 +1,240 @@
+{% extends "dashboard_layout.html" %} {% block title %}Users — Cellusys Admin{%
+endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html" %}{%
+endblock %} {% block content %}
+<div class="page-header" data-aos="fade-down">
+  <h1>User Management</h1>
+  <p>Manage admin and student accounts, roles, and active status.</p>
+</div>
+
+<form method="GET" class="card" style="margin-bottom: 24px; padding: 20px">
+  <div class="flex gap-2" style="flex-wrap: wrap; align-items: end">
+    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px">
+      <label class="form-label" for="search">Search</label>
+      <input
+        type="text"
+        id="search"
+        name="q"
+        value="{{ q }}"
+        placeholder="Name or email..."
+        class="form-input"
+      />
+    </div>
+    <div class="form-group" style="margin-bottom: 0; min-width: 160px">
+      <label class="form-label" for="role">Role</label>
+      <select name="role" id="role" class="form-select">
+        <option value="">All Roles</option>
+        <option value="admin" {% if role="" ="admin" %}selected{% endif %}>
+          Admin
+        </option>
+        <option value="student" {% if role="" ="student" %}selected{% endif %}>
+          Student
+        </option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary" style="height: 44px">
+      Filter
+    </button>
+    {% if q or role %}
+    <a
+      href="{{ url_for('admin.users') }}"
+      class="btn btn-ghost"
+      style="height: 44px"
+      >Clear</a
+    >
+    {% endif %}
+  </div>
+</form>
+
+<div class="card" style="padding: 0; overflow: hidden">
+  <div class="table-wrap" style="padding: 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th style="text-align: center">Status</th>
+          <th style="text-align: right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div
+                style="
+                  width: 36px;
+                  height: 36px;
+                  border-radius: 50%;
+                  background: var(--nav-gradient);
+                  color: #fff;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-weight: 700;
+                  font-size: 0.85rem;
+                  flex-shrink: 0;
+                "
+              >
+                {{ user.full_name[:2]|upper }}
+              </div>
+              <div>
+                <strong style="font-size: 0.9rem">
+                  {{ user.full_name }} {% if user.id == current_user.id %}<span
+                    class="text-muted"
+                    style="font-size: 0.75rem"
+                    >(you)</span
+                  >{% endif %}
+                </strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted)">
+                  {{ user.email }}
+                </div>
+                {% if user.deactivated_reason and not user.is_active %}
+                <div style="font-size: 0.75rem; color: var(--error)">
+                  Reason: {{ user.deactivated_reason }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td>
+            <span
+              class="badge {% if user.role == 'admin' %}badge-success{% else %}badge-info{% endif %}"
+            >
+              {{ user.role|title }}
+            </span>
+          </td>
+          <td style="text-align: center">
+            <span
+              class="badge {% if user.is_active %}badge-success{% else %}badge-error{% endif %}"
+            >
+              {{ 'Active' if user.is_active else 'Deactivated' }}
+            </span>
+          </td>
+          <td style="text-align: right">
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+                align-items: center;
+                flex-wrap: wrap;
+              "
+            >
+              <form
+                method="POST"
+                action="{{ url_for('admin.set_role', user_id=user.id) }}"
+                style="display: flex; gap: 6px; align-items: center"
+              >
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+                <select
+                  name="role"
+                  class="form-select"
+                  style="width: auto; padding: 6px; min-width: 110px"
+                  {%
+                  if
+                  user.id=""
+                  ="current_user.id"
+                  %}disabled{%
+                  endif
+                  %}
+                >
+                  <option
+                    value="admin"
+                    {%
+                    if
+                    user.role=""
+                    ="admin"
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    Admin
+                  </option>
+                  <option
+                    value="student"
+                    {%
+                    if
+                    user.role=""
+                    ="student"
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    Student
+                  </option>
+                </select>
+                <button
+                  type="submit"
+                  class="btn btn-ghost btn-sm"
+                  {%
+                  if
+                  user.id=""
+                  ="current_user.id"
+                  %}disabled{%
+                  endif
+                  %}
+                >
+                  Update
+                </button>
+              </form>
+              {% if user.is_active %} {% if user.id != current_user.id %}
+              <form
+                method="POST"
+                action="{{ url_for('admin.deactivate_user', user_id=user.id) }}"
+                data-confirm="Deactivate this user? They will be logged out immediately."
+              >
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+                <input
+                  type="text"
+                  name="reason"
+                  placeholder="Reason (optional)"
+                  class="form-input"
+                  style="width: 140px; padding: 6px"
+                />
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Deactivate
+                </button>
+              </form>
+              {% endif %} {% else %}
+              <form
+                method="POST"
+                action="{{ url_for('admin.reactivate_user', user_id=user.id) }}"
+              >
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+                <button type="submit" class="btn btn-success btn-sm">
+                  Reactivate
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td
+            colspan="4"
+            class="text-center text-muted"
+            style="padding: 48px 16px"
+          >
+            No users found
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

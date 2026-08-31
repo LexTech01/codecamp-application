@@ -11,6 +11,7 @@ def _login(client, user_id):
     with client.session_transaction() as sess:
         sess["_user_id"] = str(user_id)
         sess["_fresh"] = True
+        sess["_sess_v"] = 1
 
 
 def test_create_slot(client, app):
@@ -333,3 +334,60 @@ def test_cancel_completed_reverts_stage(client, app):
     with app.app_context():
         app_record = Application.query.filter_by(user_id=student_id).first()
         assert app_record.pipeline_stage == "test_completed"
+
+
+def test_rebook_after_cancel(client, app):
+    """Regression: after cancelling, the same slot must be bookable again.
+
+    Previously the UNIQUE slot_id constraint on interview_bookings caused a
+    new booking row to raise IntegrityError → HTTP 500.
+    """
+    with app.app_context():
+        admin = User(email="admin-rebook@test.com", first_name="R", last_name="B", role="admin")
+        admin.set_password("p")
+        student = User(email="stu-rebook@test.com", first_name="S", last_name="R", role="student")
+        student.set_password("p")
+        db.session.add_all([admin, student])
+        db.session.commit()
+        admin_id = admin.id
+        student_id = student.id
+
+        assessment = Assessment(title="Rebook Test", pass_score=70.0)
+        app_record = Application(user_id=student_id, pipeline_stage="test_completed", is_submitted=True)
+        slot = InterviewSlot(
+            interviewer_id=admin_id,
+            slot_date=date.today() + timedelta(days=4),
+            start_time=datetime.strptime("13:00", "%H:%M").time(),
+            end_time=datetime.strptime("13:30", "%H:%M").time(),
+        )
+        db.session.add_all([assessment, app_record, slot])
+        db.session.commit()
+        slot_id = slot.id
+        assessment_id = assessment.id
+
+        attempt = TestAttempt(
+            user_id=student_id, assessment_id=assessment_id,
+            passed=True, score=80.0, completed_at=datetime.now(timezone.utc),
+        )
+        db.session.add(attempt)
+        db.session.commit()
+
+    _login(client, student_id)
+
+    resp = client.post("/api/interview/book", json={"slot_id": slot_id})
+    assert resp.status_code == 200
+    booking_id = resp.get_json()["booking_id"]
+
+    resp = client.post(f"/api/interview/cancel/{booking_id}")
+    assert resp.status_code == 200
+
+    # Re-booking the now-freed slot must succeed, not 500.
+    resp = client.post("/api/interview/book", json={"slot_id": slot_id})
+    assert resp.status_code == 200
+    assert resp.get_json()["success"] is True
+
+    with app.app_context():
+        # Exactly one booking row for the slot, now scheduled again.
+        bookings = InterviewBooking.query.filter_by(slot_id=slot_id).all()
+        assert len(bookings) == 1
+        assert bookings[0].status == "scheduled"

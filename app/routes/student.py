@@ -7,7 +7,7 @@ from flask import (
 from flask_login import login_required, current_user
 from app import db
 from app.forms.auth_forms import ProfileForm
-from app.models.user import User
+from app.models.user import User, find_user_by_email_confirm_token
 from app.models.application import Application
 from app.models.assessment import Assessment, Question, TestAttempt, MAX_TEST_ATTEMPTS
 from app.models.interview import InterviewSlot, InterviewBooking, InterviewerProfile
@@ -15,7 +15,7 @@ from app.models.announcement import Announcement, AnnouncementRead
 from app.models.notification import Notification
 from app.models.activity import ActivityLog
 from app.utils.decorators import student_required
-from app.utils.helpers import save_upload, log_activity, create_notification, parse_json_safe
+from app.utils.helpers import save_upload, log_activity, create_notification, parse_json_safe, send_mail
 from app.pipeline import pipeline
 
 student_bp = Blueprint("student", __name__)
@@ -186,7 +186,13 @@ def take_assessment(assessment_id):
             log_activity(current_user.id, "test_started")
             db.session.commit()
     question_objs = Question.query.filter_by(assessment_id=assessment_id).order_by(Question.order_num, Question.id).all()
-    questions = [q.to_dict() for q in question_objs]
+    from app.utils.helpers import question_image_url
+    questions = []
+    for q in question_objs:
+        d = q.to_dict()
+        d["image"] = question_image_url(q.question_image)
+        d["option_images"] = [question_image_url(i) for i in q.option_images_list()]
+        questions.append(d)
     return render_template(
         "assessment/take.html",
         assessment=assessment,
@@ -279,6 +285,11 @@ def profile():
         form.email.data = current_user.email
         form.phone.data = current_user.phone
     if form.validate_on_submit():
+        # Re-authenticate before applying any profile change.
+        if not current_user.check_password(form.current_password.data):
+            flash("Current password is incorrect.", "error")
+            return redirect(url_for("student.profile"))
+
         changed = False
         if form.first_name.data and form.first_name.data.strip() != current_user.first_name:
             current_user.first_name = form.first_name.data.strip()
@@ -286,12 +297,35 @@ def profile():
         if form.last_name.data and form.last_name.data.strip() != current_user.last_name:
             current_user.last_name = form.last_name.data.strip()
             changed = True
-        if form.email.data and form.email.data.lower().strip() != current_user.email:
-            current_user.email = form.email.data.lower().strip()
-            changed = True
         if form.phone.data.strip() != current_user.phone:
             current_user.phone = form.phone.data.strip()
             changed = True
+
+        new_email = form.email.data.lower().strip() if form.email.data else ""
+        if new_email and new_email != current_user.email and new_email != current_user.pending_email:
+            # Don't apply immediately — require confirmation from the new address.
+            token = current_user.generate_email_confirm_token()
+            current_user.pending_email = new_email
+            db.session.commit()
+            confirm_url = url_for("student.confirm_email", token=token, _external=True)
+            send_mail(
+                recipient=new_email,
+                subject="Cellusys CodeCamp — Confirm your new email",
+                text_body=(
+                    f"Hi {current_user.first_name},\n\n"
+                    f"Confirm this email address to finish updating your account:\n{confirm_url}\n\n"
+                    f"If you did not request this, you can ignore this message.\n\n"
+                    f"Cellusys CodeCamp"
+                ),
+            )
+            flash(
+                "We sent a confirmation link to your new email. "
+                "Your address will update once you confirm it.",
+                "info",
+            )
+            log_activity(current_user.id, "email_change_requested", f"Pending: {new_email}")
+            return redirect(url_for("student.profile"))
+
         if changed:
             db.session.commit()
             flash("Profile updated successfully.", "success")
@@ -299,3 +333,22 @@ def profile():
             flash("No changes were made.", "info")
         return redirect(url_for("student.profile"))
     return render_template("dashboard/profile.html", form=form, application=app_record)
+
+
+@student_bp.route("/confirm-email/<token>")
+@login_required
+@student_required
+def confirm_email(token):
+    user = find_user_by_email_confirm_token(token)
+    if user is None or user.id != current_user.id or not user.email_confirm_valid:
+        flash("Invalid or expired confirmation link.", "error")
+        return redirect(url_for("student.profile"))
+    if user.pending_email and not User.query.filter(
+        User.email == user.pending_email, User.id != user.id
+    ).first():
+        user.email = user.pending_email
+        user.session_version += 1  # force re-login on other sessions
+    user.clear_email_confirm_token()
+    db.session.commit()
+    flash("Your email address has been updated.", "success")
+    return redirect(url_for("student.profile"))

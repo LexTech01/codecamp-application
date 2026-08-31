@@ -1,6 +1,7 @@
 """Flask application factory."""
 import logging
 import os
+import secrets
 import sentry_sdk
 from flask import Flask, jsonify
 from flask_login import LoginManager
@@ -38,16 +39,18 @@ def create_app(config_class=Config, config_override=None):
     # ── Production safety guards ────────────────────────────────────────
     # Fail loudly instead of running with a forgeable secret key or an
     # ephemeral SQLite database on disk (data would be lost on redeploy).
-    fallback_secret = "lisms-dev-secret-key-change-in-prod"
-    if (
-        not app.debug
-        and not app.testing
-        and (not app.config.get("SECRET_KEY") or app.config["SECRET_KEY"] == fallback_secret)
-    ):
-        raise RuntimeError(
-            "SECRET_KEY must be set to a random value in production "
-            "(e.g. via the SECRET_KEY environment variable)."
-        )
+    _secret = app.config.get("SECRET_KEY")
+    if not _secret:
+        if app.debug or app.testing:
+            # Ephemeral dev key — sessions reset on every restart, which is
+            # acceptable for local development but must never happen in prod.
+            app.config["SECRET_KEY"] = secrets.token_hex(32)
+        else:
+            raise RuntimeError(
+                "SECRET_KEY must be set to a random value in production "
+                "(e.g. via the SECRET_KEY environment variable)."
+            )
+
     if (
         not app.debug
         and not app.testing
@@ -56,6 +59,32 @@ def create_app(config_class=Config, config_override=None):
         raise RuntimeError(
             "DATABASE_URL must be set to a PostgreSQL database in production; "
             "the SQLite fallback is only allowed in debug/testing mode."
+        )
+
+    # Never run the Werkzeug interactive debugger against a production DB: it
+    # exposes a remote-code-execution console.
+    if (
+        app.debug
+        and not app.testing
+        and (
+            os.environ.get("FLASK_ENV") == "production"
+            or str(app.config.get("SQLALCHEMY_DATABASE_URI", "")).startswith("postgresql")
+        )
+    ):
+        raise RuntimeError(
+            "Debug mode must not be enabled against a production/PostgreSQL database."
+        )
+
+    # Rate limiting is effectively useless (and bypassable per worker) without
+    # a shared storage backend. Require Redis in production.
+    if (
+        not app.debug
+        and not app.testing
+        and str(app.config.get("RATELIMIT_STORAGE_URL", "")).startswith("memory")
+    ):
+        raise RuntimeError(
+            "RATELIMIT_STORAGE_URL must be set to a shared backend (e.g. Redis) "
+            "in production; the in-memory limiter does not work across workers."
         )
 
     # ── Logging ─────────────────────────────────────────────────────
@@ -97,10 +126,20 @@ def create_app(config_class=Config, config_override=None):
     cache.init_app(app)
 
     from app.models.user import User
+    from flask import session
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        user = User.query.get(int(user_id))
+        if user is None:
+            return None
+        # Invalidate sessions after a password reset (session_version bump).
+        if session.get("_sess_v") != user.session_version:
+            return None
+        # Reject deactivated accounts (see admin user management).
+        if not user.is_active:
+            return None
+        return user
 
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
@@ -224,6 +263,7 @@ def seed_database(force=False):
     """
     from flask import current_app
     from app.models.user import User
+    from app.data.puzzle_questions import PUZZLE_ASSESSMENT, PUZZLE_QUESTIONS
     from app.models.assessment import Assessment, Question
     from app.models.announcement import Announcement
     from app.models.interview import InterviewerProfile
@@ -235,6 +275,10 @@ def seed_database(force=False):
         or current_app.debug
         or os.environ.get("SEED_DEMO", "").lower() in ("1", "true", "yes")
     )
+    # Never seed publicly-documented demo accounts in a production deployment,
+    # even if SEED_DEMO=1 is accidentally set.
+    if os.environ.get("FLASK_ENV") == "production":
+        create_demo_users = False
 
     if Assessment.query.first() is not None or Announcement.query.first() is not None:
         # Content already seeded — only (optionally) add the demo accounts.
@@ -285,167 +329,43 @@ def seed_database(force=False):
         db.session.flush()
         demo_admin_id = admin.id
 
-        InterviewerProfile(
+        interviewer_profile = InterviewerProfile(
             user_id=admin.id,
             title="Senior Technical Interviewer",
             bio="In-person interviews at Musuku Roundabout, Accra, Ghana. Software Engineering and Networking & Telecom tracks.",
             timezone="Africa/Accra",
         )
+        db.session.add(interviewer_profile)
 
     assessment = Assessment(
-        title="Cellusys Aptitude Assessment",
-        description="Evaluate aptitude for Software Engineering and Networking & Telecom programs. Required for scholarship consideration.",
-        duration_minutes=45,
-        pass_score=70,
+        title=PUZZLE_ASSESSMENT["title"],
+        description=PUZZLE_ASSESSMENT["description"],
+        duration_minutes=PUZZLE_ASSESSMENT["duration_minutes"],
+        pass_score=PUZZLE_ASSESSMENT["pass_score"],
         is_active=True,
     )
     db.session.add(assessment)
     db.session.flush()
 
-    questions_data = [
-        # Logical Reasoning
-        (
-            "All roses are flowers. Some flowers fade quickly. Which of these is true?",
-            [
-                "All roses fade quickly",
-                "Some roses may fade quickly",
-                "No roses fade quickly",
-                "Roses are not flowers",
-            ],
-            1,
-            5,
-        ),
-        (
-            "If you rearrange the letters 'OCDUET', you get a word that means:",
-            ["A type of bird", "A place to learn", "A musical instrument", "A form of transport"],
-            1,
-            5,
-        ),
-        (
-            "A farmer has 15 goats. All but 8 escape. How many does he have left?",
-            ["7", "8", "15", "23"],
-            1,
-            5,
-        ),
-        (
-            "Which word does NOT belong with the others?",
-            ["Triangle", "Circle", "Square", "Rectangle"],
-            1,
-            5,
-        ),
-        (
-            "If it takes 5 minutes to boil one egg, how many minutes does it take to boil 3 eggs together?",
-            ["5", "10", "15", "20"],
-            0,
-            5,
-        ),
-        # Numerical Reasoning
-        (
-            "What number comes next? 2, 6, 18, 54, ?",
-            ["72", "108", "162", "216"],
-            2,
-            5,
-        ),
-        (
-            "A shirt costs £24 after a 20% discount. What was the original price?",
-            ["£28", "£30", "£29", "£26"],
-            1,
-            5,
-        ),
-        (
-            "How many sides does a hexagon have?",
-            ["5", "6", "7", "8"],
-            1,
-            5,
-        ),
-        (
-            "What is half of a quarter?",
-            ["0.125", "0.25", "0.5", "0.75"],
-            0,
-            5,
-        ),
-        (
-            "If a train leaves at 14:45 and arrives at 16:30, how many minutes is the journey?",
-            ["105", "95", "115", "90"],
-            0,
-            5,
-        ),
-        # Verbal Reasoning
-        (
-            "Choose the word that is closest in meaning to 'BRIEF'",
-            ["Short", "Long", "Bright", "Heavy"],
-            0,
-            5,
-        ),
-        (
-            "Which word is the opposite of 'ANCIENT'?",
-            ["Old", "Modern", "Rare", "Broken"],
-            1,
-            5,
-        ),
-        (
-            "Complete the sentence: Water is to thirst as food is to ___",
-            ["Drink", "Hunger", "Cook", "Plate"],
-            1,
-            5,
-        ),
-        (
-            "Which of these is a proper noun?",
-            ["city", "London", "river", "mountain"],
-            1,
-            5,
-        ),
-        (
-            "Choose the odd one out:",
-            ["Joy", "Happiness", "Sadness", "Delight"],
-            2,
-            5,
-        ),
-        # Pattern Recognition / General
-        (
-            "Which shape has no corners?",
-            ["Square", "Triangle", "Circle", "Rectangle"],
-            2,
-            5,
-        ),
-        (
-            "If you fold a piece of paper in half and then in half again, how many sections do you get?",
-            ["2", "4", "6", "8"],
-            1,
-            5,
-        ),
-        (
-            "How many months have 31 days?",
-            ["5", "6", "7", "8"],
-            2,
-            5,
-        ),
-        (
-            "Which number is the odd one out? 3, 5, 7, 8, 11",
-            ["3", "5", "7", "8"],
-            3,
-            5,
-        ),
-        (
-            "A clock shows 3:15. What is the angle between the hour and minute hand?",
-            ["0°", "7.5°", "15°", "30°"],
-            1,
-            5,
-        ),
-    ]
-    for text, options, correct, points in questions_data:
-        db.session.add(
-            Question(
-                assessment_id=assessment.id,
-                question_text=text,
-                option_a=options[0],
-                option_b=options[1],
-                option_c=options[2],
-                option_d=options[3],
-                correct_answer=correct,
-                points=points,
-            )
+    for idx, q in enumerate(PUZZLE_QUESTIONS, start=1):
+        options = q["options"]
+        correct = q.get("correct_answer")
+        oimages = q.get("option_images") or [None] * len(options)
+        q_obj = Question(
+            assessment_id=assessment.id,
+            question_text=q["text"],
+            options=list(options),
+            option_a=options[0] if len(options) >= 1 else None,
+            option_b=options[1] if len(options) >= 2 else None,
+            option_c=options[2] if len(options) >= 3 else None,
+            option_d=options[3] if len(options) >= 4 else None,
+            option_images=oimages,
+            question_image=q.get("question_image"),
+            correct_answer=correct,
+            points=10,
+            order_num=idx,
         )
+        db.session.add(q_obj)
 
     announcements = [
         Announcement(

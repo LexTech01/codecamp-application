@@ -27,6 +27,7 @@ from app.routes.admin import cohorts
 from app.routes.admin import interviews
 from app.routes.admin import content
 from app.routes.admin import analytics
+from app.routes.admin import users
 
 
 @admin_bp.route("/dashboard")

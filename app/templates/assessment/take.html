@@ -1,41 +1,83 @@
-{% extends "base.html" %}
-{% block title %}Assessment — {{ assessment.title }}{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-{% endblock %}
-{% block body %}
-<div id="assessmentTest" data-aos="fade-up"
-     data-assessment-id="{{ assessment.id }}"
-     data-duration="20">
+{% extends "base.html" %} {% block title %}Assessment — {{ assessment.title }}{%
+endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/assessment.css') }}"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/components.css') }}"
+/>
+{% endblock %} {% block body %}
+<div
+  id="assessmentTest"
+  data-aos="fade-up"
+  data-assessment-id="{{ assessment.id }}"
+  data-duration="{{ assessment.duration_minutes }}"
+>
   <div class="assessment-layout">
     <aside class="assessment-sidebar">
-      <a href="{{ url_for('student.assessment_list') }}" style="font-size:0.85rem;margin-bottom:24px;display:block"><i class="fa-solid fa-arrow-left"></i> Exit Test</a>
-      <h3 style="font-size:1rem;margin-bottom:8px">{{ assessment.title }}</h3>
+      <a class="assessment-exit" href="{{ url_for('student.assessment_list') }}"
+        ><i class="fa-solid fa-arrow-left"></i> Exit Test</a
+      >
+      <div class="assessment-title">{{ assessment.title }}</div>
       <div class="timer-display">
-        <div class="timer-value" id="timerValue">{{ '%02d'|format(assessment.duration_minutes) }}:00</div>
+        <i class="fa-solid fa-timer timer-icon"></i>
+        <div class="timer-value" id="timerValue">
+          {{ '%02d'|format(assessment.duration_minutes) }}:00
+        </div>
         <div class="timer-label">Time Remaining</div>
       </div>
-      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Progress</p>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <p id="progressText" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px">0/{{ questions|length }} answered</p>
+      <div class="assessment-progress">
+        <div class="progress-head">
+          <span>Progress</span>
+          <span id="progressText" class="progress-count"
+            >0/{{ questions|length }} answered</span
+          >
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
       <div class="question-nav-grid" id="questionNav"></div>
-      <button class="btn btn-primary btn-block mt-3" id="submitTest" style="margin-top:24px">Submit Test</button>
+      <button class="btn btn-primary btn-block" id="submitTest">
+        <i class="fa-solid fa-paper-plane"></i> Submit Test
+      </button>
     </aside>
     <main class="assessment-main">
-      <div class="question-header">
+      <header class="question-header">
         <span class="question-number" id="questionNumber">Question 1</span>
         <span class="badge badge-primary" id="questionPoints">10 pts</span>
+      </header>
+      <div class="question-card">
+        <h2 class="question-text" id="questionText"></h2>
+        <div class="question-image-wrap" id="questionImageWrap"></div>
+        <div class="options-list" id="optionsList"></div>
       </div>
-      <h2 class="question-text" id="questionText"></h2>
-      <div class="options-list" id="optionsList"></div>
-      <div class="assessment-nav">
-        <button class="btn btn-secondary" id="prevQuestion"><i class="fa-solid fa-arrow-left"></i> Previous</button>
-        <button class="btn btn-primary" id="nextQuestion">Next <i class="fa-solid fa-arrow-right"></i></button>
-      </div>
+      <nav class="assessment-nav">
+        <button class="btn btn-secondary" id="prevQuestion">
+          <i class="fa-solid fa-arrow-left"></i> Previous
+        </button>
+        <button class="btn btn-primary" id="nextQuestion">
+          Next <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </nav>
     </main>
   </div>
+  <div class="assessment-mobile-bar">
+    <button class="btn btn-secondary" id="prevQuestionMobile">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <button class="btn btn-primary btn-block" id="nextQuestionMobile">
+      Next
+    </button>
+    <button class="btn btn-primary" id="submitTestMobile">
+      <i class="fa-solid fa-check"></i>
+    </button>
+  </div>
 </div>
-<script id="questionsData" type="application/json">{{ questions|tojson }}</script>
+<script id="questionsData" type="application/json">
+  {{ questions|tojson }}
+</script>
 <script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
 {% endblock %}

@@ -1,6 +1,6 @@
 """Authentication routes."""
 import logging
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_user, logout_user, current_user
 from flask_mail import Message
 from app import db, limiter, mail
@@ -32,6 +32,7 @@ def login():
         user = User.query.filter_by(email=form.email.data.lower().strip()).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
+            session["_sess_v"] = user.session_version
             log_activity(user.id, "login", f"User {user.email} logged in")
             db.session.commit()
             next_page = _safe_next(request.args.get("next"))
@@ -71,6 +72,7 @@ def signup():
             log_activity(user.id, "signup", f"New account: {user.email}")
             db.session.commit()
             login_user(user)
+            session["_sess_v"] = user.session_version
             flash("Account created! Complete your application to get started.", "success")
             return redirect(url_for("student.application"))
         except Exception:
@@ -138,6 +140,7 @@ def reset_password(token):
     if form.validate_on_submit():
         user.set_password(form.password.data)
         user.clear_reset_token()
+        user.session_version += 1  # invalidate all existing sessions
         db.session.commit()
         log_activity(user.id, "password_reset", "Password reset completed")
         flash("Password reset successfully. Please sign in.", "success")

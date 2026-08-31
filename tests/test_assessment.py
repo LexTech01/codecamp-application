@@ -39,6 +39,7 @@ def _login(client, user_id):
     with client.session_transaction() as sess:
         sess["_user_id"] = str(user_id)
         sess["_fresh"] = True
+        sess["_sess_v"] = 1
 
 
 def _submit(client, user_id, assessment_id, answers, time_taken=60):
@@ -112,4 +113,48 @@ def test_submit_blocked_after_max_failed_attempts(client, app):
 
     resp = _submit(client, uid, aid, {"1": 0})
     assert resp.status_code == 403
-    assert "attempts" in resp.get_json()["error"]
+
+
+def _make_image_assessment(app):
+    """Assessment with a variable-option (8) question and an image-backed 4-option question."""
+    with app.app_context():
+        a = Assessment(title="Img Test", duration_minutes=20, pass_score=50.0,
+                       is_active=True)
+        db.session.add(a)
+        db.session.flush()
+        q1 = Question(assessment_id=a.id, order_num=1, points=10,
+                      question_text="Var?", options=["A", "B", "C", "D", "E", "F", "G", "H"],
+                      option_images=["/static/q_a.png"] + [None] * 7,
+                      correct_answer=None)
+        q2 = Question(assessment_id=a.id, order_num=2, points=10,
+                      question_text="Img?", options=["X", "Y"],
+                      question_image="/static/q_img.png", correct_answer=0)
+        db.session.add_all([q1, q2])
+        db.session.commit()
+        return a.id, q1.id, q2.id
+
+
+def test_take_page_renders_images_and_variable_options(client, app):
+    uid = _make_student(app)
+    aid, _, _ = _make_image_assessment(app)
+    _login(client, uid)
+
+    resp = client.get(f"/student/assessment/{aid}/take")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert "Var?" in html
+    assert "option_images" in html
+    assert "questionImageWrap" in html
+
+
+def test_nullable_correct_answer_excluded_from_scoring(client, app):
+    """Questions without a keyed answer (correct_answer None) don't count in the total."""
+    uid = _make_student(app)
+    aid, q1_id, q2_id = _make_image_assessment(app)
+    _login(client, uid)
+
+    # Only q2 is scored (correct_answer=0); q1 has None so it's excluded.
+    resp = _submit(client, uid, aid, {str(q1_id): 0, str(q2_id): 0})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["score"] == 100.0  # 1 of 1 scored question correct

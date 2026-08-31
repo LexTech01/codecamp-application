@@ -18,6 +18,13 @@ def find_user_by_reset_token(raw):
     ).first()
 
 
+def find_user_by_email_confirm_token(raw):
+    """Look up a user by a raw email-confirmation token (stored hashed)."""
+    return User.query.filter_by(
+        email_confirm_token_hash=_hash_reset_token(raw)
+    ).first()
+
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
@@ -28,12 +35,24 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(20), default="student")
     phone = db.Column(db.String(30))
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    deactivated_at = db.Column(db.DateTime, nullable=True)
+    deactivated_reason = db.Column(db.String(255), nullable=True)
     avatar = db.Column(db.String(255), default="default-avatar.svg")
     bio = db.Column(db.Text)
     theme = db.Column(db.String(10), default="dark")
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     reset_token_hash = db.Column(db.String(64), unique=True, index=True, nullable=True)
     reset_token_expires_at = db.Column(db.DateTime, nullable=True)
+
+    # Bumped on password reset / email change to invalidate all existing
+    # sessions (see load_user in app/__init__.py).
+    session_version = db.Column(db.Integer, default=1, nullable=False)
+
+    # Pending email change — applied only after the new address is confirmed.
+    pending_email = db.Column(db.String(120), nullable=True)
+    email_confirm_token_hash = db.Column(db.String(64), nullable=True, index=True)
+    email_confirm_expires_at = db.Column(db.DateTime, nullable=True)
 
     application = db.relationship("Application", backref="user", uselist=False, lazy=True)
     notifications = db.relationship("Notification", backref="user", lazy="dynamic")
@@ -65,6 +84,26 @@ class User(UserMixin, db.Model):
     def clear_reset_token(self):
         self.reset_token_hash = None
         self.reset_token_expires_at = None
+
+    def generate_email_confirm_token(self):
+        raw = secrets.token_urlsafe(48)
+        self.email_confirm_token_hash = _hash_reset_token(raw)
+        self.email_confirm_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        return raw
+
+    def clear_email_confirm_token(self):
+        self.email_confirm_token_hash = None
+        self.email_confirm_expires_at = None
+        self.pending_email = None
+
+    @property
+    def email_confirm_valid(self):
+        if not self.email_confirm_token_hash or not self.email_confirm_expires_at:
+            return False
+        expires = self.email_confirm_expires_at
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) < expires
 
     @property
     def full_name(self):

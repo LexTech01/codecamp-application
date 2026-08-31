@@ -47,6 +47,7 @@ class ProfileForm(FlaskForm):
     last_name = StringField("Last Name", validators=[Length(2, 80)])
     email = StringField("Email", validators=[Email()])
     phone = StringField("WhatsApp Number", validators=[DataRequired()])
+    current_password = PasswordField("Current Password", validators=[DataRequired()])
     submit = SubmitField("Save Changes")
 
     def validate_email(self, field):

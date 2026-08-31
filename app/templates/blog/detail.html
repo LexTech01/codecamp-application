@@ -1,195 +1,376 @@
-{% extends "base.html" %}
-{% block title %}{{ post.title }} — Cellusys CodeCamp{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
-{% endblock %}
-{% block body %}
+{% extends "base.html" %} {% block title %}{{ post.title }} — Cellusys
+CodeCamp{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/landing.css') }}"
+/>
+{% endblock %} {% block body %}
 <div class="blog-detail-page">
   <header class="navbar">
     <div class="nav-overlay"></div>
     <div class="navbar-inner container-wide">
       <a href="/" class="logo">
-        <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
+        <img
+          src="{{ url_for('static', filename='images/cellusys.ico') }}"
+          alt="Cellusys"
+        />
         <span>Cellusys</span> CodeCamp
       </a>
       <ul class="nav-links">
-        <li><a href="/#about"><i class="fa-solid fa-info-circle nav-icon"></i> About</a></li>
-        <li><a href="/#programs"><i class="fa-solid fa-book-open nav-icon"></i> Programs</a></li>
-        <li><a href="/#ourteam"><i class="fa-solid fa-users nav-icon"></i> Team</a></li>
-        <li><a href="/#contact"><i class="fa-solid fa-envelope nav-icon"></i> Contact</a></li>
-        <li><a href="/#faq"><i class="fa-solid fa-question-circle nav-icon"></i> FAQ</a></li>
+        <li>
+          <a href="/#about"
+            ><i class="fa-solid fa-info-circle nav-icon"></i> About</a
+          >
+        </li>
+        <li>
+          <a href="/#programs"
+            ><i class="fa-solid fa-book-open nav-icon"></i> Programs</a
+          >
+        </li>
+        <li>
+          <a href="/#ourteam"
+            ><i class="fa-solid fa-users nav-icon"></i> Team</a
+          >
+        </li>
+        <li>
+          <a href="/#contact"
+            ><i class="fa-solid fa-envelope nav-icon"></i> Contact</a
+          >
+        </li>
+        <li>
+          <a href="/#faq"
+            ><i class="fa-solid fa-question-circle nav-icon"></i> FAQ</a
+          >
+        </li>
         <li class="nav-actions-in-drawer">
-          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
-          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+          <a
+            href="{{ url_for('auth.login') }}"
+            class="btn btn-ghost btn-sm"
+            style="
+              color: var(--text-secondary);
+              border-color: rgba(255, 255, 255, 0.3);
+            "
+            >Sign In</a
+          >
+          <a
+            href="{{ url_for('auth.signup') }}"
+            class="btn btn-secondary btn-sm"
+            >Start Application</a
+          >
         </li>
       </ul>
       <div class="nav-actions">
-        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+        <a
+          href="{{ url_for('auth.login') }}"
+          class="btn btn-ghost btn-sm"
+          style="
+            color: var(--text-secondary);
+            border-color: rgba(255, 255, 255, 0.3);
+          "
+          >Sign In</a
+        >
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm"
+          >Start Application</a
+        >
       </div>
-      <button class="mobile-menu-btn" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
     </div>
   </header>
 
   {% if post.image_filename %}
-  <div class="blog-hero" style="background-image: url('{{ url_for('static', filename='uploads/' ~ post.image_filename) }}')">
-  {% else %}
-  <div class="blog-hero blog-hero-gradient">
-  {% endif %}
-    <div class="blog-hero-overlay">
-      <div class="blog-hero-content">
-        <a href="{{ url_for('main.index') }}#blog" class="blog-back-link"><i class="fa-solid fa-arrow-left"></i> Back to Blog</a>
-        {% if post.is_pinned %}<span class="blog-hero-badge">Featured</span>{% endif %}
-        <h1 data-aos="fade-up">{{ post.title }}</h1>
-        <div class="blog-hero-meta" data-aos="fade-up" data-aos-delay="100">
-          {% if post.author %}
-          <span class="blog-hero-author">
-            <img src="{{ url_for('static', filename='images/' ~ (post.author.avatar or 'default-avatar.svg')) }}" alt="" class="blog-author-avatar">
-            {{ post.author.first_name }} {{ post.author.last_name }}
-          </span>
-          {% endif %}
-          <span><i class="fa-regular fa-calendar"></i> {{ post.created_at.strftime('%B %d, %Y') }}</span>
-          <span><i class="fa-regular fa-clock"></i> {{ read_time }} min read</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="blog-detail-container">
-    <article class="blog-detail-content" data-aos="fade-up">
-      {{ post.content | replace('\n', '<br>') | safe }}
-    </article>
-
-    <div class="blog-share" data-aos="fade-up">
-      <span class="blog-share-label">Share this post</span>
-      <div class="blog-share-buttons">
-        <a href="https://twitter.com/intent/tweet?text={{ post.title }}&url={{ url_for('main.blog_detail', id=post.id, _external=True) }}" target="_blank" rel="noopener" class="share-btn share-twitter" aria-label="Share on Twitter"><i class="fa-brands fa-x-twitter"></i></a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ url_for('main.blog_detail', id=post.id, _external=True) }}" target="_blank" rel="noopener" class="share-btn share-linkedin" aria-label="Share on LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('main.blog_detail', id=post.id, _external=True) }}" target="_blank" rel="noopener" class="share-btn share-facebook" aria-label="Share on Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-        <button class="share-btn share-copy" onclick="navigator.clipboard.writeText(window.location.href).then(() => { this.querySelector('i').className = 'fa-solid fa-check'; setTimeout(() => { this.querySelector('i').className = 'fa-solid fa-link'; }, 2000); })" aria-label="Copy link"><i class="fa-solid fa-link"></i></button>
-      </div>
-    </div>
-
-    {% if post.author and (post.author.first_name or post.author.bio) %}
-    <div class="blog-author-card" data-aos="fade-up">
-      <img src="{{ url_for('static', filename='images/' ~ (post.author.avatar or 'default-avatar.svg')) }}" alt="" class="blog-author-card-avatar">
-      <div class="blog-author-card-info">
-        <h4>{{ post.author.first_name }} {{ post.author.last_name }}</h4>
-        {% if post.author.bio %}<p>{{ post.author.bio }}</p>{% endif %}
-      </div>
-    </div>
-    {% endif %}
-  </div>
-
-  {% if all_posts %}
-  <section class="blog-related" data-aos="fade-up">
-    <div class="blog-related-inner">
-      <h2>All Announcements</h2>
-      <div class="blog-grid">
-        {% for r in all_posts %}
-        <a href="{{ url_for('main.blog_detail', id=r.id) }}" class="blog-card blog-card-link">
-          {% if r.image_filename %}
-          <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}" alt="">
-          {% else %}
-          <img src="{{ url_for('static', filename='images/image2.jpeg') }}" alt="">
-          {% endif %}
-          <div class="blog-card-top">
-            <span class="blog-date">{{ r.created_at.strftime('%b %d, %Y') }}</span>
-            {% if r.is_pinned %}<span class="blog-badge">Featured</span>{% endif %}
+  <div
+    class="blog-hero"
+    style="background-image: url('{{ url_for('static', filename='uploads/' ~ post.image_filename) }}')"
+  >
+    {% else %}
+    <div class="blog-hero blog-hero-gradient">
+      {% endif %}
+      <div class="blog-hero-overlay">
+        <div class="blog-hero-content">
+          <a href="{{ url_for('main.index') }}#blog" class="blog-back-link"
+            ><i class="fa-solid fa-arrow-left"></i> Back to Blog</a
+          >
+          {% if post.is_pinned %}<span class="blog-hero-badge">Featured</span>{%
+          endif %}
+          <h1 data-aos="fade-up">{{ post.title }}</h1>
+          <div class="blog-hero-meta" data-aos="fade-up" data-aos-delay="100">
+            {% if post.author %}
+            <span class="blog-hero-author">
+              <img
+                src="{{ url_for('static', filename='images/' ~ (post.author.avatar or 'default-avatar.svg')) }}"
+                alt=""
+                class="blog-author-avatar"
+              />
+              {{ post.author.first_name }} {{ post.author.last_name }}
+            </span>
+            {% endif %}
+            <span
+              ><i class="fa-regular fa-calendar"></i> {{
+              post.created_at.strftime('%B %d, %Y') }}</span
+            >
+            <span
+              ><i class="fa-regular fa-clock"></i> {{ read_time }} min
+              read</span
+            >
           </div>
-          <h3>{{ r.title }}</h3>
-          <p>{{ r.content[:120] }}{% if r.content|length > 120 %}...{% endif %}</p>
-        </a>
-        {% endfor %}
+        </div>
       </div>
     </div>
-  </section>
-  {% endif %}
 
-  <footer class="landing-footer">
-    <div class="footer-wave-top"></div>
-    <div class="footer-inner">
-      <div class="footer-brand" data-aos="fade-up">
-        <div class="footer-logo">
-          <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
-          <span>Cellusys CodeCamp</span>
+    <div class="blog-detail-container">
+      <article class="blog-detail-content" data-aos="fade-up">
+        {{ post.content | replace('\n', '<br />') | safe }}
+      </article>
+
+      <div class="blog-share" data-aos="fade-up">
+        <span class="blog-share-label">Share this post</span>
+        <div class="blog-share-buttons">
+          <a
+            href="https://twitter.com/intent/tweet?text={{ post.title }}&url={{ url_for('main.blog_detail', id=post.id, _external=True) }}"
+            target="_blank"
+            rel="noopener"
+            class="share-btn share-twitter"
+            aria-label="Share on Twitter"
+            ><i class="fa-brands fa-x-twitter"></i
+          ></a>
+          <a
+            href="https://www.linkedin.com/sharing/share-offsite/?url={{ url_for('main.blog_detail', id=post.id, _external=True) }}"
+            target="_blank"
+            rel="noopener"
+            class="share-btn share-linkedin"
+            aria-label="Share on LinkedIn"
+            ><i class="fa-brands fa-linkedin-in"></i
+          ></a>
+          <a
+            href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('main.blog_detail', id=post.id, _external=True) }}"
+            target="_blank"
+            rel="noopener"
+            class="share-btn share-facebook"
+            aria-label="Share on Facebook"
+            ><i class="fa-brands fa-facebook-f"></i
+          ></a>
+          <button
+            class="share-btn share-copy"
+            onclick="
+              navigator.clipboard.writeText(window.location.href).then(() => {
+                this.querySelector('i').className = 'fa-solid fa-check';
+                setTimeout(() => {
+                  this.querySelector('i').className = 'fa-solid fa-link';
+                }, 2000);
+              })
+            "
+            aria-label="Copy link"
+          >
+            <i class="fa-solid fa-link"></i>
+          </button>
         </div>
-        <p>Empowering the next generation of tech creatives through 100% scholarship-funded coding education in Accra, Ghana.</p>
-        <div class="footer-social">
-          <a href="#" class="social-icon" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="social-icon" aria-label="X (Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-          <a href="#" class="social-icon" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="social-icon" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+
+      {% if post.author and (post.author.first_name or post.author.bio) %}
+      <div class="blog-author-card" data-aos="fade-up">
+        <img
+          src="{{ url_for('static', filename='images/' ~ (post.author.avatar or 'default-avatar.svg')) }}"
+          alt=""
+          class="blog-author-card-avatar"
+        />
+        <div class="blog-author-card-info">
+          <h4>{{ post.author.first_name }} {{ post.author.last_name }}</h4>
+          {% if post.author.bio %}
+          <p>{{ post.author.bio }}</p>
+          {% endif %}
         </div>
       </div>
-      <div class="footer-links" data-aos="fade-up" data-aos-delay="100">
-        <h3>Quick Links</h3>
-        <ul>
-          <li><a href="/#about"><i class="fa-solid fa-chevron-right"></i> About Us</a></li>
-          <li><a href="/#programs"><i class="fa-solid fa-chevron-right"></i> Programs</a></li>
-          <li><a href="{{ url_for('auth.signup') }}"><i class="fa-solid fa-chevron-right"></i> Apply Now</a></li>
-          <li><a href="/#ourteam"><i class="fa-solid fa-chevron-right"></i> Our Team</a></li>
-          <li><a href="/#contact"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
-          <li><a href="/#faq"><i class="fa-solid fa-chevron-right"></i> FAQ</a></li>
-        </ul>
-      </div>
-      <div class="footer-contact" data-aos="fade-up" data-aos-delay="200">
-        <h3>Contact</h3>
-        <ul>
-          <li><i class="fa-solid fa-location-dot"></i> <span>Musuku Roundabout, Accra, Ghana</span></li>
-          <li><i class="fa-solid fa-envelope"></i> <span>hello@cellusyscodecamp.com</span></li>
-          <li><i class="fa-solid fa-phone"></i> <span>+233 24 123 4567</span></li>
-          <li><i class="fa-solid fa-globe"></i> <span>7 Bachelors Walk, Dublin, Ireland</span></li>
-        </ul>
-      </div>
-      <div class="footer-newsletter" data-aos="fade-up" data-aos-delay="300">
-        <h3>Stay Updated</h3>
-        <p>Get the latest updates about programs and application deadlines.</p>
-        <form class="newsletter-form" action="{{ url_for('main.contact') }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="type" value="newsletter">
-          <input type="email" name="email" placeholder="Enter your email" required>
-          <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
-        </form>
-      </div>
+      {% endif %}
     </div>
-    <div class="footer-bottom">
-      <div class="footer-bottom-inner">
-        <p>&copy; 2026 Cellusys CodeCamp. All rights reserved.</p>
-        <div class="footer-bottom-links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
+
+    {% if all_posts %}
+    <section class="blog-related" data-aos="fade-up">
+      <div class="blog-related-inner">
+        <h2>All Announcements</h2>
+        <div class="blog-grid">
+          {% for r in all_posts %}
+          <a
+            href="{{ url_for('main.blog_detail', id=r.id) }}"
+            class="blog-card blog-card-link"
+          >
+            {% if r.image_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}"
+              alt=""
+            />
+            {% else %}
+            <img
+              src="{{ url_for('static', filename='images/image2.jpeg') }}"
+              alt=""
+            />
+            {% endif %}
+            <div class="blog-card-top">
+              <span class="blog-date"
+                >{{ r.created_at.strftime('%b %d, %Y') }}</span
+              >
+              {% if r.is_pinned %}<span class="blog-badge">Featured</span>{%
+              endif %}
+            </div>
+            <h3>{{ r.title }}</h3>
+            <p>
+              {{ r.content[:120] }}{% if r.content|length > 120 %}...{% endif %}
+            </p>
+          </a>
+          {% endfor %}
         </div>
       </div>
-    </div>
-  </footer>
+    </section>
+    {% endif %}
+
+    <footer class="landing-footer">
+      <div class="footer-wave-top"></div>
+      <div class="footer-inner">
+        <div class="footer-brand" data-aos="fade-up">
+          <div class="footer-logo">
+            <img
+              src="{{ url_for('static', filename='images/cellusys.ico') }}"
+              alt="Cellusys"
+            />
+            <span>Cellusys CodeCamp</span>
+          </div>
+          <p>
+            Empowering the next generation of tech creatives through 100%
+            scholarship-funded coding education in Accra, Ghana.
+          </p>
+          <div class="footer-social">
+            <a href="#" class="social-icon" aria-label="Facebook"
+              ><i class="fa-brands fa-facebook-f"></i
+            ></a>
+            <a href="#" class="social-icon" aria-label="X (Twitter)"
+              ><i class="fa-brands fa-x-twitter"></i
+            ></a>
+            <a href="#" class="social-icon" aria-label="LinkedIn"
+              ><i class="fa-brands fa-linkedin-in"></i
+            ></a>
+            <a href="#" class="social-icon" aria-label="Instagram"
+              ><i class="fa-brands fa-instagram"></i
+            ></a>
+            <a href="#" class="social-icon" aria-label="YouTube"
+              ><i class="fa-brands fa-youtube"></i
+            ></a>
+          </div>
+        </div>
+        <div class="footer-links" data-aos="fade-up" data-aos-delay="100">
+          <h3>Quick Links</h3>
+          <ul>
+            <li>
+              <a href="/#about"
+                ><i class="fa-solid fa-chevron-right"></i> About Us</a
+              >
+            </li>
+            <li>
+              <a href="/#programs"
+                ><i class="fa-solid fa-chevron-right"></i> Programs</a
+              >
+            </li>
+            <li>
+              <a href="{{ url_for('auth.signup') }}"
+                ><i class="fa-solid fa-chevron-right"></i> Apply Now</a
+              >
+            </li>
+            <li>
+              <a href="/#ourteam"
+                ><i class="fa-solid fa-chevron-right"></i> Our Team</a
+              >
+            </li>
+            <li>
+              <a href="/#contact"
+                ><i class="fa-solid fa-chevron-right"></i> Contact</a
+              >
+            </li>
+            <li>
+              <a href="/#faq"><i class="fa-solid fa-chevron-right"></i> FAQ</a>
+            </li>
+          </ul>
+        </div>
+        <div class="footer-contact" data-aos="fade-up" data-aos-delay="200">
+          <h3>Contact</h3>
+          <ul>
+            <li>
+              <i class="fa-solid fa-location-dot"></i>
+              <span>Musuku Roundabout, Accra, Ghana</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-envelope"></i>
+              <span>hello@cellusyscodecamp.com</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-phone"></i> <span>+233 24 123 4567</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-globe"></i>
+              <span>7 Bachelors Walk, Dublin, Ireland</span>
+            </li>
+          </ul>
+        </div>
+        <div class="footer-newsletter" data-aos="fade-up" data-aos-delay="300">
+          <h3>Stay Updated</h3>
+          <p>
+            Get the latest updates about programs and application deadlines.
+          </p>
+          <form
+            class="newsletter-form"
+            action="{{ url_for('main.contact') }}"
+            method="post"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="type" value="newsletter" />
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              required
+            />
+            <button type="submit">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-bottom-inner">
+          <p>&copy; 2026 Cellusys CodeCamp. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script>
+    (function () {
+      var btn = document.querySelector(".navbar-inner .mobile-menu-btn");
+      var nav = document.querySelector(".nav-links");
+      var overlay = document.querySelector(".nav-overlay");
+      if (!btn || !nav) return;
+      function openNav() {
+        nav.classList.add("open");
+        overlay?.classList.add("active");
+        btn.querySelector("i").className = "fa-solid fa-xmark";
+        document.body.style.overflow = "hidden";
+      }
+      function closeNav() {
+        nav.classList.remove("open");
+        overlay?.classList.remove("active");
+        btn.querySelector("i").className = "fa-solid fa-bars";
+        document.body.style.overflow = "";
+      }
+      btn.addEventListener("click", function () {
+        nav.classList.contains("open") ? closeNav() : openNav();
+      });
+      nav.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", closeNav);
+      });
+      overlay?.addEventListener("click", closeNav);
+    })();
+  </script>
+  {% endblock %}
 </div>
-<script>
-(function() {
-  var btn = document.querySelector('.navbar-inner .mobile-menu-btn');
-  var nav = document.querySelector('.nav-links');
-  var overlay = document.querySelector('.nav-overlay');
-  if (!btn || !nav) return;
-  function openNav() {
-    nav.classList.add('open');
-    overlay?.classList.add('active');
-    btn.querySelector('i').className = 'fa-solid fa-xmark';
-    document.body.style.overflow = 'hidden';
-  }
-  function closeNav() {
-    nav.classList.remove('open');
-    overlay?.classList.remove('active');
-    btn.querySelector('i').className = 'fa-solid fa-bars';
-    document.body.style.overflow = '';
-  }
-  btn.addEventListener('click', function() {
-    nav.classList.contains('open') ? closeNav() : openNav();
-  });
-  nav.querySelectorAll('a').forEach(function(link) {
-    link.addEventListener('click', closeNav);
-  });
-  overlay?.addEventListener('click', closeNav);
-})();
-</script>
-{% endblock %}

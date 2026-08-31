@@ -8,6 +8,7 @@ from app.models.notification import Notification
 from app.models.activity import ActivityLog
 from app.models.contact import ContactMessage
 from app.models.cohort import Cohort
+from app.models.gallery import GalleryItem
 
 __all__ = [
     "User",
@@ -24,4 +25,5 @@ __all__ = [
     "ActivityLog",
     "ContactMessage",
     "Cohort",
+    "GalleryItem",
 ]

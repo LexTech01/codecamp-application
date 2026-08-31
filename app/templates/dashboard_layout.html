@@ -1,16 +1,16 @@
-{% extends "base.html" %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
-{% block body %}
+{% extends "base.html" %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/dashboard.css') }}"
+/>
+{% endblock %} {% block body %}
 <div class="app-layout">
   {% block sidebar %}{% endblock %}
   <main class="main-content">
-    {% include "partials/dashboard_header.html" %}
-    {% block content %}{% endblock %}
+    {% include "partials/dashboard_header.html" %} {% block content %}{%
+    endblock %}
   </main>
 </div>
 <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
 <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
-{% block page_js %}{% endblock %}
-{% endblock %}
+{% block page_js %}{% endblock %} {% endblock %}

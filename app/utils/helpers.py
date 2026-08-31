@@ -5,7 +5,7 @@ import os
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import current_app
+from flask import current_app, url_for
 from app import db
 from app.models.activity import ActivityLog
 from app.models.notification import Notification
@@ -56,6 +56,32 @@ def send_mail(recipient, subject, text_body, html_body=None):
         mail.send(msg)
     except Exception:
         logging.getLogger(__name__).exception("Failed to send email to %s", recipient)
+
+
+def resolve_assessment_image(filename):
+    """Resolve a local assessment image filename to a static URL.
+
+    Images live in ``app/static/images/assessment/`` (e.g.
+    ``q3_question.jpg``, ``q1_opt0_potato.jpg``). Returns the URL path
+    (``static/images/assessment/<filename>``) if the file exists, else ``None``.
+
+    Idempotent: if ``filename`` is already a URL path (starts with ``/``) it is
+    returned unchanged, so values stored in the DB can be passed through again.
+    """
+    if not filename:
+        return None
+    if isinstance(filename, str) and filename.startswith("/"):
+        return filename
+    folder = os.path.join(
+        current_app.root_path, "static", "images", "assessment"
+    )
+    if not os.path.isfile(os.path.join(folder, filename)):
+        return None
+    return url_for("static", filename=f"images/assessment/{filename}")
+
+
+def question_image_url(filename):
+    return resolve_assessment_image(filename)
 
 
 def calculate_score(earned, total, pass_score=70.0):

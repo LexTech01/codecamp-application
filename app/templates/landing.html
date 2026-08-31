@@ -1,58 +1,173 @@
-{% extends "base.html" %}
-{% block title %}Cellusys Codecamp{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
-{% endblock %}
-{% block body %}
+{% extends "base.html" %} {% block title %}Cellusys Codecamp{% endblock %} {%
+block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/landing.css') }}"
+/>
+{% endblock %} {% block body %}
 <div class="landing-page">
   <header class="navbar">
     <div class="nav-overlay"></div>
     <div class="navbar-inner container-wide">
       <a href="/" class="logo">
-        <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
+        <img
+          src="{{ url_for('static', filename='images/cellusys.ico') }}"
+          alt="Cellusys"
+        />
         <span>Cellusys</span> CodeCamp
       </a>
       <ul class="nav-links">
-        <li><a href="#about"><i class="fa-solid fa-info-circle nav-icon"></i> About</a></li>
-        <li><a href="#programs"><i class="fa-solid fa-book-open nav-icon"></i> Programs</a></li>
-        <li><a href="#ourteam"><i class="fa-solid fa-users nav-icon"></i> Team</a></li>
-        <li><a href="#contact"><i class="fa-solid fa-envelope nav-icon"></i> Contact</a></li>
-        <li><a href="#faq"><i class="fa-solid fa-question-circle nav-icon"></i> FAQ</a></li>
+        <li>
+          <a href="#about"
+            ><i class="fa-solid fa-info-circle nav-icon"></i> About</a
+          >
+        </li>
+        <li>
+          <a href="#programs"
+            ><i class="fa-solid fa-book-open nav-icon"></i> Programs</a
+          >
+        </li>
+        <li>
+          <a href="#ourteam"><i class="fa-solid fa-users nav-icon"></i> Team</a>
+        </li>
+        <li>
+          <a href="#contact"
+            ><i class="fa-solid fa-envelope nav-icon"></i> Contact</a
+          >
+        </li>
+        <li>
+          <a href="#faq"
+            ><i class="fa-solid fa-question-circle nav-icon"></i> FAQ</a
+          >
+        </li>
         <li class="nav-actions-in-drawer">
-          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
-          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+          <a
+            href="{{ url_for('auth.login') }}"
+            class="btn btn-ghost btn-sm"
+            style="
+              color: var(--text-secondary);
+              border-color: rgba(255, 255, 255, 0.3);
+            "
+            >Sign In</a
+          >
+          <a
+            href="{{ url_for('auth.signup') }}"
+            class="btn btn-secondary btn-sm"
+            >Start Application</a
+          >
         </li>
       </ul>
       <div class="nav-actions">
-        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+        <a
+          href="{{ url_for('auth.login') }}"
+          class="btn btn-ghost btn-sm"
+          style="
+            color: var(--text-secondary);
+            border-color: rgba(255, 255, 255, 0.3);
+          "
+          >Sign In</a
+        >
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm"
+          >Start Application</a
+        >
       </div>
-      <button class="mobile-menu-btn" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
     </div>
   </header>
 
   <section class="landing-hero">
-    <div class="hero-particle" style="top:15%;left:10%;width:300px;height:300px;animation-delay:0s"></div>
-    <div class="hero-particle" style="top:60%;right:15%;width:200px;height:200px;animation-delay:2s"></div>
-    <div class="hero-particle" style="top:30%;right:30%;width:150px;height:150px;animation-delay:4s"></div>
-    <video  id="logo" src="{{ url_for('static', filename='videos/campvid.mp4') }}" autoplay muted loop playsinline ></video>
+    <div
+      class="hero-particle"
+      style="
+        top: 15%;
+        left: 10%;
+        width: 300px;
+        height: 300px;
+        animation-delay: 0s;
+      "
+    ></div>
+    <div
+      class="hero-particle"
+      style="
+        top: 60%;
+        right: 15%;
+        width: 200px;
+        height: 200px;
+        animation-delay: 2s;
+      "
+    ></div>
+    <div
+      class="hero-particle"
+      style="
+        top: 30%;
+        right: 30%;
+        width: 150px;
+        height: 150px;
+        animation-delay: 4s;
+      "
+    ></div>
+    <video
+      id="logo"
+      src="{{ url_for('static', filename='videos/campvid.mp4') }}"
+      autoplay
+      muted
+      loop
+      playsinline
+    ></video>
     <div class="hero-inner">
       <div class="hero-text">
-        <h1><span id="title">Empowering</span> <br>The Next Generation <br>of Tech Creatives</h1>
+        <h1>
+          <span id="title">Empowering</span> <br />The Next Generation <br />of
+          Tech Creatives
+        </h1>
         <div class="hero-img">
           <div class="skewed-bg"></div>
           <div class="skewed-bg skew1"></div>
-          <img src="{{ url_for('static', filename='images/image1.jpeg') }}" class="slide active" alt="Cellusys CodeCamp students">
-          <img src="{{ url_for('static', filename='images/image2.jpeg') }}" class="slide" alt="Cellusys CodeCamp students">
-          <img src="{{ url_for('static', filename='images/image3.jpeg') }}" class="slide" alt="Cellusys CodeCamp students">
-          <img src="{{ url_for('static', filename='images/hero-img3.JPG') }}" class="slide" alt="Cellusys CodeCamp students">
-          <img src="{{ url_for('static', filename='images/hero-img4.jpeg') }}" class="slide" alt="Cellusys CodeCamp students">
+          <img
+            src="{{ url_for('static', filename='images/image1.jpeg') }}"
+            class="slide active"
+            alt="Cellusys CodeCamp students"
+          />
+          <img
+            src="{{ url_for('static', filename='images/image2.jpeg') }}"
+            class="slide"
+            alt="Cellusys CodeCamp students"
+          />
+          <img
+            src="{{ url_for('static', filename='images/image3.jpeg') }}"
+            class="slide"
+            alt="Cellusys CodeCamp students"
+          />
+          <img
+            src="{{ url_for('static', filename='images/hero-img3.JPG') }}"
+            class="slide"
+            alt="Cellusys CodeCamp students"
+          />
+          <img
+            src="{{ url_for('static', filename='images/hero-img4.jpeg') }}"
+            class="slide"
+            alt="Cellusys CodeCamp students"
+          />
         </div>
-        <p>Cellusys Codecamp turns Thinkers and Problem Solvers into Coding Supersters. 100% Scholarships for Talented Young Adults who can't afford coding lessons</p>
+        <p>
+          Cellusys Codecamp turns Thinkers and Problem Solvers into Coding
+          Supersters. 100% Scholarships for Talented Young Adults who can't
+          afford coding lessons
+        </p>
         <h3>Learn Real Skills | Build a Future in Tech</h3>
         <div class="hero-buttons">
-          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary">Start Application Now</a>
-          <a href="https://www.linkedin.com/company/cellusys" target="_blank" rel="noopener" class="btn btn-secondary">Follow On LinkedIn</a>
+          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
+            >Start Application Now</a
+          >
+          <a
+            href="https://www.linkedin.com/company/cellusys"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-secondary"
+            >Follow On LinkedIn</a
+          >
         </div>
       </div>
     </div>
@@ -61,10 +176,31 @@
   <section id="about">
     <h3 data-aos="fade-up">WHY CELLUSYS CODECAMP?</h3>
     <h1 data-aos="fade-up" data-aos-delay="100">The CodeCamp Advantage</h1>
-    <p id="about-text" data-aos="fade-up" data-aos-delay="150"><span>Cellusys CodeCamp</span> is a transformative computer coding program powered by <span>Cellusys</span>, designed to empower <span>talented young adults</span> with the skills and knowledge needed to thrive in the tech industry. Our mission is to provide <span>100% scholarships</span> to individuals who have the <span>potential</span> but lack the financial means to access <span>quality coding education</span>. We believe that everyone deserves the opportunity to learn and succeed in the world of technology,regardless of their background or financial situation.
-    At <span>Cellusys CodeCamp</span>, we offer comprehensive training in <span>software engineering, networking and telecommunications</span>. Our <span>curriculum</span> is designed to equip students with <span>real-world skills</span> that are in high demand in the tech industry. Through hands-on projects, mentorship, and industry partnerships, we prepare our students for successful careers in technology.
-    <span>Join us</span> on this exciting journey to unlock your potential and build a future in tech with Cellusys CodeCamp!</p>
-    <p class="about-text-short" data-aos="fade-up" data-aos-delay="150"><span>Cellusys CodeCamp</span> is a transformative coding program powered by Cellusys, giving talented young adults real-world tech skills through <span>100% scholarships</span>. <span>Join us</span> to unlock your potential and build a future in tech.</p>
+    <p id="about-text" data-aos="fade-up" data-aos-delay="150">
+      <span>Cellusys CodeCamp</span> is a transformative computer coding program
+      powered by <span>Cellusys</span>, designed to empower
+      <span>talented young adults</span> with the skills and knowledge needed to
+      thrive in the tech industry. Our mission is to provide
+      <span>100% scholarships</span> to individuals who have the
+      <span>potential</span> but lack the financial means to access
+      <span>quality coding education</span>. We believe that everyone deserves
+      the opportunity to learn and succeed in the world of technology,regardless
+      of their background or financial situation. At
+      <span>Cellusys CodeCamp</span>, we offer comprehensive training in
+      <span>software engineering, networking and telecommunications</span>. Our
+      <span>curriculum</span> is designed to equip students with
+      <span>real-world skills</span> that are in high demand in the tech
+      industry. Through hands-on projects, mentorship, and industry
+      partnerships, we prepare our students for successful careers in
+      technology. <span>Join us</span> on this exciting journey to unlock your
+      potential and build a future in tech with Cellusys CodeCamp!
+    </p>
+    <p class="about-text-short" data-aos="fade-up" data-aos-delay="150">
+      <span>Cellusys CodeCamp</span> is a transformative coding program powered
+      by Cellusys, giving talented young adults real-world tech skills through
+      <span>100% scholarships</span>. <span>Join us</span> to unlock your
+      potential and build a future in tech.
+    </p>
     <div class="container-wrapper">
       <div class="about-track">
         <div class="about-container" data-aos="fade-up" data-aos-delay="200">
@@ -72,16 +208,25 @@
           <p>Learn and achieve the skills in tech for free.</p>
         </div>
         <div class="about-container" data-aos="fade-up" data-aos-delay="300">
-          <h3>Internship For<br>Selected Students</h3>
-          <p>Opportunities for outstanding students to gain real-world experience and mentorship.</p>
+          <h3>Internship For<br />Selected Students</h3>
+          <p>
+            Opportunities for outstanding students to gain real-world experience
+            and mentorship.
+          </p>
         </div>
         <div class="about-container" data-aos="fade-up" data-aos-delay="400">
-          <h3>Supportive<br>Community</h3>
-          <p>Join a community of like-minded individuals who are passionate about technology and innovation.</p>
+          <h3>Supportive<br />Community</h3>
+          <p>
+            Join a community of like-minded individuals who are passionate about
+            technology and innovation.
+          </p>
         </div>
         <div class="about-container" data-aos="fade-up" data-aos-delay="500">
-          <h3>Comprehensive<br>Career Support</h3>
-          <p>Receive guidance and resources to help you launch a successful career in the tech industry.</p>
+          <h3>Comprehensive<br />Career Support</h3>
+          <p>
+            Receive guidance and resources to help you launch a successful
+            career in the tech industry.
+          </p>
         </div>
       </div>
       <div class="about-track about-track-clone" aria-hidden="true">
@@ -90,69 +235,124 @@
           <p>Learn and achieve the skills in tech for free.</p>
         </div>
         <div class="about-container">
-          <h3>Internship For<br>Selected Students</h3>
-          <p>Opportunities for outstanding students to gain real-world experience and mentorship.</p>
+          <h3>Internship For<br />Selected Students</h3>
+          <p>
+            Opportunities for outstanding students to gain real-world experience
+            and mentorship.
+          </p>
         </div>
         <div class="about-container">
-          <h3>Supportive<br>Community</h3>
-          <p>Join a community of like-minded individuals who are passionate about technology and innovation.</p>
+          <h3>Supportive<br />Community</h3>
+          <p>
+            Join a community of like-minded individuals who are passionate about
+            technology and innovation.
+          </p>
         </div>
         <div class="about-container">
-          <h3>Comprehensive<br>Career Support</h3>
-          <p>Receive guidance and resources to help you launch a successful career in the tech industry.</p>
+          <h3>Comprehensive<br />Career Support</h3>
+          <p>
+            Receive guidance and resources to help you launch a successful
+            career in the tech industry.
+          </p>
         </div>
       </div>
     </div>
   </section>
- 
 
   <section id="programs">
-     <div class="program-cards">
+    <div class="program-cards">
       <div class="floating c3"></div>
-     </div>
+    </div>
     <div class="program">
       <div class="prog-text">
-      <h2 data-aos="fade-up">Programs</h2>
-      <p data-aos="fade-up" data-aos-delay="100">Our comprehensive programs are designed to provide a well-rounded education in coding and software development.</p>
+        <h2 data-aos="fade-up">Programs</h2>
+        <p data-aos="fade-up" data-aos-delay="100">
+          Our comprehensive programs are designed to provide a well-rounded
+          education in coding and software development.
+        </p>
       </div>
       <div class="prog-cards">
-      <div class="prog" data-aos="fade-up" data-aos-delay="200">
-        <img src="{{url_for('static', filename='images/software.jpeg')}}" alt="software engineering image">
-        <h3>Software Engineering</h3>
-        <p>Learn the fundamentals of software development, including programming languages, algorithms, and web development. Our curriculum is designed to prepare you for a successful career in software engineering.</p>
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary">Apply Now</a>
-      </div>
-      <div class="prog" data-aos="fade-up" data-aos-delay="300">
-        <img src="{{url_for('static', filename='images/telecom.jpeg')}}" alt="telecom image">
-        <h3>Networking and Telecom</h3>
-        <p>Explore the world of networking and telecommunications. Learn how to design and implement robust communication systems for modern applications.</p>
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary">Apply Now</a>
-      </div>
+        <div class="prog" data-aos="fade-up" data-aos-delay="200">
+          <img
+            src="{{url_for('static', filename='images/software.jpeg')}}"
+            alt="software engineering image"
+          />
+          <h3>Software Engineering</h3>
+          <p>
+            Learn the fundamentals of software development, including
+            programming languages, algorithms, and web development. Our
+            curriculum is designed to prepare you for a successful career in
+            software engineering.
+          </p>
+          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
+            >Apply Now</a
+          >
+        </div>
+        <div class="prog" data-aos="fade-up" data-aos-delay="300">
+          <img
+            src="{{url_for('static', filename='images/telecom.jpeg')}}"
+            alt="telecom image"
+          />
+          <h3>Networking and Telecom</h3>
+          <p>
+            Explore the world of networking and telecommunications. Learn how to
+            design and implement robust communication systems for modern
+            applications.
+          </p>
+          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
+            >Apply Now</a
+          >
+        </div>
       </div>
     </div>
   </section>
 
   <section id="blog">
     <h2 data-aos="fade-up">Latest from the Blog</h2>
-    <p data-aos="fade-up" data-aos-delay="100">Discover the latest updates, success stories, and insights from the Cellusys CodeCamp community. Admins can publish new posts from the announcement console, and this section keeps the landing page fresh with the newest content.</p>
+    <p data-aos="fade-up" data-aos-delay="100">
+      Discover the latest updates, success stories, and insights from the
+      Cellusys CodeCamp community. Admins can publish new posts from the
+      announcement console, and this section keeps the landing page fresh with
+      the newest content.
+    </p>
     <div class="blog-grid">
       {% for post in blog_posts %}
-      <a href="{{ url_for('main.blog_detail', id=post.id) }}" class="blog-card blog-card-link" data-aos="fade-up" data-aos-delay="{{ 100 + loop.index0 * 100 }}">
+      <a
+        href="{{ url_for('main.blog_detail', id=post.id) }}"
+        class="blog-card blog-card-link"
+        data-aos="fade-up"
+        data-aos-delay="{{ 100 + loop.index0 * 100 }}"
+      >
         {% if post.image_filename %}
-        <img src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}" alt="Blog preview image">
+        <img
+          src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}"
+          alt="Blog preview image"
+        />
         {% else %}
-        <img src="{{ url_for('static', filename='images/image2.jpeg') }}" alt="Blog preview image">
+        <img
+          src="{{ url_for('static', filename='images/image2.jpeg') }}"
+          alt="Blog preview image"
+        />
         {% endif %}
         <div class="blog-card-top">
-          <span class="blog-date">{{ post.created_at.strftime('%b %d, %Y') }}</span>
-          {% if post.is_pinned %}<span class="blog-badge">Featured</span>{% endif %}
+          <span class="blog-date"
+            >{{ post.created_at.strftime('%b %d, %Y') }}</span
+          >
+          {% if post.is_pinned %}<span class="blog-badge">Featured</span>{%
+          endif %}
         </div>
         <h3>{{ post.title }}</h3>
-        <p>{{ post.content[:150] }}{% if post.content|length > 150 %}...{% endif %}</p>
+        <p>
+          {{ post.content[:150] }}{% if post.content|length > 150 %}...{% endif
+          %}
+        </p>
       </a>
       {% else %}
       <div class="blog-empty">
-        <p>No blog posts yet. Admins can publish new posts from the announcements dashboard.</p>
+        <p>
+          No blog posts yet. Admins can publish new posts from the announcements
+          dashboard.
+        </p>
       </div>
       {% endfor %}
     </div>
@@ -160,21 +360,39 @@
 
   <section id="ourteam">
     <h2 data-aos="fade-up">Our Team</h2>
-    <p data-aos="fade-up" data-aos-delay="100">Meet the dedicated professionals who make Cellusys CodeCamp possible. Our team is passionate about empowering the next generation of tech talent and is committed to providing a supportive and enriching learning environment for all our students. From experienced instructors to industry mentors, our team is here to guide you every step of the way on your coding journey.</p>
+    <p data-aos="fade-up" data-aos-delay="100">
+      Meet the dedicated professionals who make Cellusys CodeCamp possible. Our
+      team is passionate about empowering the next generation of tech talent and
+      is committed to providing a supportive and enriching learning environment
+      for all our students. From experienced instructors to industry mentors,
+      our team is here to guide you every step of the way on your coding
+      journey.
+    </p>
     <div class="teams">
-      {% set team_members = [
-        ("Richard Clunan", "Managing Director", "richard-clunan.jpg"),
-        ("Steve DeVeries", "Head Of Training/ Telecom Trainer", "steve-deveries.jpg"),
-        ("Raphael Okai", "Software Engineer/ Training Co-ordinator", "raphael-okai.jpg"),
-        ("Mostafa Alayesh", "Software Engineer / Remote Software Engineering Trainer", "mostafa-alayesh.jpg"),
-        ("Ushama Wahab", "Software Engineering Trainer/ Mobile Developer", "ushama-wahab.jpg"),
-        ("Joseph Enninful", "Networking Trainer", "joseph-enninful.jpg"),
-        ("Jefferson Ampadu", "Software Engineering Trainer/ Web Developer", "jefferson-ampadu.jpg"),
-        ("Winfred Alexander Adampa", "Software Engineering Trainer/ Web Developer", "winfred-alexander-adampa.jpg"),
-      ] %}
-      {% for name, role, photo in team_members %}
+      {% set team_members = [ ("Richard Clunan", "Managing Director",
+      "richard-clunan.jpg"), ("Steve DeVeries", "Head Of Training/ Telecom
+      Trainer", "steve-deveries.jpg"), ("Raphael Okai", "Software Engineer/
+      Training Co-ordinator", "raphael-okai.jpg"), ("Mostafa Alayesh", "Software
+      Engineer / Remote Software Engineering Trainer", "mostafa-alayesh.jpg"),
+      ("Ushama Wahab", "Software Engineering Trainer/ Mobile Developer",
+      "ushama-wahab.jpg"), ("Joseph Enninful", "Networking Trainer",
+      "joseph-enninful.jpg"), ("Jefferson Ampadu", "Software Engineering
+      Trainer/ Web Developer", "jefferson-ampadu.jpg"), ("Winfred Alexander
+      Adampa", "Software Engineering Trainer/ Web Developer",
+      "winfred-alexander-adampa.jpg"), ("", "Software Engineering Trainer/ Web
+      Developer", ""), ] %} {% for name, role, photo in team_members %}
       <div data-aos="fade-up" data-aos-delay="{{ 100 + loop.index0 * 80 }}">
-        <img src="{{ url_for('static', filename='images/team/' ~ photo) }}" alt="{{ name }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/cellusys.ico') }}'">
+        <img
+          src="{{ url_for('static', filename='images/team/' ~ photo) }}"
+          alt="{{ name }}"
+          style="
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+          "
+          onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/cellusys.ico') }}'"
+        />
         <h3>{{ name }}</h3>
         <p>{{ role }}</p>
       </div>
@@ -184,45 +402,125 @@
 
   <section class="gallery-section">
     <h2 data-aos="fade-up">Gallery</h2>
-    <p data-aos="fade-up" data-aos-delay="100">Explore our gallery to see the vibrant community and dynamic learning environment at Cellusys CodeCamp. From hands-on coding sessions to industry events and student projects, our gallery showcases the exciting journey of our students as they develop their skills and build a future in tech.</p>
+    <p data-aos="fade-up" data-aos-delay="100">
+      Explore our gallery to see the vibrant community and dynamic learning
+      environment at Cellusys CodeCamp. From hands-on coding sessions to
+      industry events and student projects, our gallery showcases the exciting
+      journey of our students as they develop their skills and build a future in
+      tech.
+    </p>
     <div class="images">
-      <img src="{{ url_for('static', filename='images/IMG_8385.JPG') }}" alt="Gallery 1" data-aos="zoom-in" data-aos-delay="50">
-      <img src="{{ url_for('static', filename='images/IMG_8386.JPG') }}" alt="Gallery 2" data-aos="zoom-in" data-aos-delay="100">
-      <img src="{{ url_for('static', filename='images/IMG_8387.JPG') }}" alt="Gallery 3" data-aos="zoom-in" data-aos-delay="150">
-      <img src="{{ url_for('static', filename='images/IMG_8388.JPG') }}" alt="Gallery 4" data-aos="zoom-in" data-aos-delay="200">
-      <img src="{{ url_for('static', filename='images/img5.JPG') }}" alt="Gallery 5" data-aos="zoom-in" data-aos-delay="250">
-      <img src="{{ url_for('static', filename='images/IMG_8393.JPG') }}" alt="Gallery 6" data-aos="zoom-in" data-aos-delay="300">
+      {% for img in gallery %}
+      <img
+        src="{{ url_for('static', filename=img.file) }}"
+        alt="{{ img.alt }}"
+        data-aos="zoom-in"
+        data-aos-delay="{{ 50 * (loop.index0 % 6) }}"
+      />
+      {% endfor %}
     </div>
-    <a href="{{ url_for('main.gallery') }}" class="btn btn-primary" style="margin-top:32px" data-aos="fade-up">View Full Gallery <i class="fa-solid fa-arrow-right"></i></a>
+    <a
+      href="{{ url_for('main.gallery') }}"
+      class="btn btn-primary"
+      style="margin-top: 32px"
+      data-aos="fade-up"
+      >View Full Gallery <i class="fa-solid fa-arrow-right"></i
+    ></a>
   </section>
 
   <section id="faq">
     <h2 data-aos="fade-up">Frequently Asked Questions</h2>
-    <p data-aos="fade-up" data-aos-delay="100">Have questions about Cellusys CodeCamp? Check out some of our FAQs for answers to common inquiries about our programs, application process, and more.</p>
+    <p data-aos="fade-up" data-aos-delay="100">
+      Have questions about Cellusys CodeCamp? Check out some of our FAQs for
+      answers to common inquiries about our programs, application process, and
+      more.
+    </p>
     <div class="faq-grid">
       <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
-        <button class="faq-question">Where is Cellusys CodeCamp located? <i class="fa-solid fa-chevron-down"></i></button>
-        <div class="faq-answer"><p>Cellusys CodeCamp is located at Musuku Roundabout Accra, Ghana.</p></div>
+        <button class="faq-question">
+          Where is Cellusys CodeCamp located?
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>Cellusys CodeCamp is located at Musuku Roundabout Accra, Ghana.</p>
+        </div>
       </div>
       <div class="faq-item" data-aos="fade-up" data-aos-delay="150">
-        <button class="faq-question">What are the eligibility criteria for the scholarship? <i class="fa-solid fa-chevron-down"></i></button>
-        <div class="faq-answer"><p>To be eligible for the Cellusys CodeCamp scholarship, applicants must be talented young adults who cannot afford coding lessons. You must pass the test and interview process to be considered for the scholarship. Priority will be given to those who demonstrate a strong passion for technology and a commitment to pursuing a career in the tech industry.</p></div>
+        <button class="faq-question">
+          What are the eligibility criteria for the scholarship?
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>
+            To be eligible for the Cellusys CodeCamp scholarship, applicants
+            must be talented young adults who cannot afford coding lessons. You
+            must pass the test and interview process to be considered for the
+            scholarship. Priority will be given to those who demonstrate a
+            strong passion for technology and a commitment to pursuing a career
+            in the tech industry.
+          </p>
+        </div>
       </div>
       <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
-        <button class="faq-question">Is the program free of charge? <i class="fa-solid fa-chevron-down"></i></button>
-        <div class="faq-answer"><p>Yes, the Cellusys CodeCamp scholarship is fully funded, and there are no fees associated with the program. We are committed to providing access to quality coding education for talented individuals who may not have the financial means to pursue it otherwise.</p></div>
+        <button class="faq-question">
+          Is the program free of charge?
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>
+            Yes, the Cellusys CodeCamp scholarship is fully funded, and there
+            are no fees associated with the program. We are committed to
+            providing access to quality coding education for talented
+            individuals who may not have the financial means to pursue it
+            otherwise.
+          </p>
+        </div>
       </div>
       <div class="faq-item" data-aos="fade-up" data-aos-delay="250">
-        <button class="faq-question">Can I get a job after completing the program? <i class="fa-solid fa-chevron-down"></i></button>
-        <div class="faq-answer"><p>Yes, many of our graduates have secured employment in the tech industry. We provide career guidance and job placement assistance to help you achieve your professional goals.</p></div>
+        <button class="faq-question">
+          Can I get a job after completing the program?
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>
+            Yes, many of our graduates have secured employment in the tech
+            industry. We provide career guidance and job placement assistance to
+            help you achieve your professional goals.
+          </p>
+        </div>
       </div>
       <div class="faq-item" data-aos="fade-up" data-aos-delay="300">
-        <button class="faq-question">How long does the program last? <i class="fa-solid fa-chevron-down"></i></button>
-        <div class="faq-answer"><p>The Cellusys CodeCamp program typically lasts for 9 months, providing intensive training in coding and software development. And a 3 months for the networking and telecom track.</p></div>
+        <button class="faq-question">
+          How long does the program last?
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>
+            The Cellusys CodeCamp program typically lasts for 9 months,
+            providing intensive training in coding and software development. And
+            a 3 months for the networking and telecom track.
+          </p>
+        </div>
       </div>
       <div class="faq-item" data-aos="fade-up" data-aos-delay="350">
-        <button class="faq-question">Is the program online or in-person? <i class="fa-solid fa-chevron-down"></i></button>
-        <div class="faq-answer"><p>The Cellusys CodeCamp program is offered in-person, allowing students to engage in hands-on learning and collaborate with peers and instructors in a dynamic classroom environment. We believe that in-person learning fosters a stronger sense of community and provides valuable opportunities for networking and mentorship.<br>However, we also understand the importance of accessibility, and we are exploring options to offer online components in the future to reach a wider audience.<br>Our classroom is located in Musuku Roundabout Accra, Ghana.<br>Selected students are expected to attend classes three times a week, throughout the duration of the program.</p></div>
+        <button class="faq-question">
+          Is the program online or in-person?
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>
+            The Cellusys CodeCamp program is offered in-person, allowing
+            students to engage in hands-on learning and collaborate with peers
+            and instructors in a dynamic classroom environment. We believe that
+            in-person learning fosters a stronger sense of community and
+            provides valuable opportunities for networking and mentorship.<br />However,
+            we also understand the importance of accessibility, and we are
+            exploring options to offer online components in the future to reach
+            a wider audience.<br />Our classroom is located in Musuku Roundabout
+            Accra, Ghana.<br />Selected students are expected to attend classes
+            three times a week, throughout the duration of the program.
+          </p>
+        </div>
       </div>
     </div>
   </section>
@@ -230,12 +528,19 @@
   <section id="contact">
     <div id="contact-head" data-aos="fade-right">
       <h2>Contact Us</h2>
-      <p>If you have any questions or would like to learn more about Cellusys CodeCamp, please don't hesitate to reach out to us. We're here to help!</p>
+      <p>
+        If you have any questions or would like to learn more about Cellusys
+        CodeCamp, please don't hesitate to reach out to us. We're here to help!
+      </p>
     </div>
-    <form action="{{ url_for('main.contact') }}" method="post" data-aos="fade-left">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="text" name="name" placeholder="Your Name" required>
-      <input type="email" name="email" placeholder="Your Email" required>
+    <form
+      action="{{ url_for('main.contact') }}"
+      method="post"
+      data-aos="fade-left"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="text" name="name" placeholder="Your Name" required />
+      <input type="email" name="email" placeholder="Your Email" required />
       <textarea name="message" placeholder="Your Message" required></textarea>
       <button type="submit" class="btn btn-primary">Send Message</button>
     </form>
@@ -246,45 +551,103 @@
     <div class="footer-inner">
       <div class="footer-brand" data-aos="fade-up">
         <div class="footer-logo">
-          <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
+          <img
+            src="{{ url_for('static', filename='images/cellusys.ico') }}"
+            alt="Cellusys"
+          />
           <span>Cellusys CodeCamp</span>
         </div>
-        <p>Empowering the next generation of tech creatives through 100% scholarship-funded coding education in Accra, Ghana.</p>
+        <p>
+          Empowering the next generation of tech creatives through 100%
+          scholarship-funded coding education in Accra, Ghana.
+        </p>
         <div class="footer-social">
-          <a href="#" class="social-icon" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="social-icon" aria-label="X (Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-          <a href="#" class="social-icon" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="social-icon" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" class="social-icon" aria-label="Facebook"
+            ><i class="fa-brands fa-facebook-f"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="X (Twitter)"
+            ><i class="fa-brands fa-x-twitter"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="LinkedIn"
+            ><i class="fa-brands fa-linkedin-in"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="Instagram"
+            ><i class="fa-brands fa-instagram"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="YouTube"
+            ><i class="fa-brands fa-youtube"></i
+          ></a>
         </div>
       </div>
       <div class="footer-links" data-aos="fade-up" data-aos-delay="100">
         <h3>Quick Links</h3>
         <ul>
-          <li><a href="#about"><i class="fa-solid fa-chevron-right"></i> About Us</a></li>
-          <li><a href="#programs"><i class="fa-solid fa-chevron-right"></i> Programs</a></li>
-          <li><a href="{{ url_for('auth.signup') }}"><i class="fa-solid fa-chevron-right"></i> Apply Now</a></li>
-          <li><a href="#ourteam"><i class="fa-solid fa-chevron-right"></i> Our Team</a></li>
-          <li><a href="#contact"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
-          <li><a href="#faq"><i class="fa-solid fa-chevron-right"></i> FAQ</a></li>
+          <li>
+            <a href="#about"
+              ><i class="fa-solid fa-chevron-right"></i> About Us</a
+            >
+          </li>
+          <li>
+            <a href="#programs"
+              ><i class="fa-solid fa-chevron-right"></i> Programs</a
+            >
+          </li>
+          <li>
+            <a href="{{ url_for('auth.signup') }}"
+              ><i class="fa-solid fa-chevron-right"></i> Apply Now</a
+            >
+          </li>
+          <li>
+            <a href="#ourteam"
+              ><i class="fa-solid fa-chevron-right"></i> Our Team</a
+            >
+          </li>
+          <li>
+            <a href="#contact"
+              ><i class="fa-solid fa-chevron-right"></i> Contact</a
+            >
+          </li>
+          <li>
+            <a href="#faq"><i class="fa-solid fa-chevron-right"></i> FAQ</a>
+          </li>
         </ul>
       </div>
       <div class="footer-contact" data-aos="fade-up" data-aos-delay="200">
         <h3>Contact</h3>
         <ul>
-          <li><i class="fa-solid fa-location-dot"></i> <span>Musuku Roundabout, Accra, Ghana</span></li>
-          <li><i class="fa-solid fa-envelope"></i> <span>hello@cellusyscodecamp.com</span></li>
-          <li><i class="fa-solid fa-phone"></i> <span>+233 24 123 4567</span></li>
-          <li><i class="fa-solid fa-globe"></i> <span>7 Bachelors Walk, Dublin, Ireland</span></li>
+          <li>
+            <i class="fa-solid fa-location-dot"></i>
+            <span>Musuku Roundabout, Accra, Ghana</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-envelope"></i>
+            <span>hello@cellusyscodecamp.com</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-phone"></i> <span>+233 24 123 4567</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-globe"></i>
+            <span>7 Bachelors Walk, Dublin, Ireland</span>
+          </li>
         </ul>
       </div>
       <div class="footer-newsletter" data-aos="fade-up" data-aos-delay="300">
         <h3>Stay Updated</h3>
         <p>Get the latest updates about programs and application deadlines.</p>
-        <form class="newsletter-form" action="{{ url_for('main.contact') }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="type" value="newsletter">
-          <input type="email" name="email" placeholder="Enter your email" required>
+        <form
+          class="newsletter-form"
+          action="{{ url_for('main.contact') }}"
+          method="post"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="type" value="newsletter" />
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+          />
           <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
         </form>
       </div>
@@ -302,40 +665,42 @@
 </div>
 <script>
   // FAQ Accordion
-  document.querySelectorAll('.faq-question').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const item = btn.closest('.faq-item');
-      const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
-      if (!isOpen) item.classList.add('open');
+  document.querySelectorAll(".faq-question").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const item = btn.closest(".faq-item");
+      const isOpen = item.classList.contains("open");
+      document
+        .querySelectorAll(".faq-item.open")
+        .forEach((el) => el.classList.remove("open"));
+      if (!isOpen) item.classList.add("open");
     });
   });
 
   // Mobile nav toggle
-  (function() {
-    var btn = document.querySelector('.navbar-inner .mobile-menu-btn');
-    var nav = document.querySelector('.nav-links');
-    var overlay = document.querySelector('.nav-overlay');
+  (function () {
+    var btn = document.querySelector(".navbar-inner .mobile-menu-btn");
+    var nav = document.querySelector(".nav-links");
+    var overlay = document.querySelector(".nav-overlay");
     if (!btn || !nav) return;
     function openNav() {
-      nav.classList.add('open');
-      overlay?.classList.add('active');
-      btn.querySelector('i').className = 'fa-solid fa-xmark';
-      document.body.style.overflow = 'hidden';
+      nav.classList.add("open");
+      overlay?.classList.add("active");
+      btn.querySelector("i").className = "fa-solid fa-xmark";
+      document.body.style.overflow = "hidden";
     }
     function closeNav() {
-      nav.classList.remove('open');
-      overlay?.classList.remove('active');
-      btn.querySelector('i').className = 'fa-solid fa-bars';
-      document.body.style.overflow = '';
+      nav.classList.remove("open");
+      overlay?.classList.remove("active");
+      btn.querySelector("i").className = "fa-solid fa-bars";
+      document.body.style.overflow = "";
     }
-    btn.addEventListener('click', function() {
-      nav.classList.contains('open') ? closeNav() : openNav();
+    btn.addEventListener("click", function () {
+      nav.classList.contains("open") ? closeNav() : openNav();
     });
-    nav.querySelectorAll('a').forEach(function(link) {
-      link.addEventListener('click', closeNav);
+    nav.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", closeNav);
     });
-    overlay?.addEventListener('click', closeNav);
+    overlay?.addEventListener("click", closeNav);
   })();
 </script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>

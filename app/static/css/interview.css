@@ -24,7 +24,11 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary),
+    var(--accent-secondary)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,7 +68,11 @@
   color: var(--text-muted);
 }
 
-.meta-item strong { color: var(--text-primary); display: block; font-size: 0.85rem; }
+.meta-item strong {
+  color: var(--text-primary);
+  display: block;
+  font-size: 0.85rem;
+}
 
 .interview-calendar-panel {
   padding: 20px 24px;
@@ -268,7 +276,11 @@
   font-weight: 700;
   border: none;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary),
+    var(--accent-secondary)
+  );
   color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -307,13 +319,27 @@
     border-bottom: 1px solid var(--border-color);
     padding: 18px;
   }
-  .interview-calendar-panel { padding: 18px; }
+  .interview-calendar-panel {
+    padding: 18px;
+  }
 }
 
 @media (max-width: 480px) {
-  .interviewer-avatar { width: 48px; height: 48px; font-size: 1rem; }
-  .interviewer-name { font-size: 1rem; }
-  .calendar-grid { gap: 2px; }
-  .cal-day-header { font-size: 0.65rem; }
-  .cal-day { font-size: 0.75rem; }
+  .interviewer-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+  .interviewer-name {
+    font-size: 1rem;
+  }
+  .calendar-grid {
+    gap: 2px;
+  }
+  .cal-day-header {
+    font-size: 0.65rem;
+  }
+  .cal-day {
+    font-size: 0.75rem;
+  }
 }

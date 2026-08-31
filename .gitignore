@@ -31,6 +31,7 @@ Thumbs.db
 instance/*.db
 instance/*.db.bak
 app/static/uploads/*
+app/static/images/gallery/*
 
 # Flask
 *.log

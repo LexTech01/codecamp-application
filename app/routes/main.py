@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from app import db, limiter
 from app.models.announcement import Announcement
 from app.models.contact import ContactMessage
+from app.models.gallery import GalleryItem
 
 main_bp = Blueprint("main", __name__)
 
@@ -35,7 +36,13 @@ def index():
         "placement_rate": 94,
         "cohorts": 12,
     }
-    return render_template("landing.html", blog_posts=blog_posts, stats=stats)
+    gallery_images = (
+        GalleryItem.query.order_by(GalleryItem.created_at.desc()).limit(6).all()
+    )
+    gallery = [g.to_dict() for g in gallery_images]
+    return render_template(
+        "landing.html", blog_posts=blog_posts, stats=stats, gallery=gallery
+    )
 
 
 @main_bp.route("/blog/<int:id>")
@@ -56,20 +63,8 @@ def blog_detail(id):
 
 @main_bp.route("/gallery")
 def gallery():
-    images = [
-        {"file": "images/IMG_8385.JPG", "alt": "CodeCamp Event 1", "category": "events"},
-        {"file": "images/IMG_8386.JPG", "alt": "CodeCamp Event 2", "category": "events"},
-        {"file": "images/IMG_8387.JPG", "alt": "CodeCamp Event 3", "category": "events"},
-        {"file": "images/IMG_8388.JPG", "alt": "CodeCamp Event 4", "category": "events"},
-        {"file": "images/img5.JPG", "alt": "CodeCamp Event 5", "category": "events"},
-        {"file": "images/IMG_8393.JPG", "alt": "CodeCamp Event 6", "category": "events"},
-        {"file": "images/software.jpeg", "alt": "Software Engineering Class", "category": "programs"},
-        {"file": "images/telecom.jpeg", "alt": "Networking & Telecom Lab", "category": "programs"},
-        {"file": "images/hero-img3.JPG", "alt": "Campus Life 1", "category": "campus"},
-        {"file": "images/hero-img4.jpeg", "alt": "Campus Life 2", "category": "campus"},
-        {"file": "images/image1.jpeg", "alt": "Students Collaborating", "category": "campus"},
-        {"file": "images/image3.jpeg", "alt": "Graduation Ceremony", "category": "campus"},
-    ]
+    items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
+    images = [i.to_dict() for i in items]
     return render_template("gallery.html", images=images)
 
 

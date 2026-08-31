@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from app import db
 from app.models.application import Application
-from app.pipeline import pipeline
+from app.pipeline import pipeline as pipeline_machine
 from app.models.assessment import TestAttempt
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
@@ -15,13 +15,13 @@ from app.utils.decorators import admin_required
 @admin_required
 def pipeline():
     apps = Application.query.filter_by(is_submitted=True).all()
-    columns = {k: [] for k in pipeline.KANBAN_MAP}
+    columns = {k: [] for k in pipeline_machine.KANBAN_MAP}
     for app in apps:
-        for col, stages in pipeline.KANBAN_MAP.items():
+        for col, stages in pipeline_machine.KANBAN_MAP.items():
             if app.pipeline_stage in stages:
                 columns[col].append(app)
                 break
-    return render_template("admin/pipeline.html", columns=columns, kanban_keys=list(pipeline.KANBAN_MAP.keys()))
+    return render_template("admin/pipeline.html", columns=columns, kanban_keys=list(pipeline_machine.KANBAN_MAP.keys()))
 
 
 @admin_bp.route("/analytics")
@@ -41,7 +41,7 @@ def analytics():
             Application.pipeline_stage
         ).all()
     )
-    stages = {s: stage_counts.get(s, 0) for s in pipeline.STAGES}
+    stages = {s: stage_counts.get(s, 0) for s in pipeline_machine.STAGES}
 
     # Single query for all completed attempt scores
     score_rows = (

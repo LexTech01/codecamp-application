@@ -23,6 +23,7 @@
       </select>
     </div>
     <button type="submit" class="btn btn-primary" style="height:44px">Filter</button>
+    <a href="{{ url_for('admin.export_applicants', q=q, stage=stage) }}" class="btn btn-ghost" style="height:44px"><i class="fa-solid fa-file-csv" style="margin-right:6px"></i>Export CSV</a>
     {% if q or stage %}
     <a href="{{ url_for('admin.applicants') }}" class="btn btn-ghost" style="height:44px">Clear</a>
     {% endif %}
@@ -102,6 +103,7 @@
     </div>
   </div>
   {% endfor %}
+</div>
 {% else %}
 <div class="card" style="padding:48px 16px;text-align:center;color:var(--text-muted)">No applicants found</div>
 {% endif %}

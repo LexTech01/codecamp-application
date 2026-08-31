@@ -1,14 +1,15 @@
-{% extends "dashboard_layout.html" %}
-{% block title %}Dashboard — Cellusys{% endblock %}
-{% block sidebar %}{% include "partials/sidebar_student.html" %}{% endblock %}
-{% block content %}
+{% extends "dashboard_layout.html" %} {% block title %}Dashboard — Cellusys{%
+endblock %} {% block sidebar %}{% include "partials/sidebar_student.html" %}{%
+endblock %} {% block content %}
 <div class="student-dashboard">
   <div class="sd-header" data-aos="fade-down">
     <div class="sd-header-text">
       <h1>Welcome back, {{ current_user.first_name }}</h1>
       <p>Track your recruitment journey and upcoming tasks.</p>
     </div>
-    <span class="sd-status-badge">{{ application.status_label if application else 'Not Started' }}</span>
+    <span class="sd-status-badge"
+      >{{ application.status_label if application else 'Not Started' }}</span
+    >
   </div>
 
   <div class="sd-grid">
@@ -16,26 +17,37 @@
     <div class="sd-card sd-card-full" data-aos="fade-up">
       <div class="sd-card-head">
         <div class="sd-card-head-left">
-          <div class="sd-icon-wrap sd-icon-journey"><i class="fa-solid fa-map"></i></div>
+          <div class="sd-icon-wrap sd-icon-journey">
+            <i class="fa-solid fa-map"></i>
+          </div>
           <div>
             <h3>Recruitment Progress</h3>
             <p>Your journey to becoming a CodeCamp scholar</p>
           </div>
         </div>
-        <span class="sd-percent-badge">{{ application.progress_percent if application else 0 }}%</span>
+        <span class="sd-percent-badge"
+          >{{ application.progress_percent if application else 0 }}%</span
+        >
       </div>
       <div class="sd-progress-track">
-        {% set pipeline = [('submitted','Submitted','fa-paper-plane'),('test_invited','Test','fa-brain'),('test_completed','Test Done','fa-check-double'),('interview_scheduled','Interview','fa-calendar'),('interview_completed','Done','fa-handshake'),('accepted','Accepted','fa-trophy')] %}
-        {% set current = application.pipeline_stage if application else 'submitted' %}
-        {% set stage_keys = pipeline|map(attribute=0)|list %}
-        {% set stage_idx = stage_keys.index(current) if current in stage_keys else 0 %}
+        {% set pipeline =
+        [('submitted','Submitted','fa-paper-plane'),('test_invited','Test','fa-brain'),('test_completed','Test
+        Done','fa-check-double'),('interview_scheduled','Interview','fa-calendar'),('interview_completed','Done','fa-handshake'),('accepted','Accepted','fa-trophy')]
+        %} {% set current = application.pipeline_stage if application else
+        'submitted' %} {% set stage_keys = pipeline|map(attribute=0)|list %} {%
+        set stage_idx = stage_keys.index(current) if current in stage_keys else
+        0 %}
         <div class="sd-track">
           <div class="sd-track-line">
-            <div class="sd-track-fill" style="width:{{ (stage_idx / (pipeline|length - 1)) * 100 if pipeline|length > 1 else 0 }}%"></div>
+            <div
+              class="sd-track-fill"
+              style="width:{{ (stage_idx / (pipeline|length - 1)) * 100 if pipeline|length > 1 else 0 }}%"
+            ></div>
           </div>
-          {% for stage, label, icon in pipeline %}
-          {% set idx = loop.index0 %}
-          <div class="sd-track-step {% if idx < stage_idx %}sd-step-done{% elif idx == stage_idx %}sd-step-active{% else %}sd-step-upcoming{% endif %}">
+          {% for stage, label, icon in pipeline %} {% set idx = loop.index0 %}
+          <div
+            class="sd-track-step {% if idx < stage_idx %}sd-step-done{% elif idx == stage_idx %}sd-step-active{% else %}sd-step-upcoming{% endif %}"
+          >
             <div class="sd-step-node">
               {% if idx < stage_idx %}
               <i class="fa-solid fa-check"></i>
@@ -53,9 +65,13 @@
     </div>
 
     <!-- Next Step -->
-    {% set test_passed = test_attempt and test_attempt.completed_at and test_attempt.passed %}
-    {% if application %}
-    <div class="sd-card sd-card-next {{ 'sd-next-' + application.pipeline_stage if application.pipeline_stage in ['submitted','test_invited','test_completed','interview_scheduled','interview_completed','accepted','rejected','waitlisted','onboarding','enrolled'] else 'sd-next-default' }}" data-aos="fade-up" data-aos-delay="100">
+    {% set test_passed = test_attempt and test_attempt.completed_at and
+    test_attempt.passed %} {% if application %}
+    <div
+      class="sd-card sd-card-next {{ 'sd-next-' + application.pipeline_stage if application.pipeline_stage in ['submitted','test_invited','test_completed','interview_scheduled','interview_completed','accepted','rejected','waitlisted','onboarding','enrolled'] else 'sd-next-default' }}"
+      data-aos="fade-up"
+      data-aos-delay="100"
+    >
       <div class="sd-next-inner">
         <div class="sd-next-icon-block">
           {% if not application.is_submitted %}
@@ -87,48 +103,106 @@
         <div class="sd-next-content">
           {% if not application.is_submitted %}
           <h3>Complete Your Application</h3>
-          <p>Submit your personal and professional details to begin your journey.</p>
-          <a href="{{ url_for('student.application') }}" class="sd-btn">Start Application <i class="fa-solid fa-arrow-right"></i></a>
+          <p>
+            Submit your personal and professional details to begin your journey.
+          </p>
+          <a href="{{ url_for('student.application') }}" class="sd-btn"
+            >Start Application <i class="fa-solid fa-arrow-right"></i
+          ></a>
           {% elif application.pipeline_stage == 'submitted' %}
           <h3>Application Submitted</h3>
-          <p>Your application has been received. You can now take the aptitude test.</p>
-          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn">Take Aptitude Test <i class="fa-solid fa-arrow-right"></i></a>
+          <p>
+            Your application has been received. You can now take the aptitude
+            test.
+          </p>
+          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn"
+            >Take Aptitude Test <i class="fa-solid fa-arrow-right"></i
+          ></a>
           {% elif application.pipeline_stage == 'test_invited' %}
           <h3>Take Your Aptitude Test</h3>
-          <p>You're invited to take the aptitude test. Complete it to move to the interview stage.</p>
-          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn">Take Test Now <i class="fa-solid fa-arrow-right"></i></a>
-          {% elif application.pipeline_stage == 'test_completed' %}
-          {% if test_passed %}
+          <p>
+            You're invited to take the aptitude test. Complete it to move to the
+            interview stage.
+          </p>
+          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn"
+            >Take Test Now <i class="fa-solid fa-arrow-right"></i
+          ></a>
+          {% elif application.pipeline_stage == 'test_completed' %} {% if
+          test_passed %}
           <h3>Schedule Your Interview</h3>
-          <p>Great! You passed the aptitude test. Pick an interview slot to continue.</p>
-          <a href="{{ url_for('student.interview_schedule') }}" class="sd-btn">Schedule Interview <i class="fa-solid fa-arrow-right"></i></a>
+          <p>
+            Great! You passed the aptitude test. Pick an interview slot to
+            continue.
+          </p>
+          <a href="{{ url_for('student.interview_schedule') }}" class="sd-btn"
+            >Schedule Interview <i class="fa-solid fa-arrow-right"></i
+          ></a>
           {% else %}
           <h3>Retake the Aptitude Test</h3>
-          <p>You didn't meet the pass score. Review and try again to move forward.</p>
-          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn">Retake Test <i class="fa-solid fa-arrow-right"></i></a>
-          {% endif %}
-          {% elif application.pipeline_stage == 'interview_scheduled' %}
+          <p>
+            You didn't meet the pass score. Review and try again to move
+            forward.
+          </p>
+          <a href="{{ url_for('student.assessment_list') }}" class="sd-btn"
+            >Retake Test <i class="fa-solid fa-arrow-right"></i
+          ></a>
+          {% endif %} {% elif application.pipeline_stage ==
+          'interview_scheduled' %}
           <h3>Interview Scheduled</h3>
-          <p>Your interview is booked. Prepare well and join us at the designated time.</p>
-          <a href="{{ url_for('student.interview_schedule') }}" class="sd-btn sd-btn-outline">View Details <i class="fa-solid fa-arrow-right"></i></a>
+          <p>
+            Your interview is booked. Prepare well and join us at the designated
+            time.
+          </p>
+          <a
+            href="{{ url_for('student.interview_schedule') }}"
+            class="sd-btn sd-btn-outline"
+            >View Details <i class="fa-solid fa-arrow-right"></i
+          ></a>
           {% elif application.pipeline_stage == 'interview_completed' %}
           <h3>Interview Completed</h3>
-          <p>Thank you for completing your interview. Your final decision will appear here soon.</p>
+          <p>
+            Thank you for completing your interview. Your final decision will
+            appear here soon.
+          </p>
           {% elif application.pipeline_stage == 'accepted' %}
-          <h3><i class="fa-solid fa-trophy" style="color:var(--warning)"></i> Application Passed</h3>
-          <p>Congratulations! You passed the admissions decision. Cohort placement is being prepared.</p>
+          <h3>
+            <i class="fa-solid fa-trophy" style="color: var(--warning)"></i>
+            Application Passed
+          </h3>
+          <p>
+            Congratulations! You passed the admissions decision. Cohort
+            placement is being prepared.
+          </p>
           {% elif application.pipeline_stage == 'rejected' %}
           <h3>Application Rejected</h3>
-          <p>{{ application.rejection_reason or "Your application was not selected at this time." }}</p>
+          <p>
+            {{ application.rejection_reason or "Your application was not
+            selected at this time." }}
+          </p>
           {% elif application.pipeline_stage == 'waitlisted' %}
           <h3>Application Waitlisted</h3>
-          <p>You have not been rejected. We'll notify you when a place becomes available.</p>
+          <p>
+            You have not been rejected. We'll notify you when a place becomes
+            available.
+          </p>
           {% elif application.pipeline_stage == 'onboarding' %}
           <h3><i class="fa-solid fa-layer-group"></i> Cohort Placement</h3>
-          <p>{% if application.cohort_name %}You have been placed in <strong>{{ application.cohort_name }}</strong>.{% else %}Your application passed. Cohort placement is being prepared.{% endif %}</p>
+          <p>
+            {% if application.cohort_name %}You have been placed in
+            <strong>{{ application.cohort_name }}</strong>.{% else %}Your
+            application passed. Cohort placement is being prepared.{% endif %}
+          </p>
           {% elif application.pipeline_stage == 'enrolled' %}
-          <h3><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> You're Enrolled</h3>
-          <p>Welcome to the program! Check announcements for important updates.</p>
+          <h3>
+            <i
+              class="fa-solid fa-check-circle"
+              style="color: var(--success)"
+            ></i>
+            You're Enrolled
+          </h3>
+          <p>
+            Welcome to the program! Check announcements for important updates.
+          </p>
           {% endif %}
         </div>
       </div>
@@ -140,21 +214,34 @@
       <!-- Profile -->
       <div class="sd-card sd-card-mini" data-aos="fade-up" data-aos-delay="150">
         <div class="sd-mini-head">
-          <div class="sd-mini-icon sd-icon-profile"><i class="fa-solid fa-user"></i></div>
+          <div class="sd-mini-icon sd-icon-profile">
+            <i class="fa-solid fa-user"></i>
+          </div>
           <div class="sd-mini-title">Profile</div>
         </div>
         <div class="sd-mini-body">
           <div class="sd-mini-name">{{ current_user.full_name }}</div>
           <div class="sd-mini-email">{{ current_user.email }}</div>
-          <span class="sd-mini-badge">{{ application.status_label if application else 'Applicant' }}</span>
+          <span class="sd-mini-badge"
+            >{{ application.status_label if application else 'Applicant'
+            }}</span
+          >
         </div>
       </div>
 
       <!-- Aptitude Test -->
       {% set test_locked = application.pipeline_stage in ['under_review'] %}
-      <div class="sd-card sd-card-mini {{ 'sd-card-locked' if test_locked else '' }}" data-aos="fade-up" data-aos-delay="200">
+      <div
+        class="sd-card sd-card-mini {{ 'sd-card-locked' if test_locked else '' }}"
+        data-aos="fade-up"
+        data-aos-delay="200"
+      >
         <div class="sd-mini-head">
-          <div class="sd-mini-icon sd-icon-test"><i class="fa-solid {{ 'fa-lock' if test_locked else 'fa-brain' }}"></i></div>
+          <div class="sd-mini-icon sd-icon-test">
+            <i
+              class="fa-solid {{ 'fa-lock' if test_locked else 'fa-brain' }}"
+            ></i>
+          </div>
           <div class="sd-mini-title">Aptitude Test</div>
         </div>
         <div class="sd-mini-body sd-mini-center">
@@ -166,9 +253,13 @@
           {% elif test_attempt and test_attempt.completed_at %}
           <div class="sd-mini-score">
             <span class="sd-mini-score-val">{{ test_attempt.score }}%</span>
-            <span class="sd-mini-score-label">Attempt {{ application.test_attempts or 1 }}</span>
+            <span class="sd-mini-score-label"
+              >Attempt {{ application.test_attempts or 1 }}</span
+            >
           </div>
-          <span class="sd-mini-badge {{ 'sd-badge-pass' if test_attempt.passed else 'sd-badge-fail' }}">
+          <span
+            class="sd-mini-badge {{ 'sd-badge-pass' if test_attempt.passed else 'sd-badge-fail' }}"
+          >
             {% if test_attempt.passed %}Passed{% else %}Completed{% endif %}
           </span>
           {% else %}
@@ -182,9 +273,17 @@
 
       <!-- Interview -->
       {% set interview_locked = not test_passed %}
-      <div class="sd-card sd-card-mini {{ 'sd-card-locked' if interview_locked else '' }}" data-aos="fade-up" data-aos-delay="250">
+      <div
+        class="sd-card sd-card-mini {{ 'sd-card-locked' if interview_locked else '' }}"
+        data-aos="fade-up"
+        data-aos-delay="250"
+      >
         <div class="sd-mini-head">
-          <div class="sd-mini-icon sd-icon-interview"><i class="fa-solid {{ 'fa-lock' if interview_locked else 'fa-calendar' }}"></i></div>
+          <div class="sd-mini-icon sd-icon-interview">
+            <i
+              class="fa-solid {{ 'fa-lock' if interview_locked else 'fa-calendar' }}"
+            ></i>
+          </div>
           <div class="sd-mini-title">Interview</div>
         </div>
         <div class="sd-mini-body sd-mini-center">
@@ -195,8 +294,14 @@
           </div>
           {% elif booking and booking.slot %}
           <div class="sd-mini-detail">
-            <div class="sd-mini-detail-row"><i class="fa-regular fa-calendar"></i> {{ booking.slot.formatted_date }}</div>
-            <div class="sd-mini-detail-row"><i class="fa-regular fa-clock"></i> {{ booking.slot.formatted_time }}</div>
+            <div class="sd-mini-detail-row">
+              <i class="fa-regular fa-calendar"></i> {{
+              booking.slot.formatted_date }}
+            </div>
+            <div class="sd-mini-detail-row">
+              <i class="fa-regular fa-clock"></i> {{ booking.slot.formatted_time
+              }}
+            </div>
           </div>
           <span class="sd-mini-badge sd-badge-pass">Scheduled</span>
           {% else %}
@@ -212,412 +317,501 @@
 </div>
 
 <style>
-.sd-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 100px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #fff;
-  white-space: nowrap;
-}
-.sd-status-badge::before {
-  content: '';
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #4ade80;
-}
+  .sd-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .sd-status-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+  }
 
-.sd-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.sd-card-full { grid-column: 1 / -1; }
-.sd-card-next { grid-column: 1 / -1; }
-.sd-card-row {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
+  .sd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .sd-card-full {
+    grid-column: 1 / -1;
+  }
+  .sd-card-next {
+    grid-column: 1 / -1;
+  }
+  .sd-card-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
 
-.sd-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition);
-  overflow: hidden;
-}
-.sd-card:hover { box-shadow: var(--shadow-md); }
+  .sd-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    overflow: hidden;
+  }
+  .sd-card:hover {
+    box-shadow: var(--shadow-md);
+  }
 
-.sd-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--border-color);
-}
-.sd-card-head-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.sd-card-head-left h3 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.sd-card-head p {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
+  .sd-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sd-card-head-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sd-card-head-left h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .sd-card-head p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
 
-.sd-icon-wrap {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-.sd-icon-journey { background: rgba(0,74,173,0.1); color: var(--accent-primary); }
-.sd-icon-profile { background: rgba(16,185,129,0.1); color: #10b981; }
-.sd-icon-test { background: rgba(139,92,246,0.1); color: #8b5cf6; }
-.sd-icon-interview { background: rgba(245,158,11,0.1); color: #f59e0b; }
+  .sd-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+  .sd-icon-journey {
+    background: rgba(0, 74, 173, 0.1);
+    color: var(--accent-primary);
+  }
+  .sd-icon-profile {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+  .sd-icon-test {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+  }
+  .sd-icon-interview {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+  }
 
-.sd-percent-badge {
-  padding: 4px 12px;
-  border-radius: 100px;
-  background: rgba(0,74,173,0.1);
-  color: var(--accent-primary);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
+  .sd-percent-badge {
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: rgba(0, 74, 173, 0.1);
+    color: var(--accent-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
 
-/* Progress Track */
-.sd-track {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  position: relative;
-  padding: 8px 0;
-}
-.sd-track-line {
-  position: absolute;
-  top: 28px;
-  left: 28px;
-  right: 28px;
-  height: 3px;
-  background: var(--border-color);
-  border-radius: 3px;
-  z-index: 0;
-}
-.sd-track-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-  border-radius: 3px;
-  transition: width 0.8s ease;
-}
-.sd-track-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  position: relative;
-  z-index: 1;
-  flex: 1;
-}
-.sd-step-node {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 700;
-  transition: all var(--transition);
-  border: 2px solid var(--border-color);
-  background: var(--bg-secondary);
-  color: var(--text-muted);
-}
-.sd-step-done .sd-step-node {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: #fff;
-  box-shadow: 0 0 0 4px rgba(0,74,173,0.15);
-}
-.sd-step-active .sd-step-node {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: #fff;
-  box-shadow: var(--shadow-glow);
-  animation: sd-pulse 2s infinite;
-}
-@keyframes sd-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,74,173,0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(0,74,173,0); }
-}
-.sd-step-label {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  text-align: center;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.sd-step-done .sd-step-label,
-.sd-step-active .sd-step-label {
-  color: var(--accent-primary);
-  font-weight: 600;
-}
+  /* Progress Track */
+  .sd-track {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    padding: 8px 0;
+  }
+  .sd-track-line {
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    right: 28px;
+    height: 3px;
+    background: var(--border-color);
+    border-radius: 3px;
+    z-index: 0;
+  }
+  .sd-track-fill {
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      var(--accent-primary),
+      var(--accent-secondary)
+    );
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+  .sd-track-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+  .sd-step-node {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all var(--transition);
+    border: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+  }
+  .sd-step-done .sd-step-node {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(0, 74, 173, 0.15);
+  }
+  .sd-step-active .sd-step-node {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+    animation: sd-pulse 2s infinite;
+  }
+  @keyframes sd-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(0, 74, 173, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(0, 74, 173, 0);
+    }
+  }
+  .sd-step-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-align: center;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .sd-step-done .sd-step-label,
+  .sd-step-active .sd-step-label {
+    color: var(--accent-primary);
+    font-weight: 600;
+  }
 
-/* Next Step Card */
-.sd-next-inner {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  padding: 32px 32px;
-  min-height: 130px;
-}
-.sd-next-icon-block {
-  width: 64px; height: 64px;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-md);
-}
-.sd-card-next.sd-next-test_invited {
-  border: 1px solid rgba(0,74,173,0.2);
-  background: linear-gradient(135deg, var(--bg-secondary), rgba(0,74,173,0.04));
-}
-.sd-next-test_invited .sd-next-icon-block {
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: #fff;
-}
-.sd-next-test_invited .sd-btn {
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: #fff;
-}
-.sd-next-test_invited .sd-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.35); }
+  /* Next Step Card */
+  .sd-next-inner {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 32px 32px;
+    min-height: 130px;
+  }
+  .sd-next-icon-block {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-md);
+  }
+  .sd-card-next.sd-next-test_invited {
+    border: 1px solid rgba(0, 74, 173, 0.2);
+    background: linear-gradient(
+      135deg,
+      var(--bg-secondary),
+      rgba(0, 74, 173, 0.04)
+    );
+  }
+  .sd-next-test_invited .sd-next-icon-block {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: #fff;
+  }
+  .sd-next-test_invited .sd-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: #fff;
+  }
+  .sd-next-test_invited .sd-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+  }
 
-.sd-next-test_completed .sd-next-icon-block {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-}
-.sd-next-test_completed .sd-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-}
-.sd-next-test_completed .sd-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.35); }
+  .sd-next-test_completed .sd-next-icon-block {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+  }
+  .sd-next-test_completed .sd-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+  }
+  .sd-next-test_completed .sd-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+  }
 
-.sd-next-interview_scheduled .sd-next-icon-block {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
-}
-.sd-next-interview_scheduled .sd-btn {
-  background: transparent;
-  color: var(--accent-primary);
-  border: 1.5px solid var(--accent-primary);
-}
-.sd-next-interview_scheduled .sd-btn:hover { background: rgba(0,74,173,0.06); }
+  .sd-next-interview_scheduled .sd-next-icon-block {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+  }
+  .sd-next-interview_scheduled .sd-btn {
+    background: transparent;
+    color: var(--accent-primary);
+    border: 1.5px solid var(--accent-primary);
+  }
+  .sd-next-interview_scheduled .sd-btn:hover {
+    background: rgba(0, 74, 173, 0.06);
+  }
 
-.sd-next-accepted .sd-next-icon-block {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
-}
-.sd-next-rejected .sd-next-icon-block {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff;
-}
-.sd-next-waitlisted .sd-next-icon-block {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
-}
-.sd-next-onboarding .sd-next-icon-block {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  color: #fff;
-}
-.sd-next-enrolled .sd-next-icon-block {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-}
-.sd-next-default .sd-next-icon-block {
-  background: var(--nav-gradient);
-  color: #fff;
-}
+  .sd-next-accepted .sd-next-icon-block {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+  }
+  .sd-next-rejected .sd-next-icon-block {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+  }
+  .sd-next-waitlisted .sd-next-icon-block {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+  }
+  .sd-next-onboarding .sd-next-icon-block {
+    background: linear-gradient(
+      135deg,
+      var(--accent-primary),
+      var(--accent-secondary)
+    );
+    color: #fff;
+  }
+  .sd-next-enrolled .sd-next-icon-block {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+  }
+  .sd-next-default .sd-next-icon-block {
+    background: var(--nav-gradient);
+    color: #fff;
+  }
 
-.sd-next-content h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-}
-.sd-next-content p {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  line-height: 1.55;
-  margin-bottom: 14px;
-}
+  .sd-next-content h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+  .sd-next-content p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
 
-.sd-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all var(--transition);
-  border: none;
-  cursor: pointer;
-}
-.sd-btn i { font-size: 0.75rem; }
-.sd-next-default .sd-btn {
-  background: var(--accent-primary);
-  color: #fff;
-}
-.sd-btn-outline {
-  background: transparent !important;
-  color: var(--accent-primary) !important;
-  border: 1.5px solid var(--accent-primary) !important;
-}
-.sd-btn-outline:hover { background: rgba(0,74,173,0.06) !important; }
+  .sd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition);
+    border: none;
+    cursor: pointer;
+  }
+  .sd-btn i {
+    font-size: 0.75rem;
+  }
+  .sd-next-default .sd-btn {
+    background: var(--accent-primary);
+    color: #fff;
+  }
+  .sd-btn-outline {
+    background: transparent !important;
+    color: var(--accent-primary) !important;
+    border: 1.5px solid var(--accent-primary) !important;
+  }
+  .sd-btn-outline:hover {
+    background: rgba(0, 74, 173, 0.06) !important;
+  }
 
-/* Mini Cards Row */
-.sd-card-mini {
-  border-radius: var(--radius-md);
-}
-.sd-mini-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px 0;
-}
-.sd-mini-icon {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-.sd-mini-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.sd-mini-body {
-  padding: 12px 16px 16px;
-}
-.sd-mini-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.sd-mini-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-}
-.sd-mini-email {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sd-mini-badge {
-  display: inline-block;
-  padding: 3px 12px;
-  border-radius: 100px;
-  background: rgba(0,74,173,0.1);
-  color: var(--accent-primary);
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-.sd-mini-score {
-  text-align: center;
-}
-.sd-mini-score-val {
-  display: block;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-.sd-mini-score-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-.sd-mini-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-.sd-mini-detail-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  color: var(--text-primary);
-}
-.sd-mini-detail-row i {
-  width: 14px;
-  color: var(--accent-primary);
-  font-size: 0.75rem;
-}
-.sd-mini-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 0;
-}
-.sd-mini-empty i {
-  font-size: 1.4rem;
-  color: var(--text-muted);
-  opacity: 0.3;
-}
-.sd-mini-empty span {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
+  /* Mini Cards Row */
+  .sd-card-mini {
+    border-radius: var(--radius-md);
+  }
+  .sd-mini-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px 0;
+  }
+  .sd-mini-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+  .sd-mini-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .sd-mini-body {
+    padding: 12px 16px 16px;
+  }
+  .sd-mini-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .sd-mini-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .sd-mini-email {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sd-mini-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 100px;
+    background: rgba(0, 74, 173, 0.1);
+    color: var(--accent-primary);
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .sd-mini-score {
+    text-align: center;
+  }
+  .sd-mini-score-val {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  .sd-mini-score-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .sd-mini-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .sd-mini-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+  }
+  .sd-mini-detail-row i {
+    width: 14px;
+    color: var(--accent-primary);
+    font-size: 0.75rem;
+  }
+  .sd-mini-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+  }
+  .sd-mini-empty i {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    opacity: 0.3;
+  }
+  .sd-mini-empty span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
 
-.sd-badge-pass { background: rgba(16,185,129,0.12); color: #10b981; }
-.sd-badge-fail { background: rgba(239,68,68,0.12); color: #ef4444; }
+  .sd-badge-pass {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+  }
+  .sd-badge-fail {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+  }
 
-.sd-card-locked { opacity: 0.55; }
-.sd-card-locked .sd-mini-icon { background: rgba(107,114,128,0.1); color: var(--text-muted); }
-.sd-card-locked .sd-mini-empty i { font-size: 1.4rem; color: var(--text-muted); opacity: 0.4; }
-.sd-card-locked .sd-mini-empty span { font-size: 0.75rem; color: var(--text-muted); }
+  .sd-card-locked {
+    opacity: 0.55;
+  }
+  .sd-card-locked .sd-mini-icon {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--text-muted);
+  }
+  .sd-card-locked .sd-mini-empty i {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    opacity: 0.4;
+  }
+  .sd-card-locked .sd-mini-empty span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
 
-@media (max-width: 900px) {
-  .sd-grid { grid-template-columns: 1fr; }
-  .sd-card-row { grid-template-columns: 1fr; }
-  .sd-next-inner { flex-direction: column; text-align: center; }
-  .sd-next-content { text-align: center; }
-  .sd-track { overflow-x: auto; gap: 4px; }
-  .sd-step-node { width: 36px; height: 36px; font-size: 0.75rem; }
-  .sd-step-label { font-size: 0.6rem; }
-}
+  @media (max-width: 900px) {
+    .sd-grid {
+      grid-template-columns: 1fr;
+    }
+    .sd-card-row {
+      grid-template-columns: 1fr;
+    }
+    .sd-next-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+    .sd-next-content {
+      text-align: center;
+    }
+    .sd-track {
+      overflow-x: auto;
+      gap: 4px;
+    }
+    .sd-step-node {
+      width: 36px;
+      height: 36px;
+      font-size: 0.75rem;
+    }
+    .sd-step-label {
+      font-size: 0.6rem;
+    }
+  }
 </style>
+{% endblock %} {% block page_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
-{% block page_js %}<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>{% endblock %}

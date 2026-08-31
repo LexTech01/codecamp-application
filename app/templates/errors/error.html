@@ -1,10 +1,32 @@
-{% extends "base.html" %}
-{% block title %}{{ code }} — {{ title }}{% endblock %}
-{% block body %}
-<main style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;background:var(--bg-primary);color:var(--text-primary)">
-  <h1 style="font-size:4rem;font-weight:800;color:var(--accent-primary);margin:0 0 8px">{{ code }}</h1>
-  <h2 style="font-size:1.3rem;margin:0 0 12px">{{ title }}</h2>
-  <p style="color:var(--text-muted);max-width:480px;margin:0 0 28px">{{ message }}</p>
+{% extends "base.html" %} {% block title %}{{ code }} — {{ title }}{% endblock
+%} {% block body %}
+<main
+  style="
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  "
+>
+  <h1
+    style="
+      font-size: 4rem;
+      font-weight: 800;
+      color: var(--accent-primary);
+      margin: 0 0 8px;
+    "
+  >
+    {{ code }}
+  </h1>
+  <h2 style="font-size: 1.3rem; margin: 0 0 12px">{{ title }}</h2>
+  <p style="color: var(--text-muted); max-width: 480px; margin: 0 0 28px">
+    {{ message }}
+  </p>
   <a class="btn btn-primary" href="{{ url_for('main.index') }}">Back to Home</a>
 </main>
 {% endblock %}

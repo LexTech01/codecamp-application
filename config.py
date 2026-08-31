@@ -101,7 +101,7 @@ def rewrite_supabase_direct_url(url):
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "lisms-dev-secret-key-change-in-prod")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
 
     # Database — set DATABASE_URL for PostgreSQL in production
     # Falls back to SQLite at instance/cellusys.db for local dev
@@ -174,7 +174,7 @@ class Config:
     RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URL", _redis_url or "memory://")
 
     # Flask-Caching
-    CACHE_TYPE = os.environ.get("CACHE_TYPE", "RedisCache" if _redis_url else "NullCache")
+    CACHE_TYPE = os.environ.get("CACHE_TYPE", "RedisCache" if _redis_url else "SimpleCache")
     CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL", _redis_url or "redis://localhost:6379/2")
     CACHE_DEFAULT_TIMEOUT = 60
 

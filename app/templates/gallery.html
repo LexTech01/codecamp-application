@@ -1,33 +1,77 @@
-{% extends "base.html" %}
-{% block title %}Gallery — Cellusys CodeCamp{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
-{% endblock %}
-{% block body %}
+{% extends "base.html" %} {% block title %}Gallery — Cellusys CodeCamp{%
+endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/landing.css') }}"
+/>
+{% endblock %} {% block body %}
 <div class="gallery-page">
   <header class="navbar">
     <div class="nav-overlay"></div>
     <div class="navbar-inner container-wide">
       <a href="/" class="logo">
-        <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
+        <img
+          src="{{ url_for('static', filename='images/cellusys.ico') }}"
+          alt="Cellusys"
+        />
         <span>Cellusys</span> CodeCamp
       </a>
       <ul class="nav-links">
-        <li><a href="/"><i class="fa-solid fa-home nav-icon"></i> Home</a></li>
-        <li><a href="/#about"><i class="fa-solid fa-info-circle nav-icon"></i> About</a></li>
-        <li><a href="/#programs"><i class="fa-solid fa-book-open nav-icon"></i> Programs</a></li>
-        <li><a href="/#contact"><i class="fa-solid fa-envelope nav-icon"></i> Contact</a></li>
-        <li><a href="/#blog"><i class="fa-solid fa-blog nav-icon"></i> Blog</a></li>
+        <li>
+          <a href="/"><i class="fa-solid fa-home nav-icon"></i> Home</a>
+        </li>
+        <li>
+          <a href="/#about"
+            ><i class="fa-solid fa-info-circle nav-icon"></i> About</a
+          >
+        </li>
+        <li>
+          <a href="/#programs"
+            ><i class="fa-solid fa-book-open nav-icon"></i> Programs</a
+          >
+        </li>
+        <li>
+          <a href="/#contact"
+            ><i class="fa-solid fa-envelope nav-icon"></i> Contact</a
+          >
+        </li>
+        <li>
+          <a href="/#blog"><i class="fa-solid fa-blog nav-icon"></i> Blog</a>
+        </li>
         <li class="nav-actions-in-drawer">
-          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
-          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+          <a
+            href="{{ url_for('auth.login') }}"
+            class="btn btn-ghost btn-sm"
+            style="
+              color: var(--text-secondary);
+              border-color: rgba(255, 255, 255, 0.3);
+            "
+            >Sign In</a
+          >
+          <a
+            href="{{ url_for('auth.signup') }}"
+            class="btn btn-secondary btn-sm"
+            >Start Application</a
+          >
         </li>
       </ul>
       <div class="nav-actions">
-        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm" style="color:var(--text-secondary);border-color:rgba(255,255,255,0.3)">Sign In</a>
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm">Start Application</a>
+        <a
+          href="{{ url_for('auth.login') }}"
+          class="btn btn-ghost btn-sm"
+          style="
+            color: var(--text-secondary);
+            border-color: rgba(255, 255, 255, 0.3);
+          "
+          >Sign In</a
+        >
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-sm"
+          >Start Application</a
+        >
       </div>
-      <button class="mobile-menu-btn" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
     </div>
   </header>
 
@@ -35,7 +79,10 @@
     <div class="gallery-hero-overlay">
       <div class="gallery-hero-content">
         <h1 data-aos="fade-up">Our Gallery</h1>
-        <p data-aos="fade-up" data-aos-delay="100">Moments captured at Cellusys CodeCamp — from hands-on coding sessions to graduation celebrations.</p>
+        <p data-aos="fade-up" data-aos-delay="100">
+          Moments captured at Cellusys CodeCamp — from hands-on coding sessions
+          to graduation celebrations.
+        </p>
       </div>
     </div>
   </section>
@@ -51,10 +98,20 @@
     <div class="gallery-grid" data-aos="fade-up" data-aos-delay="100">
       {% for img in images %}
       <div class="gallery-item" data-category="{{ img.category }}">
-        <img src="{{ url_for('static', filename=img.file) }}" alt="{{ img.alt }}" loading="lazy">
+        <img
+          src="{{ url_for('static', filename=img.file) }}"
+          alt="{{ img.alt }}"
+          loading="lazy"
+        />
         <div class="gallery-item-overlay">
           <span>{{ img.alt }}</span>
-          <button class="gallery-expand" data-src="{{ url_for('static', filename=img.file) }}" data-alt="{{ img.alt }}"><i class="fa-solid fa-expand"></i></button>
+          <button
+            class="gallery-expand"
+            data-src="{{ url_for('static', filename=img.file) }}"
+            data-alt="{{ img.alt }}"
+          >
+            <i class="fa-solid fa-expand"></i>
+          </button>
         </div>
       </div>
       {% endfor %}
@@ -62,10 +119,16 @@
   </div>
 
   <div class="gallery-lightbox" id="galleryLightbox">
-    <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
-    <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
-    <img class="lightbox-image" id="lightboxImage" src="" alt="">
-    <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+    <button class="lightbox-close" id="lightboxClose">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <img class="lightbox-image" id="lightboxImage" src="" alt="" />
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
     <div class="lightbox-caption" id="lightboxCaption"></div>
   </div>
 
@@ -74,45 +137,103 @@
     <div class="footer-inner">
       <div class="footer-brand" data-aos="fade-up">
         <div class="footer-logo">
-          <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys">
+          <img
+            src="{{ url_for('static', filename='images/cellusys.ico') }}"
+            alt="Cellusys"
+          />
           <span>Cellusys CodeCamp</span>
         </div>
-        <p>Empowering the next generation of tech creatives through 100% scholarship-funded coding education in Accra, Ghana.</p>
+        <p>
+          Empowering the next generation of tech creatives through 100%
+          scholarship-funded coding education in Accra, Ghana.
+        </p>
         <div class="footer-social">
-          <a href="#" class="social-icon" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="social-icon" aria-label="X (Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-          <a href="#" class="social-icon" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="social-icon" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" class="social-icon" aria-label="Facebook"
+            ><i class="fa-brands fa-facebook-f"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="X (Twitter)"
+            ><i class="fa-brands fa-x-twitter"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="LinkedIn"
+            ><i class="fa-brands fa-linkedin-in"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="Instagram"
+            ><i class="fa-brands fa-instagram"></i
+          ></a>
+          <a href="#" class="social-icon" aria-label="YouTube"
+            ><i class="fa-brands fa-youtube"></i
+          ></a>
         </div>
       </div>
       <div class="footer-links" data-aos="fade-up" data-aos-delay="100">
         <h3>Quick Links</h3>
         <ul>
-          <li><a href="/#about"><i class="fa-solid fa-chevron-right"></i> About Us</a></li>
-          <li><a href="/#programs"><i class="fa-solid fa-chevron-right"></i> Programs</a></li>
-          <li><a href="{{ url_for('auth.signup') }}"><i class="fa-solid fa-chevron-right"></i> Apply Now</a></li>
-          <li><a href="/#ourteam"><i class="fa-solid fa-chevron-right"></i> Our Team</a></li>
-          <li><a href="/#contact"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
-          <li><a href="/#faq"><i class="fa-solid fa-chevron-right"></i> FAQ</a></li>
+          <li>
+            <a href="/#about"
+              ><i class="fa-solid fa-chevron-right"></i> About Us</a
+            >
+          </li>
+          <li>
+            <a href="/#programs"
+              ><i class="fa-solid fa-chevron-right"></i> Programs</a
+            >
+          </li>
+          <li>
+            <a href="{{ url_for('auth.signup') }}"
+              ><i class="fa-solid fa-chevron-right"></i> Apply Now</a
+            >
+          </li>
+          <li>
+            <a href="/#ourteam"
+              ><i class="fa-solid fa-chevron-right"></i> Our Team</a
+            >
+          </li>
+          <li>
+            <a href="/#contact"
+              ><i class="fa-solid fa-chevron-right"></i> Contact</a
+            >
+          </li>
+          <li>
+            <a href="/#faq"><i class="fa-solid fa-chevron-right"></i> FAQ</a>
+          </li>
         </ul>
       </div>
       <div class="footer-contact" data-aos="fade-up" data-aos-delay="200">
         <h3>Contact</h3>
         <ul>
-          <li><i class="fa-solid fa-location-dot"></i> <span>Musuku Roundabout, Accra, Ghana</span></li>
-          <li><i class="fa-solid fa-envelope"></i> <span>hello@cellusyscodecamp.com</span></li>
-          <li><i class="fa-solid fa-phone"></i> <span>+233 24 123 4567</span></li>
-          <li><i class="fa-solid fa-globe"></i> <span>7 Bachelors Walk, Dublin, Ireland</span></li>
+          <li>
+            <i class="fa-solid fa-location-dot"></i>
+            <span>Musuku Roundabout, Accra, Ghana</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-envelope"></i>
+            <span>hello@cellusyscodecamp.com</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-phone"></i> <span>+233 24 123 4567</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-globe"></i>
+            <span>7 Bachelors Walk, Dublin, Ireland</span>
+          </li>
         </ul>
       </div>
       <div class="footer-newsletter" data-aos="fade-up" data-aos-delay="300">
         <h3>Stay Updated</h3>
         <p>Get the latest updates about programs and application deadlines.</p>
-        <form class="newsletter-form" action="{{ url_for('main.contact') }}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="type" value="newsletter">
-          <input type="email" name="email" placeholder="Enter your email" required>
+        <form
+          class="newsletter-form"
+          action="{{ url_for('main.contact') }}"
+          method="post"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="type" value="newsletter" />
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+          />
           <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
         </form>
       </div>
@@ -130,122 +251,127 @@
 </div>
 
 <script>
-(function() {
-  // Mobile Nav Toggle
-  (function() {
-    var btn = document.querySelector('.navbar-inner .mobile-menu-btn');
-    var nav = document.querySelector('.nav-links');
-    var overlay = document.querySelector('.nav-overlay');
-    if (!btn || !nav) return;
-    function openNav() {
-      nav.classList.add('open');
-      overlay?.classList.add('active');
-      btn.querySelector('i').className = 'fa-solid fa-xmark';
-      document.body.style.overflow = 'hidden';
-    }
-    function closeNav() {
-      nav.classList.remove('open');
-      overlay?.classList.remove('active');
-      btn.querySelector('i').className = 'fa-solid fa-bars';
-      document.body.style.overflow = '';
-    }
-    btn.addEventListener('click', function() {
-      nav.classList.contains('open') ? closeNav() : openNav();
-    });
-    nav.querySelectorAll('a').forEach(function(link) {
-      link.addEventListener('click', closeNav);
-    });
-    overlay?.addEventListener('click', closeNav);
-  })();
+  (function () {
+    // Mobile Nav Toggle
+    (function () {
+      var btn = document.querySelector(".navbar-inner .mobile-menu-btn");
+      var nav = document.querySelector(".nav-links");
+      var overlay = document.querySelector(".nav-overlay");
+      if (!btn || !nav) return;
+      function openNav() {
+        nav.classList.add("open");
+        overlay?.classList.add("active");
+        btn.querySelector("i").className = "fa-solid fa-xmark";
+        document.body.style.overflow = "hidden";
+      }
+      function closeNav() {
+        nav.classList.remove("open");
+        overlay?.classList.remove("active");
+        btn.querySelector("i").className = "fa-solid fa-bars";
+        document.body.style.overflow = "";
+      }
+      btn.addEventListener("click", function () {
+        nav.classList.contains("open") ? closeNav() : openNav();
+      });
+      nav.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", closeNav);
+      });
+      overlay?.addEventListener("click", closeNav);
+    })();
 
-  var lightbox = document.getElementById('galleryLightbox');
-  var lightboxImg = document.getElementById('lightboxImage');
-  var lightboxCaption = document.getElementById('lightboxCaption');
-  var closeBtn = document.getElementById('lightboxClose');
-  var prevBtn = document.getElementById('lightboxPrev');
-  var nextBtn = document.getElementById('lightboxNext');
+    var lightbox = document.getElementById("galleryLightbox");
+    var lightboxImg = document.getElementById("lightboxImage");
+    var lightboxCaption = document.getElementById("lightboxCaption");
+    var closeBtn = document.getElementById("lightboxClose");
+    var prevBtn = document.getElementById("lightboxPrev");
+    var nextBtn = document.getElementById("lightboxNext");
 
-  var items = [];
-  var currentIndex = 0;
+    var items = [];
+    var currentIndex = 0;
 
-  document.querySelectorAll('.gallery-item').forEach(function(item, index) {
-    var expandBtn = item.querySelector('.gallery-expand');
-    var src = expandBtn.getAttribute('data-src');
-    var alt = expandBtn.getAttribute('data-alt');
-    items.push({ src: src, alt: alt });
+    document.querySelectorAll(".gallery-item").forEach(function (item, index) {
+      var expandBtn = item.querySelector(".gallery-expand");
+      var src = expandBtn.getAttribute("data-src");
+      var alt = expandBtn.getAttribute("data-alt");
+      items.push({ src: src, alt: alt });
 
-    expandBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      openLightbox(index);
-    });
+      expandBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        openLightbox(index);
+      });
 
-    item.addEventListener('click', function() {
-      openLightbox(index);
-    });
-  });
-
-  function openLightbox(index) {
-    currentIndex = index;
-    updateLightbox();
-    lightbox.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function updateLightbox() {
-    var item = items[currentIndex];
-    lightboxImg.src = item.src;
-    lightboxImg.alt = item.alt;
-    lightboxCaption.textContent = item.alt;
-    prevBtn.style.display = items.length > 1 ? '' : 'none';
-    nextBtn.style.display = items.length > 1 ? '' : 'none';
-  }
-
-  function closeLightbox() {
-    lightbox.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  function prevImage() {
-    currentIndex = (currentIndex - 1 + items.length) % items.length;
-    updateLightbox();
-  }
-
-  function nextImage() {
-    currentIndex = (currentIndex + 1) % items.length;
-    updateLightbox();
-  }
-
-  closeBtn.addEventListener('click', closeLightbox);
-  prevBtn.addEventListener('click', prevImage);
-  nextBtn.addEventListener('click', nextImage);
-
-  document.addEventListener('keydown', function(e) {
-    if (!lightbox.classList.contains('active')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') prevImage();
-    if (e.key === 'ArrowRight') nextImage();
-  });
-
-  lightbox.addEventListener('click', function(e) {
-    if (e.target === lightbox) closeLightbox();
-  });
-
-  /* ── Category filter ── */
-  var filterBtns = document.querySelectorAll('.gallery-filter');
-  filterBtns.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      filterBtns.forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      var filter = btn.getAttribute('data-filter');
-      document.querySelectorAll('.gallery-item').forEach(function(item) {
-        if (filter === 'all' || item.getAttribute('data-category') === filter) {
-          item.style.display = '';
-        } else {
-          item.style.display = 'none';
-        }
+      item.addEventListener("click", function () {
+        openLightbox(index);
       });
     });
-  });
-})();
+
+    function openLightbox(index) {
+      currentIndex = index;
+      updateLightbox();
+      lightbox.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function updateLightbox() {
+      var item = items[currentIndex];
+      lightboxImg.src = item.src;
+      lightboxImg.alt = item.alt;
+      lightboxCaption.textContent = item.alt;
+      prevBtn.style.display = items.length > 1 ? "" : "none";
+      nextBtn.style.display = items.length > 1 ? "" : "none";
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    function prevImage() {
+      currentIndex = (currentIndex - 1 + items.length) % items.length;
+      updateLightbox();
+    }
+
+    function nextImage() {
+      currentIndex = (currentIndex + 1) % items.length;
+      updateLightbox();
+    }
+
+    closeBtn.addEventListener("click", closeLightbox);
+    prevBtn.addEventListener("click", prevImage);
+    nextBtn.addEventListener("click", nextImage);
+
+    document.addEventListener("keydown", function (e) {
+      if (!lightbox.classList.contains("active")) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") prevImage();
+      if (e.key === "ArrowRight") nextImage();
+    });
+
+    lightbox.addEventListener("click", function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    /* ── Category filter ── */
+    var filterBtns = document.querySelectorAll(".gallery-filter");
+    filterBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        filterBtns.forEach(function (b) {
+          b.classList.remove("active");
+        });
+        btn.classList.add("active");
+        var filter = btn.getAttribute("data-filter");
+        document.querySelectorAll(".gallery-item").forEach(function (item) {
+          if (
+            filter === "all" ||
+            item.getAttribute("data-category") === filter
+          ) {
+            item.style.display = "";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      });
+    });
+  })();
 </script>
 {% endblock %}

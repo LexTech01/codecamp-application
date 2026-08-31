@@ -3,12 +3,12 @@
   --bg-primary: #f4f4f4;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f6f8fc;
-  --accent-primary: #004AAD;
+  --accent-primary: #004aad;
   --accent-secondary: #0066cc;
   --accent-tint: rgba(42, 71, 169, 0.12);
   --text-primary: #262626;
   --text-secondary: #333333;
-  --text-muted: #6B7280;
+  --text-muted: #6b7280;
   --border-color: rgba(0, 0, 0, 0.08);
   --glass-bg: #ffffff;
   --glass-border: rgba(0, 74, 173, 0.15);
@@ -16,7 +16,7 @@
   --shadow-md: 0 8px 24px rgba(0, 74, 173, 0.12);
   --shadow-glow: 0 4px 20px rgba(0, 74, 173, 0.2);
   --shadow-glow-blue: 0 4px 20px rgba(0, 102, 204, 0.25);
-  --nav-gradient: linear-gradient(to right, #004AAD, #0066cc, #2A47A9);
+  --nav-gradient: linear-gradient(to right, #004aad, #0066cc, #2a47a9);
   --btn-default: #555555;
   --btn-default-hover: #333333;
   --footer-bg: #333333;
@@ -25,14 +25,14 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --font-sans: 'Poppins', 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Poppins', 'Inter', system-ui, sans-serif;
-  --font-nav: 'Share Tech', 'Inter', sans-serif;
+  --font-sans: "Poppins", "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", system-ui, sans-serif;
+  --font-nav: "Share Tech", "Inter", sans-serif;
   --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --sidebar-width: 260px;
   --navbar-height: 70px;
   --success: #28a745;
-  --warning: #F59E0B;
+  --warning: #f59e0b;
   --error: #dc3545;
   --info: #0066cc;
   --color-primary-light: rgba(0, 74, 173, 0.08);
@@ -45,12 +45,12 @@
   --bg-primary: #0f0f1a;
   --bg-secondary: #1a1a2e;
   --bg-tertiary: #16213e;
-  --accent-primary: #004AAD;
+  --accent-primary: #004aad;
   --accent-secondary: #0066cc;
   --accent-tint: rgba(0, 102, 204, 0.15);
   --text-primary: #e4e4e7;
   --text-secondary: #c0c0c0;
-  --text-muted: #9CA3AF;
+  --text-muted: #9ca3af;
   --border-color: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(26, 26, 46, 0.8);
   --glass-border: rgba(0, 102, 204, 0.2);
@@ -58,7 +58,12 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 4px 20px rgba(0, 74, 173, 0.3);
   --shadow-glow-blue: 0 4px 20px rgba(0, 102, 204, 0.35);
-  --nav-gradient: linear-gradient(to right, #004AAD, #0066cc, rgba(0, 74, 173, 0.95));
+  --nav-gradient: linear-gradient(
+    to right,
+    #004aad,
+    #0066cc,
+    rgba(0, 74, 173, 0.95)
+  );
   --btn-default: #888888;
   --btn-default-hover: #aaaaaa;
   --footer-bg: #0a0a14;
@@ -72,4 +77,3 @@
   --color-error-light: rgba(231, 76, 60, 0.15);
   --color-warning-light: rgba(243, 156, 18, 0.15);
 }
-

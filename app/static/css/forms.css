@@ -20,7 +20,7 @@
 }
 
 .wizard-progress::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 18px;
   left: 10%;
@@ -70,7 +70,9 @@
   padding: 0 32px;
 }
 
-.wizard-panel.active { display: block; }
+.wizard-panel.active {
+  display: block;
+}
 
 .field-error {
   display: none;
@@ -188,8 +190,6 @@
   box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.08);
 }
 
-
-
 /* File upload */
 .review-row {
   display: flex;
@@ -199,5 +199,9 @@
   font-size: 0.9rem;
 }
 
-.review-row:last-child { border-bottom: none; }
-.review-label { color: var(--text-muted); }
+.review-row:last-child {
+  border-bottom: none;
+}
+.review-label {
+  color: var(--text-muted);
+}

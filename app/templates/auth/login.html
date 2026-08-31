@@ -1,18 +1,35 @@
-{% extends "base.html" %}
-{% block title %}Sign In — Cellusys CodeCamp{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
-{% block body %}
+{% extends "base.html" %} {% block title %}Sign In — Cellusys CodeCamp{%
+endblock %} {% block extra_css %}<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/auth.css') }}"
+/>{% endblock %} {% block body %}
 <div class="auth-page">
   <div class="auth-container" data-aos="fade-up">
     <div class="auth-visual">
-      <video class="auth-video" src="{{ url_for('static', filename='videos/campvid.mp4') }}" autoplay muted loop playsinline></video>
+      <video
+        class="auth-video"
+        src="{{ url_for('static', filename='videos/campvid.mp4') }}"
+        autoplay
+        muted
+        loop
+        playsinline
+      ></video>
       <div class="auth-visual-content">
         <a href="/" class="logo">
-          <img src="{{ url_for('static', filename='images/cellusys.ico') }}" alt="Cellusys" width="40" height="40" style="border-radius:50%">
+          <img
+            src="{{ url_for('static', filename='images/cellusys.ico') }}"
+            alt="Cellusys"
+            width="40"
+            height="40"
+            style="border-radius: 50%"
+          />
           <span>Cellusys</span> CodeCamp
         </a>
         <h2>Welcome Back</h2>
-        <p>Cellusys Codecamp turns Thinkers and Problem Solvers into Coding Supersters. 100% Scholarships for Talented Young Adults.</p>
+        <p>
+          Cellusys Codecamp turns Thinkers and Problem Solvers into Coding
+          Supersters. 100% Scholarships for Talented Young Adults.
+        </p>
         <h3>Learn Real Skills | Build a Future in Tech</h3>
       </div>
     </div>
@@ -24,25 +41,47 @@
           {{ form.hidden_tag() }}
           <div class="form-group">
             <label class="form-label">{{ form.email.label }}</label>
-            {{ form.email(class="form-input", placeholder="you@email.com") }}
-            {% for e in form.email.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+            {{ form.email(class="form-input", placeholder="you@email.com") }} {%
+            for e in form.email.errors %}
+            <p class="form-error">{{ e }}</p>
+            {% endfor %}
           </div>
           <div class="form-group password-field">
             <label class="form-label">{{ form.password.label }}</label>
             <div class="password-wrapper">
               {{ form.password(class="form-input", placeholder="••••••••") }}
-              <button type="button" class="password-toggle" tabindex="-1" aria-label="Toggle password visibility">
+              <button
+                type="button"
+                class="password-toggle"
+                tabindex="-1"
+                aria-label="Toggle password visibility"
+              >
                 <i class="fa-regular fa-eye"></i>
               </button>
             </div>
+            {% for e in form.password.errors %}
+            <p class="form-error">{{ e }}</p>
+            {% endfor %}
           </div>
-          <div class="flex justify-between items-center mb-3 auth-login-row" style="margin-bottom:20px">
-            <label class="form-checkbox">{{ form.remember() }} Remember me</label>
-            <a href="{{ url_for('auth.forgot_password') }}" style="font-size:0.85rem">Forgot password?</a>
+          <div
+            class="flex justify-between items-center mb-3 auth-login-row"
+            style="margin-bottom: 20px"
+          >
+            <label class="form-checkbox"
+              >{{ form.remember() }} Remember me</label
+            >
+            <a
+              href="{{ url_for('auth.forgot_password') }}"
+              style="font-size: 0.85rem"
+              >Forgot password?</a
+            >
           </div>
           {{ form.submit(class="btn btn-primary btn-block") }}
         </form>
-        <p class="auth-footer-link">Don't have an account? <a href="{{ url_for('auth.signup') }}">Create one</a></p>
+        <p class="auth-footer-link">
+          Don't have an account?
+          <a href="{{ url_for('auth.signup') }}">Create one</a>
+        </p>
       </div>
     </div>
   </div>

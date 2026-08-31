@@ -8,10 +8,13 @@ from werkzeug.utils import secure_filename
 from app import db
 from app.models.announcement import Announcement
 from app.models.assessment import Assessment
+from app.models.gallery import GalleryItem, GALLERY_CATEGORIES
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
 
 logger = logging.getLogger(__name__)
+
+GALLERY_FOLDER = os.path.join("static", "images", "gallery")
 
 
 @admin_bp.route("/announcements", methods=["GET", "POST"])
@@ -88,6 +91,63 @@ def delete_announcement(ann_id):
 def assessments():
     assessments = Assessment.query.all()
     return render_template("admin/assessments.html", assessments=assessments)
+
+
+@admin_bp.route("/gallery", methods=["GET", "POST"])
+@login_required
+@admin_required
+def manage_gallery():
+    if request.method == "POST":
+        image = request.files.get("image")
+        if not image or not image.filename:
+            flash("Please choose an image to upload.", "error")
+            return redirect(url_for("admin.manage_gallery"))
+
+        allowed = set(current_app.config.get("ALLOWED_EXTENSIONS", []))
+        ext = image.filename.rsplit(".", 1)[-1].lower()
+        if ext not in allowed or ext in ("pdf", "doc", "docx", "xlsx", "csv", "mp4"):
+            flash("Invalid image type. Please upload a PNG, JPG, GIF or WEBP image.", "error")
+            return redirect(url_for("admin.manage_gallery"))
+
+        fname = secure_filename(image.filename)
+        unique = f"{uuid.uuid4().hex}_{fname}"
+        folder = os.path.join(current_app.root_path, GALLERY_FOLDER)
+        os.makedirs(folder, exist_ok=True)
+        image.save(os.path.join(folder, unique))
+
+        item = GalleryItem(
+            filename=unique,
+            alt=request.form.get("alt", "").strip(),
+            category=request.form.get("category", "events"),
+        )
+        db.session.add(item)
+        db.session.commit()
+        flash("Image added to the gallery.", "success")
+        return redirect(url_for("admin.manage_gallery"))
+
+    items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
+    return render_template(
+        "admin/gallery.html",
+        items=items,
+        categories=GALLERY_CATEGORIES,
+    )
+
+
+@admin_bp.route("/gallery/<int:item_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_gallery_item(item_id):
+    item = GalleryItem.query.get_or_404(item_id)
+    fp = os.path.join(current_app.root_path, GALLERY_FOLDER, item.filename)
+    if os.path.exists(fp):
+        try:
+            os.remove(fp)
+        except OSError as e:
+            logger.warning("Failed to delete gallery image %s: %s", fp, e)
+    db.session.delete(item)
+    db.session.commit()
+    flash("Gallery image removed.", "success")
+    return redirect(url_for("admin.manage_gallery"))
 
 
 @admin_bp.route("/assessments/create", methods=["GET", "POST"])

@@ -110,6 +110,10 @@ def submit_assessment(assessment_id):
     earned = 0
     total = 0
     for q in questions:
+        if q.correct_answer is None:
+            # Question not yet keyed with an answer — skip it rather than
+            # counting it against the applicant.
+            continue
         total += q.points
         selected = answers.get(str(q.id))
         if selected is not None and int(selected) == q.correct_answer:
@@ -213,23 +217,33 @@ def book_interview():
     slot_id = data.get("slot_id")
     today, current_time = _local_now()
 
-    # Atomic check-then-set with row lock (PostgreSQL) — prevents double-booking
-    slot = InterviewSlot.query.with_for_update().get_or_404(slot_id)
-    if slot.booking:
+    # Atomic check-then-set with a real row lock — prevents double-booking.
+    # NOTE: with_for_update() must be combined with filter_by().first(); the
+    # legacy Query.get()/get_or_404() ignores the lock clause.
+    slot = InterviewSlot.query.filter_by(id=slot_id).with_for_update().first_or_404()
+    if InterviewBooking.query.filter_by(slot_id=slot.id, status="scheduled").first():
         db.session.rollback()
         return jsonify({"error": "Slot no longer available"}), 400
     if slot.slot_date < today or (slot.slot_date == today and slot.start_time <= current_time):
         db.session.rollback()
         return jsonify({"error": "This time slot has already passed."}), 400
 
-    existing = InterviewBooking.query.filter_by(user_id=current_user.id).filter(
-        InterviewBooking.status == "scheduled"
-    ).first()
+    # Cancel any other active booking the user currently holds (frees its slot).
+    existing = InterviewBooking.query.filter_by(user_id=current_user.id, status="scheduled").first()
     if existing:
         existing.status = "cancelled"
         existing.slot.is_available = True
 
-    booking = InterviewBooking(user_id=current_user.id, slot_id=slot.id)
+    # Reuse the slot's existing booking row (it may be a cancelled one) instead
+    # of inserting a new row — slot_id is UNIQUE, so a new row would raise
+    # IntegrityError and break re-booking after a cancel.
+    booking = slot.booking
+    if booking is None:
+        booking = InterviewBooking(user_id=current_user.id, slot_id=slot.id)
+        db.session.add(booking)
+    booking.user_id = current_user.id
+    booking.status = "scheduled"
+    booking.notes = None
     slot.is_available = False
     db.session.add(booking)
 

@@ -1,44 +1,133 @@
-{% extends "dashboard_layout.html" %}
-{% block title %}Recruitment Pipeline — Cellusys Admin{% endblock %}
-{% block sidebar %}{% include "partials/sidebar_admin.html" %}{% endblock %}
-{% block content %}
+{% extends "dashboard_layout.html" %} {% block title %}Recruitment Pipeline —
+Cellusys Admin{% endblock %} {% block sidebar %}{% include
+"partials/sidebar_admin.html" %}{% endblock %} {% block content %}
 <div class="page-header">
   <h1>Recruitment Pipeline</h1>
   <p>Track applicants as the system moves them through each stage.</p>
 </div>
 
-{% set col_config = {
-  'new':       {'icon': 'fa-inbox',       'color': 'var(--accent-primary)'},
-  'test':      {'icon': 'fa-file-pen',    'color': 'var(--accent-secondary)'},
-  'interview': {'icon': 'fa-phone',       'color': 'var(--info)'},
-  'accepted':  {'icon': 'fa-check-circle','color': 'var(--success)'},
-  'rejected':  {'icon': 'fa-ban',         'color': 'var(--error)'},
-} %}
-{% set col_labels = {
-  'new':'New Applicants','test':'Test Stage',
-  'interview':'Interview Stage','accepted':'Accepted','rejected':'Rejected',
-} %}
+{% set col_config = { 'new': {'icon': 'fa-inbox', 'color':
+'var(--accent-primary)'}, 'test': {'icon': 'fa-file-pen', 'color':
+'var(--accent-secondary)'}, 'interview': {'icon': 'fa-phone', 'color':
+'var(--info)'}, 'accepted': {'icon': 'fa-check-circle','color':
+'var(--success)'}, 'rejected': {'icon': 'fa-ban', 'color': 'var(--error)'}, } %}
+{% set col_labels = { 'new':'New Applicants','test':'Test Stage',
+'interview':'Interview Stage','accepted':'Accepted','rejected':'Rejected', } %}
 
-<div class="kanban-board" data-readonly="true" style="display:grid;gap:16px;min-height:60vh">
+<div
+  class="kanban-board"
+  data-readonly="true"
+  style="display: grid; gap: 16px; min-height: 60vh"
+>
   {% for key in kanban_keys %}
-  <div class="kanban-column" data-column="{{ key }}" style="background:var(--bg-secondary);border-radius:var(--radius-lg);border:1px solid var(--border-color);display:flex;flex-direction:column;min-height:400px">
-    <div class="kanban-column-header" style="padding:16px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:10px">
-      <i class="fa-solid {{ col_config[key]['icon'] }}" style="color:{{ col_config[key]['color'] }};font-size:1.1rem"></i>
-      <span class="kanban-column-title" style="font-weight:600;font-size:0.9rem;flex:1">{{ col_labels[key] }}</span>
-      <span class="kanban-count" style="background:{{ col_config[key]['color'] }};color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700">{{ columns[key]|length }}</span>
+  <div
+    class="kanban-column"
+    data-column="{{ key }}"
+    style="
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+    "
+  >
+    <div
+      class="kanban-column-header"
+      style="
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      "
+    >
+      <i
+        class="fa-solid {{ col_config[key]['icon'] }}"
+        style="color:{{ col_config[key]['color'] }};font-size:1.1rem"
+      ></i>
+      <span
+        class="kanban-column-title"
+        style="font-weight: 600; font-size: 0.9rem; flex: 1"
+        >{{ col_labels[key] }}</span
+      >
+      <span
+        class="kanban-count"
+        style="background:{{ col_config[key]['color'] }};color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700"
+        >{{ columns[key]|length }}</span
+      >
     </div>
-    <div class="kanban-cards" style="flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
+    <div
+      class="kanban-cards"
+      style="
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      "
+    >
       {% for app in columns[key] %}
-      <div class="kanban-card" data-app-id="{{ app.id }}" style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:14px;cursor:pointer;transition:all var(--transition);text-decoration:none;display:block" onclick="window.location='{{ url_for('admin.applicant_detail', app_id=app.id) }}'">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <div style="width:30px;height:30px;border-radius:50%;background:var(--nav-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;flex-shrink:0">
+      <div
+        class="kanban-card"
+        data-app-id="{{ app.id }}"
+        style="
+          background: var(--bg-primary);
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          padding: 14px;
+          cursor: pointer;
+          transition: all var(--transition);
+          text-decoration: none;
+          display: block;
+        "
+        onclick="window.location='{{ url_for('admin.applicant_detail', app_id=app.id) }}'"
+      >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+          "
+        >
+          <div
+            style="
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              background: var(--nav-gradient);
+              color: #fff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+              font-size: 0.75rem;
+              flex-shrink: 0;
+            "
+          >
             {{ app.user.full_name[:2]|upper }}
           </div>
-          <div class="kanban-card-name" style="font-weight:600;font-size:0.85rem;line-height:1.2">{{ app.user.full_name }}</div>
+          <div
+            class="kanban-card-name"
+            style="font-weight: 600; font-size: 0.85rem; line-height: 1.2"
+          >
+            {{ app.user.full_name }}
+          </div>
         </div>
-        <div class="kanban-card-meta" style="display:flex;flex-wrap:wrap;gap:6px">
-          <span class="badge badge-muted" style="font-size:0.7rem">{{ app.field_of_study or '—' }}</span>
-          {% if app.test_score %}<span class="badge badge-info" style="font-size:0.7rem">{{ app.test_score }}%</span>{% endif %}
+        <div
+          class="kanban-card-meta"
+          style="display: flex; flex-wrap: wrap; gap: 6px"
+        >
+          <span class="badge badge-muted" style="font-size: 0.7rem"
+            >{{ app.field_of_study or '—' }}</span
+          >
+          {% if app.test_score %}<span
+            class="badge badge-info"
+            style="font-size: 0.7rem"
+            >{{ app.test_score }}%</span
+          >{% endif %}
         </div>
       </div>
       {% endfor %}
@@ -47,15 +136,21 @@
   {% endfor %}
 </div>
 <style>
-.kanban-board {
-  grid-template-columns: repeat(5, 1fr);
-}
-@media (max-width: 1100px) {
-  .kanban-board { grid-template-columns: repeat(2, 1fr); min-height: 0; }
-}
-@media (max-width: 600px) {
-  .kanban-board { grid-template-columns: 1fr; }
-}
+  .kanban-board {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  @media (max-width: 1100px) {
+    .kanban-board {
+      grid-template-columns: repeat(2, 1fr);
+      min-height: 0;
+    }
+  }
+  @media (max-width: 600px) {
+    .kanban-board {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
+{% endblock %} {% block page_js %}
+<script src="{{ url_for('static', filename='js/kanban.js') }}"></script>
 {% endblock %}
-{% block page_js %}<script src="{{ url_for('static', filename='js/kanban.js') }}"></script>{% endblock %}
