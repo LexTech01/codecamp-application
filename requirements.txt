@@ -37,5 +37,5 @@ weasyprint==69.0
 # Utilities
 gunicorn==22.0.0
 alembic
-dns
+dnspython
 pytest
