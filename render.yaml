@@ -1,4 +1,11 @@
 services:
+  - type: keyvalue
+    name: cellusys-cache
+    plan: free
+    region: frankfurt
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
   - type: web
     name: cellusys-codecamp
     runtime: python
@@ -10,6 +17,11 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.9"
+      - key: REDIS_URL
+        fromService:
+          name: cellusys-cache
+          type: keyvalue
+          property: connectionString
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY
