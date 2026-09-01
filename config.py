@@ -7,6 +7,7 @@ import socket
 import time
 import urllib.request
 from ipaddress import ip_address, IPv6Network
+import redis
 from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -181,6 +182,11 @@ class Config:
     # Flask-Session
     SESSION_TYPE = os.environ.get("SESSION_TYPE", "redis" if _redis_url else "filesystem")
     SESSION_REDIS_URL = os.environ.get("SESSION_REDIS_URL", _redis_url or "redis://localhost:6379/1")
+    SESSION_REDIS = (
+        redis.Redis.from_url(SESSION_REDIS_URL)
+        if _redis_url and SESSION_TYPE == "redis"
+        else None
+    )
     SESSION_PERMANENT = True
     SESSION_USE_SIGNER = True
     SESSION_KEY_PREFIX = "cellusys:session:"
