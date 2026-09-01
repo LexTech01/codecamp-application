@@ -288,49 +288,25 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
                 >
                   <option
                     value="scheduled"
-                    {%
-                    if
-                    b.status=""
-                    ="scheduled"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if b.status == "scheduled" %}selected{% endif %}
                   >
                     Scheduled
                   </option>
                   <option
                     value="completed"
-                    {%
-                    if
-                    b.status=""
-                    ="completed"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if b.status == "completed" %}selected{% endif %}
                   >
                     Completed
                   </option>
                   <option
                     value="no_show"
-                    {%
-                    if
-                    b.status=""
-                    ="no_show"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if b.status == "no_show" %}selected{% endif %}
                   >
                     No-show
                   </option>
                   <option
                     value="cancelled"
-                    {%
-                    if
-                    b.status=""
-                    ="cancelled"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if b.status == "cancelled" %}selected{% endif %}
                   >
                     Cancelled
                   </option>

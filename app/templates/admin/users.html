@@ -23,10 +23,10 @@ endblock %} {% block content %}
       <label class="form-label" for="role">Role</label>
       <select name="role" id="role" class="form-select">
         <option value="">All Roles</option>
-        <option value="admin" {% if role="" ="admin" %}selected{% endif %}>
+        <option value="admin" {% if role == "admin" %}selected{% endif %}>
           Admin
         </option>
-        <option value="student" {% if role="" ="student" %}selected{% endif %}>
+        <option value="student" {% if role == "student" %}selected{% endif %}>
           Student
         </option>
       </select>
@@ -135,35 +135,17 @@ endblock %} {% block content %}
                   name="role"
                   class="form-select"
                   style="width: auto; padding: 6px; min-width: 110px"
-                  {%
-                  if
-                  user.id=""
-                  ="current_user.id"
-                  %}disabled{%
-                  endif
-                  %}
+                  {% if user.id == current_user.id %}disabled{% endif %}
                 >
                   <option
                     value="admin"
-                    {%
-                    if
-                    user.role=""
-                    ="admin"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if user.role == "admin" %}selected{% endif %}
                   >
                     Admin
                   </option>
                   <option
                     value="student"
-                    {%
-                    if
-                    user.role=""
-                    ="student"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if user.role == "student" %}selected{% endif %}
                   >
                     Student
                   </option>
@@ -171,13 +153,7 @@ endblock %} {% block content %}
                 <button
                   type="submit"
                   class="btn btn-ghost btn-sm"
-                  {%
-                  if
-                  user.id=""
-                  ="current_user.id"
-                  %}disabled{%
-                  endif
-                  %}
+                  {% if user.id == current_user.id %}disabled{% endif %}
                 >
                   Update
                 </button>
