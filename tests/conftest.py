@@ -12,10 +12,17 @@ def app():
         "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
         "WTF_CSRF_ENABLED": False,
         "MAIL_SUPPRESS_SEND": True,
+        "SESSION_COOKIE_SECURE": False,
     })
     with app.app_context():
         _db.create_all()
-        yield app
+    # Note: the app context is intentionally popped here. Keeping it alive
+    # across test-client requests would bind Flask's `g` (and thus
+    # flask_login's cached `g._login_user`) to the persistent context,
+    # which leaks authentication state between requests and breaks
+    # session-version invalidation checks.
+    yield app
+    with app.app_context():
         _db.session.remove()
         _db.drop_all()
         _db.engine.dispose()

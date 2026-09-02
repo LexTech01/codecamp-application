@@ -6,11 +6,13 @@ from app.models.user import User, find_user_by_reset_token
 from app.models.assessment import Assessment
 
 
-def _login(client, user_id):
-    with client.session_transaction() as sess:
-        sess["_user_id"] = str(user_id)
-        sess["_fresh"] = True
-        sess["_sess_v"] = 1
+def _login(client, app, user_id):
+    with app.app_context():
+        email = User.query.get(user_id).email
+    resp = client.post("/auth/login", data={
+        "email": email, "password": "password123",
+    })
+    assert resp.status_code == 302
 
 
 def _make_user(app, email, role="student"):
@@ -107,7 +109,7 @@ def test_booking_api_emails_under_testing(client, app):
             score=80.0, completed_at=datetime.now(timezone.utc),
         ))
         db.session.commit()
-    _login(client, student_id)
+    _login(client, app, student_id)
     resp = client.post("/api/interview/book", json={"slot_id": slot_id})
     assert resp.status_code == 200
     assert resp.get_json()["success"] is True
@@ -182,9 +184,10 @@ def test_reset_password_invalidates_session(client, app):
 
 def test_profile_requires_current_password(client, app):
     uid = _make_user(app, "profile-reauth@test.com")
-    _login(client, uid)
+    _login(client, app, uid)
     resp = client.post("/student/profile", data={
-        "first_name": "Changed", "email": "profile-reauth@test.com",
+        "first_name": "Changed", "last_name": "User",
+        "email": "profile-reauth@test.com",
         "phone": "+233 24 000 0000", "current_password": "wrong",
     })
     assert resp.status_code == 302
@@ -194,9 +197,10 @@ def test_profile_requires_current_password(client, app):
 
 def test_profile_email_change_requires_confirmation(client, app):
     uid = _make_user(app, "profile-email@test.com")
-    _login(client, uid)
+    _login(client, app, uid)
     resp = client.post("/student/profile", data={
-        "first_name": "T", "email": "newaddr@example.com",
+        "first_name": "Te", "last_name": "User",
+        "email": "newaddr@example.com",
         "phone": "+233 24 000 0000", "current_password": "password123",
     })
     assert resp.status_code == 302
@@ -222,7 +226,7 @@ def test_profile_email_change_requires_confirmation(client, app):
 
 def test_confirm_email_rejects_bad_token(client, app):
     uid = _make_user(app, "confirm-bad@test.com")
-    _login(client, uid)
+    _login(client, app, uid)
     resp = client.get("/student/confirm-email/not-a-real-token")
     assert resp.status_code == 302
     with app.app_context():
