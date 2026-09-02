@@ -268,7 +268,7 @@ def seed_database(force=False):
     from app.models.announcement import Announcement
     from app.models.interview import InterviewerProfile
     from werkzeug.security import generate_password_hash
-    from datetime import date, timedelta
+    from datetime import date, datetime, timedelta, timezone
 
     create_demo_users = (
         force
@@ -279,6 +279,37 @@ def seed_database(force=False):
     # even if SEED_DEMO=1 is accidentally set.
     if os.environ.get("FLASK_ENV") == "production":
         create_demo_users = False
+
+    # Seed gallery images (idempotent — only when the table is empty).
+    from app.models.gallery import GalleryItem
+    GALLERY_SEED = [
+        # (filename, alt, category) in display order, newest first
+        ("254096ab354947609897dbd30930edfc_joseph-enninful.jpg", "Mr. Joseph ( Networking and telecom trainer", "programs"),
+        ("hero-img4.jpeg", "Campus Life 2", "campus"),
+        ("image1.jpeg", "Students Collaborating", "campus"),
+        ("image3.jpeg", "Graduation Ceremony", "campus"),
+        ("telecom.jpeg", "Networking & Telecom Lab", "programs"),
+        ("hero-img3.JPG", "Campus Life 1", "campus"),
+        ("IMG_8393.JPG", "CodeCamp Event 6", "events"),
+        ("software.jpeg", "Software Engineering Class", "programs"),
+        ("IMG_8388.JPG", "CodeCamp Event 4", "events"),
+        ("img5.JPG", "CodeCamp Event 5", "events"),
+        ("IMG_8387.JPG", "CodeCamp Event 3", "events"),
+        ("IMG_8386.JPG", "CodeCamp Event 2", "events"),
+        ("IMG_8385.JPG", "CodeCamp Event 1", "events"),
+    ]
+    if GalleryItem.query.first() is None:
+        _gallery_now = datetime.now(timezone.utc)
+        db.session.add_all([
+            GalleryItem(
+                filename=f,
+                alt=a,
+                category=c,
+                created_at=_gallery_now - timedelta(minutes=i),
+            )
+            for i, (f, a, c) in enumerate(GALLERY_SEED)
+        ])
+        db.session.commit()
 
     if Assessment.query.first() is not None or Announcement.query.first() is not None:
         # Content already seeded — only (optionally) add the demo accounts.

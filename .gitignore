@@ -12,6 +12,7 @@ env/
 
 # Environment variables
 .env
+.env.render.example
 
 # Agent tooling
 .agents/
@@ -34,7 +35,6 @@ desktop.ini
 instance/*.db
 instance/*.db.bak
 app/static/uploads/*
-app/static/images/gallery/*
 
 # Flask
 *.log
