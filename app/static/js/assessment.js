@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
       clearState();
       window.location.href = `/student/assessment/result/${result.attempt_id}`;
     } catch (e) {
-      alert("Submission failed. Please try again.");
+      Cellusys.alert("Submission failed. Please try again.");
     }
   }
 });

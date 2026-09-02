@@ -127,6 +127,46 @@ const Cellusys = {
       cancelBtn.addEventListener("click", onCancel);
       modal.addEventListener("click", onOverlay);
     });
+  }
+
+  /* ── Alert dialog (single OK button) ── */
+  alert(message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("confirmModal");
+      const msgEl = document.getElementById("confirmMessage");
+      const okBtn = document.getElementById("confirmOk");
+      const cancelBtn = document.getElementById("confirmCancel");
+      if (!modal || !msgEl) {
+        resolve(true);
+        return;
+      }
+      msgEl.textContent = message;
+      cancelBtn.style.display = "none";
+      okBtn.textContent = "OK";
+      modal.classList.add("active");
+      document.body.style.overflow = "hidden";
+
+      const onOk = () => {
+        cancelBtn.style.display = "";
+        okBtn.textContent = "Confirm";
+        modal.classList.remove("active");
+        document.body.style.overflow = "";
+        okBtn.removeEventListener("click", onOk);
+        resolve(true);
+      };
+      const onOverlay = (e) => {
+        if (e.target === modal) {
+          cancelBtn.style.display = "";
+          okBtn.textContent = "Confirm";
+          modal.classList.remove("active");
+          document.body.style.overflow = "";
+          okBtn.removeEventListener("click", onOk);
+          resolve(true);
+        }
+      };
+      okBtn.addEventListener("click", onOk);
+      modal.addEventListener("click", onOverlay);
+    });
   },
 
   /* ── Ripple effect on buttons ── */

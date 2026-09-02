@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
           originalParent.insertBefore(movedCard, originalNextSibling);
           updateColumnCounts();
         }
-        alert("That move is not allowed for this applicant stage.");
+        Cellusys.alert("That move is not allowed for this applicant stage.");
       }
     });
   });

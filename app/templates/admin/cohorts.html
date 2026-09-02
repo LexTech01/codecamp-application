@@ -235,7 +235,7 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
             method="POST"
             action="{{ url_for('admin.delete_cohort', cohort_id=c.id) }}"
             style="display: inline; margin: 0"
-            onsubmit="return confirm('Delete cohort \'{{ c.name }}\'? {{ group.members|length }} student(s) will be unassigned.');"
+            data-confirm="Delete cohort '{{ c.name }}'? {{ group.members|length }} student(s) will be unassigned."
           >
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="btn btn-ghost btn-sm" style="font-size: 0.8rem; color: var(--danger)">
@@ -517,13 +517,13 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
       const cohortSelect = document.getElementById("assign-cohort-select");
       if (!cohortSelect.value) {
         e.preventDefault();
-        alert("Select a cohort to assign to.");
+        Cellusys.alert("Select a cohort to assign to.");
         return;
       }
       const checked = this.querySelectorAll(".unassigned-checkbox:checked");
       if (!checked.length) {
         e.preventDefault();
-        alert("Select at least one student.");
+        Cellusys.alert("Select at least one student.");
         return;
       }
       // Patch the action URL with the selected cohort ID
