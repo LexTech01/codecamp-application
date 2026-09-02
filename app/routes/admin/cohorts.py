@@ -1,7 +1,8 @@
 """Cohort management routes."""
-import os
+import csv
+from io import StringIO
 from datetime import datetime, timezone
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, Response
 from flask_login import login_required, current_user
 from app import db
 from app.models.application import Application
@@ -97,6 +98,25 @@ def edit_cohort(cohort_id):
     return redirect(url_for("admin.cohorts"))
 
 
+@admin_bp.route("/cohorts/<int:cohort_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_cohort(cohort_id):
+    cohort = Cohort.query.get_or_404(cohort_id)
+    name = cohort.name
+    members = Application.query.filter_by(cohort_name=name).all()
+    for app_record in members:
+        app_record.cohort_name = None
+        app_record.cohort_notes = None
+        app_record.cohort_assigned_at = None
+        app_record.updated_at = datetime.now(timezone.utc)
+    db.session.delete(cohort)
+    db.session.commit()
+    count = len(members)
+    flash(f"Cohort '{name}' deleted. {count} student(s) unassigned.", "success")
+    return redirect(url_for("admin.cohorts"))
+
+
 @admin_bp.route("/cohorts/<int:cohort_id>/assign", methods=["POST"])
 @login_required
 @admin_required
@@ -144,70 +164,40 @@ def notify_cohort(cohort_id):
 @admin_bp.route("/cohorts/<int:cohort_id>/export")
 @login_required
 @admin_required
-def export_cohort_pdf(cohort_id):
-    from flask import make_response, current_app
-
+def export_cohort_csv(cohort_id):
     cohort = Cohort.query.get_or_404(cohort_id)
     members = Application.query.filter_by(cohort_name=cohort.name).order_by(
         Application.updated_at.desc()
     ).all()
-    html = render_template(
-        "admin/cohort_pdf.html",
-        cohort=cohort,
-        members=members,
-        today=datetime.now(timezone.utc),
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "First Name", "Last Name", "Email", "Phone", "Program",
+        "Country", "Location", "Stage", "Test Score", "Interview Rating",
+        "Assigned At", "Submitted At",
+    ])
+    for a in members:
+        writer.writerow([
+            a.user.first_name,
+            a.user.last_name,
+            a.user.email,
+            a.user.phone or "",
+            a.field_of_study or "",
+            a.country or "",
+            a.applicant_location or "",
+            a.pipeline_stage,
+            a.test_score if a.test_score is not None else "",
+            a.interview_rating if a.interview_rating is not None else "",
+            a.cohort_assigned_at.strftime("%Y-%m-%d %H:%M:%S") if a.cohort_assigned_at else "",
+            a.submitted_at.strftime("%Y-%m-%d %H:%M:%S") if a.submitted_at else "",
+        ])
+    filename = cohort.name.replace(" ", "_").replace("/", "_") + "_roster.csv"
+    return Response(
+        output.getvalue().encode("utf-8"),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Content-Type": "text/csv; charset=utf-8",
+        },
     )
-
-    broker = current_app.config.get("CELERY_BROKER_URL", "")
-    if broker and broker != "memory://":
-        from app.tasks.pdf_tasks import generate_cohort_pdf
-        task = generate_cohort_pdf.delay(cohort_id)
-        return redirect(url_for("admin.task_status", task_id=task.id))
-
-    try:
-        from weasyprint import HTML
-        pdf = HTML(string=html).write_pdf()
-        resp = make_response(pdf)
-        resp.headers["Content-Type"] = "application/pdf"
-        resp.headers["Content-Disposition"] = f'attachment; filename="{cohort.name.replace(" ", "_")}_roster.pdf"'
-        return resp
-    except OSError:
-        flash("PDF generation requires system libraries (pango, cairo) which are not available on this server.", "error")
-        return redirect(url_for("admin.cohorts"))
-
-
-@admin_bp.route("/task-status/<task_id>")
-@login_required
-@admin_required
-def task_status(task_id):
-    from celery.result import AsyncResult
-    from app.celery_app import celery
-
-    result = AsyncResult(task_id, app=celery)
-    if result.state == "SUCCESS":
-        return redirect(url_for("admin.download_pdf", filename=result.result["file"]))
-    return render_template("admin/task_pending.html", task_id=task_id, state=result.state)
-
-
-@admin_bp.route("/task-status/<task_id>/raw")
-@login_required
-@admin_required
-def task_status_raw(task_id):
-    from celery.result import AsyncResult
-    from app.celery_app import celery
-    from flask import jsonify
-
-    result = AsyncResult(task_id, app=celery)
-    resp = {"state": result.state}
-    if result.state == "SUCCESS":
-        resp["redirect"] = url_for("admin.download_pdf", filename=result.result["file"])
-    return jsonify(resp)
-
-
-@admin_bp.route("/download-pdf/<filename>")
-@login_required
-@admin_required
-def download_pdf(filename):
-    from flask import send_from_directory, current_app
-    pdf_dir = current_app.config.get("PDF_EXPORT_DIR", os.path.join(current_app.root_path, "static", "exports"))
-    return send_from_directory(pdf_dir, filename, as_attachment=True)

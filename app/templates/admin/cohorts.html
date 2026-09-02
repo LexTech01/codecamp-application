@@ -226,11 +226,22 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
             <i class="fa-solid fa-bell"></i> Notify
           </button>
           <a
-            href="{{ url_for('admin.export_cohort_pdf', cohort_id=c.id) }}"
+            href="{{ url_for('admin.export_cohort_csv', cohort_id=c.id) }}"
             class="btn btn-ghost btn-sm"
             style="font-size: 0.8rem"
-            ><i class="fa-solid fa-file-pdf"></i> Export PDF</a
+            ><i class="fa-solid fa-file-csv"></i> Export CSV</a
           >
+          <form
+            method="POST"
+            action="{{ url_for('admin.delete_cohort', cohort_id=c.id) }}"
+            style="display: inline; margin: 0"
+            onsubmit="return confirm('Delete cohort \'{{ c.name }}\'? {{ group.members|length }} student(s) will be unassigned.');"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-ghost btn-sm" style="font-size: 0.8rem; color: var(--danger)">
+              <i class="fa-solid fa-trash"></i> Delete
+            </button>
+          </form>
         </div>
 
         <!-- Edit Form -->

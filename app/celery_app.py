@@ -8,7 +8,7 @@ def make_celery(app_name=__name__):
         app_name,
         broker=Config.CELERY_BROKER_URL or "memory://",
         backend=Config.CELERY_RESULT_BACKEND or "memory://",
-        include=["app.tasks.pdf_tasks"],
+        include=[],
     )
 
 

@@ -46,7 +46,7 @@
     </a>
     <a
       href="{{ url_for('admin.cohorts') }}"
-      class="sidebar-link {% if request.endpoint in ['admin.cohorts', 'admin.assign_cohort', 'admin.create_cohort', 'admin.edit_cohort', 'admin.notify_cohort', 'admin.export_cohort_pdf'] %}active{% endif %}"
+      class="sidebar-link {% if request.endpoint in ['admin.cohorts', 'admin.assign_cohort', 'admin.create_cohort', 'admin.edit_cohort', 'admin.notify_cohort', 'admin.export_cohort_csv'] %}active{% endif %}"
     >
       <span class="icon"><i class="fa-solid fa-layer-group"></i></span> Cohorts
     </a>
