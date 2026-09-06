@@ -206,10 +206,10 @@
   }
 
   .landing-hero #logo {
-    width: 100px;
-    height: 100px;
+    width: 130px;
+    height: 130px;
     left: 16px;
-    bottom: -50px;
+    bottom: -60px;
   }
 
   #about {
@@ -328,7 +328,11 @@
 
   .result-stats {
     grid-template-columns: 1fr;
+
   }
+
+  #about .about-container h3 {
+  color: #004aad;}
 }
 
 /* ── 768px — Tablet portrait ── */
@@ -435,8 +439,9 @@
     min-height: 160px;
   }
 
-  .about-container h3 {
+  #about .about-container h3 {
     font-size: 17px;
+    color:#004aad;
   }
 
   .teams {
@@ -636,11 +641,11 @@
   }
 
   .landing-hero #logo {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     left: -3%;
     top: auto;
-    bottom: -50px;
+    bottom: -55px;
   }
 
   .prog {
@@ -776,10 +781,10 @@
 
   .landing-hero #logo {
     top: auto;
-    bottom: -40px;
+    bottom: -45px;
     left: 12px;
-    width: 80px;
-    height: 80px;
+    width: 105px;
+    height: 105px;
   }
 
   .faq-question {
@@ -843,8 +848,8 @@
     border: 1px solid var(--border-color);
   }
 
-  .about-track .about-container h3 {
-    color: var(--text-primary);
+  #about .about-track .about-container h3 {
+    color: #004aad;
   }
 
   .about-track .about-container p {
@@ -962,9 +967,9 @@
 
   .landing-hero #logo {
     top: auto;
-    bottom: -36px;
-    width: 72px;
-    height: 72px;
+    bottom: -40px;
+    width: 100px;
+    height: 100px;
   }
 
   .hero-buttons .btn {
@@ -1369,9 +1374,9 @@
   }
   .landing-hero #logo {
     top: auto;
-    bottom: -30px;
-    width: 60px;
-    height: 60px;
+    bottom: -35px;
+    width: 85px;
+    height: 85px;
     left: 10px;
   }
   .hero-buttons .btn {
@@ -1402,8 +1407,9 @@
     min-height: 110px;
     padding: 12px;
   }
-  .about-container h3 {
+  #about .about-container h3 {
     font-size: 14px;
+    color: #004aad;
   }
   .about-container p {
     font-size: 12px;
@@ -1841,9 +1847,9 @@
   }
   .landing-hero #logo {
     top: auto;
-    bottom: -27px;
-    width: 54px;
-    height: 54px;
+    bottom: -32px;
+    width: 70px;
+    height: 70px;
     left: 10px;
   }
 }

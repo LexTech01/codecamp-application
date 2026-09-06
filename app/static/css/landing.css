@@ -271,7 +271,7 @@ body {
   min-height: 200px;
   background: var(--nav-gradient);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 28px 24px; 
   text-align: left;
   overflow: hidden;
   transition: all var(--transition);
