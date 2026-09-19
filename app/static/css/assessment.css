@@ -459,7 +459,19 @@
 
 @media (max-width: 520px) {
   .options-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .option-item {
+    padding: 12px 14px;
+  }
+  .option-radio {
+    width: 18px;
+    height: 18px;
+  }
+  .option-item .option-image {
+    max-width: 72px;
+    max-height: 64px;
   }
   .result-stats {
     grid-template-columns: 1fr;

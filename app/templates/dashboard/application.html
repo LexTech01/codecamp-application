@@ -6,11 +6,11 @@
 <div class="application-container" data-aos="fade-up">
   <div class="page-header">
     <h1>CodeCamp Application</h1>
-    <p>Complete your personal details and programme selection.</p>
+    <p>Complete your details and programme selection.</p>
   </div>
 
     <div class="wizard-progress">
-      {% for s, label in [(1,'Personal Details'),(2,'Programme Selection')] %}
+      {% for s, label in [(1,'Personal Details'),(2,'Programme Selection'),(3,'Background')] %}
       <div class="wizard-step-indicator {% if s == step %}active{% elif s < step %}done{% endif %}">
         <div class="wizard-num">{{ s }}</div>
         <span class="wizard-step-label">{{ label }}</span>
@@ -22,6 +22,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="current_step" id="current_step" value="{{ step }}">
 
+      {# ── Step 1: Personal Details ── #}
       <div class="wizard-panel {% if step == 1 %}active{% endif %}" id="step1">
         <div class="application-section-heading">
           <i class="fa-solid fa-address-card"></i>
@@ -62,24 +63,42 @@
             <input type="date" name="date_of_birth" id="dob" class="form-input" value="{{ application.date_of_birth or '' }}" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Gender</label>
-            <div class="field-error" data-error-for="gender"></div>
-            <select name="gender" class="form-select" required>
-              <option value="">Select gender</option>
-              {% for gender in ['Male','Female'] %}
-              <option value="{{ gender }}" {% if application.gender == gender %}selected{% endif %}>{{ gender }}</option>
-              {% endfor %}
-            </select>
+            <label class="form-label">Age</label>
+            <div class="field-error" data-error-for="age"></div>
+            <input type="number" name="age" id="age" class="form-input" value="{{ application.age or '' }}" readonly placeholder="Auto-calculated">
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Applicant Location</label>
-          <div class="field-error" data-error-for="applicant_location"></div>
-          <input type="text" name="applicant_location" class="form-input" value="{{ application.applicant_location or '' }}" placeholder="e.g. Accra, Ghana" required>
+          <label class="form-label">Gender</label>
+          <div class="field-error" data-error-for="gender"></div>
+          <select name="gender" class="form-select" required>
+            <option value="">Select gender</option>
+            {% for gender in ['Male','Female'] %}
+            <option value="{{ gender }}" {% if application.gender == gender %}selected{% endif %}>{{ gender }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">City and Residence</label>
+          <div class="field-error" data-error-for="city"></div>
+          <input type="text" name="city" class="form-input" value="{{ application.city or '' }}" placeholder="e.g. Accra" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Where did you hear of CodeCamp <span class="text-muted">(Optional)</span></label>
+          <div class="field-error" data-error-for="referral_source"></div>
+          <select name="referral_source" class="form-select">
+            <option value="">Select an option</option>
+            {% for src in ['Banner','Sticker','Church','Facebook','Friend','Instagram','Mosque','Radio','School','Shop','Street','TV','WhatsApp','MOMO Vendor','Youtube','Bill Board','Telegram'] %}
+            <option value="{{ src }}" {% if application.referral_source == src %}selected{% endif %}>{{ src }}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
 
+      {# ── Step 2: Programme Selection ── #}
       <div class="wizard-panel {% if step == 2 %}active{% endif %}" id="step2">
         <div class="application-section-heading">
           <i class="fa-solid fa-layer-group"></i>
@@ -127,15 +146,107 @@
 
         <div class="form-group">
           <label class="form-label">Referral code <span class="text-muted">(Optional)</span></label>
-          <input type="text" name="referral_code" class="form-input" value="{{ application.referral_code or '' }}" placeholder="Enter code if you have one">
+          <div class="field-error" data-error-for="referral_code"></div>
+          <select name="referral_code" class="form-select">
+            <option value="">Select an option</option>
+            {% for code in ['FAYA','PRINCE','JUSTIN','FRANCIS - FBB','MIKE','SLY','RALPH','None'] %}
+            <option value="{{ code }}" {% if application.referral_code == code %}selected{% endif %}>{{ code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {# ── Step 3: Educational / Professional Background ── #}
+      <div class="wizard-panel {% if step == 3 %}active{% endif %}" id="step3">
+        <div class="application-section-heading">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <div>
+            <h3>Educational / Professional Background</h3>
+            <p>Tell us about your background and commitment.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Have you been a student of Cellusys CodeCamp before?</label>
+          <div class="field-error" data-error-for="previous_student"></div>
+          <select name="previous_student" class="form-select" id="previous_student" required>
+            <option value="">Select an option</option>
+            {% for opt in ["Yes, I'm a current student at Cellusys CodeCamp","Yes, I'm a graduate of Cellusys CodeCamp","Yes, I dropped from Cellusys CodeCamp","No, I'm new to Cellusys CodeCamp"] %}
+            <option value="{{ opt }}" {% if application.previous_student == opt %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div id="previous_fields" style="display:none">
+          <div class="grid grid-2 gap-2" style="gap:16px">
+            <div class="form-group">
+              <label class="form-label">If yes, which Course did you join?</label>
+              <div class="field-error" data-error-for="previous_course"></div>
+              <select name="previous_course" class="form-select" id="previous_course">
+                <option value="">Select course</option>
+                {% for c in ['Software Engineering','Networking and Telecommunications'] %}
+                <option value="{{ c }}" {% if application.previous_course == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">If yes, which Cohort did you join?</label>
+              <div class="field-error" data-error-for="previous_cohort"></div>
+              <input type="text" name="previous_cohort" class="form-input" id="previous_cohort" value="{{ application.previous_cohort or '' }}" placeholder="e.g. Cohort 3">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Status</label>
+          <div class="field-error" data-error-for="current_status"></div>
+          <select name="current_status" class="form-select" required>
+            <option value="">Select status</option>
+            {% for s in ['Student','Graduate','Working Professional'] %}
+            <option value="{{ s }}" {% if application.current_status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+            <option value="Other" {% if application.current_status and application.current_status not in ['Student','Graduate','Working Professional'] %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+
+        <div class="grid grid-2 gap-2" style="gap:16px">
+          <div class="form-group">
+            <label class="form-label">Field of Study or Profession</label>
+            <div class="field-error" data-error-for="profession"></div>
+            <input type="text" name="profession" class="form-input" value="{{ application.profession or '' }}" placeholder="e.g. Computer Science" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Institution / Organization (if any)</label>
+            <div class="field-error" data-error-for="institution"></div>
+            <input type="text" name="institution" class="form-input" value="{{ application.institution or '' }}" placeholder="e.g. University of Ghana">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Will you be able to commit to attending in-person classes at least 3 days a week consistently?</label>
+          <div class="field-error" data-error-for="can_commit"></div>
+          <div class="grid grid-2 gap-2" style="gap:12px">
+            <label class="selection-card">
+              <input type="radio" name="can_commit" value="true" {% if application.can_commit == true %}checked{% endif %} required>
+              <span>
+                <strong>Yes, I can fully commit</strong>
+              </span>
+            </label>
+            <label class="selection-card">
+              <input type="radio" name="can_commit" value="false" {% if application.can_commit == false %}checked{% endif %} required>
+              <span>
+                <strong>No, I may not be available that often</strong>
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 
     <div class="wizard-actions">
       <button type="button" class="btn btn-secondary" id="wizardPrev" {% if step == 1 %}style="visibility:hidden"{% endif %}><i class="fa-solid fa-arrow-left"></i> Back</button>
       <div class="flex gap-2">
-        <button type="button" class="btn btn-primary" id="wizardNext" {% if step == 2 %}style="display:none"{% endif %}>Next <i class="fa-solid fa-arrow-right"></i></button>
-        <button type="submit" name="action" value="submit" class="btn btn-primary" id="wizardSubmit" {% if step != 2 %}style="display:none"{% endif %}>Submit Application <i class="fa-solid fa-check"></i></button>
+        <button type="button" class="btn btn-primary" id="wizardNext" {% if step == 3 %}style="display:none"{% endif %}>Next <i class="fa-solid fa-arrow-right"></i></button>
+        <button type="submit" name="action" value="submit" class="btn btn-primary" id="wizardSubmit" {% if step != 3 %}style="display:none"{% endif %}>Submit Application <i class="fa-solid fa-check"></i></button>
       </div>
     </div>
     </form>

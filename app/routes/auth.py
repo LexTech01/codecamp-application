@@ -2,12 +2,11 @@
 import logging
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_user, logout_user, current_user
-from flask_mail import Message
-from app import db, limiter, mail
+from app import db, limiter
 from app.forms.auth_forms import LoginForm, SignupForm, ForgotPasswordForm
 from app.models.user import User
 from app.models.application import Application
-from app.utils.helpers import log_activity, create_notification
+from app.utils.helpers import log_activity, create_notification, send_mail
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint("auth", __name__)
@@ -93,18 +92,16 @@ def forgot_password():
             token = user.generate_reset_token()
             db.session.commit()
             reset_url = url_for("auth.reset_password", token=token, _external=True)
-            try:
-                msg = Message(
-                    subject="Cellusys CodeCamp — Password Reset",
-                    recipients=[user.email],
-                )
-                msg.body = (
+            sent = send_mail(
+                recipient=user.email,
+                subject="Cellusys CodeCamp — Password Reset",
+                text_body=(
                     f"Hi {user.first_name},\n\n"
                     f"Click the link below to reset your password:\n{reset_url}\n\n"
                     f"This link expires in 1 hour.\n\n"
                     f"Cellusys CodeCamp"
-                )
-                msg.html = (
+                ),
+                html_body=(
                     f"<h2>Password Reset</h2>"
                     f"<p>Hi {user.first_name},</p>"
                     f"<p>Click the button below to reset your password:</p>"
@@ -112,13 +109,13 @@ def forgot_password():
                     f"style=\"display:inline-block;padding:12px 24px;background:#004AAD;color:#fff;"
                     f"text-decoration:none;border-radius:6px;\">Reset Password</a>"
                     f"<p>This link expires in 1 hour.</p>"
-                )
-                mail.send(msg)
-                logger.info("Password reset email sent to %s", user.email)
-            except Exception:
-                logger.exception("Failed to send password reset email to %s", user.email)
+                ),
+            )
+            if not sent:
+                logger.error("Failed to send password reset email to %s", user.email)
                 flash("Could not send email. Please try again later.", "error")
                 return redirect(url_for("auth.forgot_password"))
+            logger.info("Password reset email sent to %s", user.email)
         else:
             logger.info("Password reset requested for unknown email: %s", email)
         flash("If that email exists, a reset link has been sent.", "success")

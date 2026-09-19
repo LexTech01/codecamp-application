@@ -81,7 +81,7 @@ def applicants():
     pagination = query.order_by(
         Application.field_of_study.asc(),
         Application.country.asc(),
-        Application.applicant_location.asc(),
+        Application.city.asc(),
         Application.updated_at.desc(),
     ).paginate(page=page, per_page=per_page, error_out=False)
 
@@ -212,7 +212,7 @@ def export_applicants():
     writer = csv.writer(output)
     writer.writerow([
         "First Name", "Last Name", "Email", "Phone", "Program",
-        "Country", "Location", "Stage", "Test Score", "Interview Rating",
+        "Country", "City", "Campus", "Stage", "Test Score", "Interview Rating",
         "Cohort", "Submitted At",
     ])
     for a in apps:
@@ -223,7 +223,8 @@ def export_applicants():
             a.user.phone or "",
             a.field_of_study or "",
             a.country or "",
-            a.applicant_location or "",
+            a.city or "",
+            a.campus_location or "",
             a.pipeline_stage,
             a.test_score if a.test_score is not None else "",
             a.interview_rating if a.interview_rating is not None else "",

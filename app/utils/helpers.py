@@ -40,22 +40,54 @@ def create_notification(user_id, title, message, link=None):
     return notif
 
 
-def send_mail(recipient, subject, text_body, html_body=None):
-    """Send an email, logging failures without raising.
+RESEND_API_URL = "https://api.resend.com/emails"
 
-    Under TESTING Flask-Mail appends to ``mail.outbox`` instead of sending.
-    """
-    from flask_mail import Message
-    from app import mail
+
+def _send_via_resend(recipient, subject, text_body, html_body):
+    """HTTPS delivery through Resend (works where outbound SMTP is blocked)."""
+    import requests
+
+    logger = logging.getLogger(__name__)
+    api_key = current_app.config.get("RESEND_API_KEY")
+    if not api_key:
+        logger.error("RESEND_API_KEY is not set — cannot send email to %s", recipient)
+        return False
+
+    payload = {
+        "from": current_app.config["EMAIL_FROM"],
+        "to": [recipient],
+        "subject": subject,
+        "text": text_body,
+    }
+    if html_body:
+        payload["html"] = html_body
 
     try:
-        msg = Message(subject=subject, recipients=[recipient])
-        msg.body = text_body
-        if html_body:
-            msg.html = html_body
-        mail.send(msg)
+        resp = requests.post(
+            RESEND_API_URL,
+            json=payload,
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=10,
+        )
+        if resp.status_code >= 400:
+            logger.error("Resend API error %s for %s: %s", resp.status_code, recipient, resp.text[:500])
+            return False
+        return True
     except Exception:
-        logging.getLogger(__name__).exception("Failed to send email to %s", recipient)
+        logger.exception("Failed to send email to %s via Resend", recipient)
+        return False
+
+
+def send_mail(recipient, subject, text_body, html_body=None):
+    """Send an email via Resend, logging failures without raising.
+
+    Returns True when the message was accepted by Resend, False otherwise.
+    Under TESTING the call is suppressed (no network) and reports success.
+    """
+    if current_app.config.get("TESTING"):
+        logging.getLogger(__name__).debug("TESTING: suppressed email to %s", recipient)
+        return True
+    return _send_via_resend(recipient, subject, text_body, html_body)
 
 
 def resolve_assessment_image(filename):

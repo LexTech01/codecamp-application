@@ -127,7 +127,7 @@ const Cellusys = {
       cancelBtn.addEventListener("click", onCancel);
       modal.addEventListener("click", onOverlay);
     });
-  }
+  },
 
   /* ── Alert dialog (single OK button) ── */
   alert(message) {

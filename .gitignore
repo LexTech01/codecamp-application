@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.pytest_cache/
 
 # Virtual environment
 .venv/
@@ -32,16 +33,23 @@ desktop.ini
 .localized
 
 # Application
-instance/*.db
-instance/*.db.bak
+instance/
 app/static/uploads/*
 
 # Flask
 *.log
 flask_session/
 
-# Runtime cache
-instance/aws-ip-ranges.json
+# Celery
+celerybeat-schedule*
+celerybeat.pid
+
+# Downloads / installer binaries (not for production)
+*.crdownload
+*.dmg
 
 # Media
 *.mp4
+
+# Application installers / binaries
+*.exe

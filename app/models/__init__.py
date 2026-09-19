@@ -5,6 +5,7 @@ from app.models.assessment import Assessment, Question, TestAttempt
 from app.models.interview import InterviewSlot, InterviewBooking, InterviewerProfile
 from app.models.announcement import Announcement, AnnouncementRead
 from app.models.notification import Notification
+from app.models.outbound_message import OutboundMessage
 from app.models.activity import ActivityLog
 from app.models.contact import ContactMessage
 from app.models.cohort import Cohort
@@ -22,6 +23,7 @@ __all__ = [
     "Announcement",
     "AnnouncementRead",
     "Notification",
+    "OutboundMessage",
     "ActivityLog",
     "ContactMessage",
     "Cohort",

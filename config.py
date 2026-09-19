@@ -155,13 +155,10 @@ class Config:
     CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "")
     CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
 
-    # Mail
-    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
-    MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "true").lower() == "true"
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "")
-    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
-    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@cellusys.com")
+    # Email delivery via Resend (HTTPS API — works where outbound SMTP is
+    # blocked, e.g. Render Free). EMAIL_FROM must be a Resend-verified domain.
+    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+    EMAIL_FROM = os.environ.get("EMAIL_FROM", "noreply@cellusys.com")
 
     # Redis
     _redis_url = os.environ.get("REDIS_URL")
@@ -170,6 +167,12 @@ class Config:
     # Celery (disabled by default — requires REDIS_URL)
     CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", _redis_url or "")
     CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", _redis_url or "")
+
+    # Scheduled email reminders (worker + beat)
+    REMINDER_ENABLED = os.environ.get("REMINDER_ENABLED", "true").lower() in ("1", "true", "yes")
+    REMINDER_SWEEP_SECONDS = int(os.environ.get("REMINDER_SWEEP_SECONDS", "300"))
+    REMINDER_DAYS_DRAFT = int(os.environ.get("REMINDER_DAYS_DRAFT", "3"))
+    REMINDER_DAYS_TEST = int(os.environ.get("REMINDER_DAYS_TEST", "3"))
     RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "true").lower() == "true"
     RATELIMIT_DEFAULT = "200 per day; 50 per hour"
     RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URL", _redis_url or "memory://")

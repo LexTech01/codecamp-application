@@ -160,6 +160,30 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
             color: var(--text-muted);
             margin-bottom: 4px;
           "
+          >Age</small
+        >
+        <strong style="font-size: 0.9rem"
+          >{{ application.age or '—' }}</strong
+        >
+      </div>
+      <div
+        style="
+          padding: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          background: var(--bg-tertiary);
+        "
+      >
+        <small
+          style="
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+          "
           >Gender</small
         >
         <strong style="font-size: 0.9rem"
@@ -184,10 +208,34 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
             color: var(--text-muted);
             margin-bottom: 4px;
           "
-          >Location</small
+          >Country</small
         >
         <strong style="font-size: 0.9rem"
-          >{{ application.applicant_location or '—' }}</strong
+          >{{ application.country or '—' }}</strong
+        >
+      </div>
+      <div
+        style="
+          padding: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          background: var(--bg-tertiary);
+        "
+      >
+        <small
+          style="
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+          "
+          >City</small
+        >
+        <strong style="font-size: 0.9rem"
+          >{{ application.city or '—' }}</strong
         >
       </div>
       <div
@@ -237,6 +285,92 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
         <strong style="font-size: 0.9rem"
           >{{ application.field_of_study or '—' }}</strong
         >
+      </div>
+      <div
+        style="
+          padding: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          background: var(--bg-tertiary);
+        "
+      >
+        <small
+          style="
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+          "
+          >Referral Code</small
+        >
+        <strong style="font-size: 0.9rem"
+          >{{ application.referral_code or '—' }}</strong
+        >
+      </div>
+      <div
+        style="
+          padding: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          background: var(--bg-tertiary);
+        "
+      >
+        <small
+          style="
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+          "
+          >Referral Source</small
+        >
+        <strong style="font-size: 0.9rem"
+          >{{ application.referral_source or '—' }}</strong
+        >
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+      <h4 style="font-size: 0.95rem; margin-bottom: 16px; color: var(--accent-primary);">
+        <i class="fa-solid fa-graduation-cap" style="margin-right: 8px;"></i>Educational / Professional Background
+      </h4>
+      <div class="details-grid" style="display: grid; gap: 16px;">
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Previous Student</small>
+          <strong style="font-size: 0.9rem;">{{ application.previous_student or '—' }}</strong>
+        </div>
+        {% if application.previous_student and application.previous_student.startswith('Yes') %}
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Previous Course</small>
+          <strong style="font-size: 0.9rem;">{{ application.previous_course or '—' }}</strong>
+        </div>
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Previous Cohort</small>
+          <strong style="font-size: 0.9rem;">{{ application.previous_cohort or '—' }}</strong>
+        </div>
+        {% endif %}
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Current Status</small>
+          <strong style="font-size: 0.9rem;">{{ application.current_status or '—' }}</strong>
+        </div>
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Field of Study / Profession</small>
+          <strong style="font-size: 0.9rem;">{{ application.profession or '—' }}</strong>
+        </div>
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Institution / Organization</small>
+          <strong style="font-size: 0.9rem;">{{ application.institution or '—' }}</strong>
+        </div>
+        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-tertiary);">
+          <small style="display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px;">Can Commit (3+ days/week)</small>
+          <strong style="font-size: 0.9rem;">{% if application.can_commit == true %}Yes{% elif application.can_commit == false %}No{% else %}—{% endif %}</strong>
+        </div>
       </div>
     </div>
   </div>

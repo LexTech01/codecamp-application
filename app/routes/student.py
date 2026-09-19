@@ -99,14 +99,19 @@ def application():
             flash("Application submitted successfully! You can now take the aptitude test.", "success")
             return redirect(url_for("student.dashboard"))
     step = request.args.get("step", app_record.current_step or 1, type=int)
-    if step not in (1, 2):
+    if step not in (1, 2, 3):
         step = 1
     draft = parse_json_safe(app_record.draft_data)
     return render_template("dashboard/application.html", application=app_record, step=step, draft=draft)
 
 
 def _save_application_draft(app_record, form):
-    fields = ["date_of_birth", "gender", "applicant_location", "campus_location", "field_of_study", "referral_code"]
+    fields = [
+        "date_of_birth", "age", "gender", "city",
+        "referral_source", "campus_location", "field_of_study", "referral_code",
+        "previous_student", "previous_course", "previous_cohort",
+        "current_status", "profession", "institution",
+    ]
     if "first_name" in form:
         current_user.first_name = form.get("first_name", "").strip()
     if "last_name" in form:
@@ -121,6 +126,13 @@ def _save_application_draft(app_record, form):
     for f in fields:
         if f in form:
             setattr(app_record, f, form.get(f))
+    # Derive country from campus selection (Accra → Ghana, Cairo → Egypt)
+    if app_record.campus_location:
+        app_record.country = "Ghana" if app_record.campus_location == "CodeCamp Accra" else "Egypt"
+    # Handle boolean field
+    can_commit_val = form.get("can_commit")
+    if can_commit_val is not None:
+        app_record.can_commit = can_commit_val == "true"
     app_record.current_step = int(form.get("current_step", app_record.current_step or 1))
     app_record.draft_data = json.dumps({
         "first_name": current_user.first_name,
@@ -128,6 +140,8 @@ def _save_application_draft(app_record, form):
         "email": current_user.email,
         "whatsapp": current_user.phone,
         **{f: getattr(app_record, f) for f in fields},
+        "country": app_record.country,
+        "can_commit": app_record.can_commit,
     })
     db.session.commit()
 

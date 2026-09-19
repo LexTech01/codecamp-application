@@ -16,11 +16,18 @@ class Application(db.Model):
     applicant_location = db.Column(db.String(120))
     campus_location = db.Column(db.String(120))
     referral_code = db.Column(db.String(120))
+    referral_source = db.Column(db.String(80))
     gender = db.Column(db.String(20))
     nationality = db.Column(db.String(80))
     address = db.Column(db.Text)
     city = db.Column(db.String(80))
     country = db.Column(db.String(80))
+    previous_student = db.Column(db.String(120))
+    previous_course = db.Column(db.String(120))
+    previous_cohort = db.Column(db.String(120))
+    current_status = db.Column(db.String(80))
+    profession = db.Column(db.String(200))
+    can_commit = db.Column(db.Boolean)
 
     # Education
     education_level = db.Column(db.String(80))

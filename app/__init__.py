@@ -10,7 +10,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
-from flask_mail import Mail
 from flask_session import Session as FlaskSession
 from flask_caching import Cache
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -25,7 +24,6 @@ login_manager.login_view = "auth.login"
 login_manager.login_message_category = "info"
 limiter = Limiter(key_func=get_remote_address)
 csrf = CSRFProtect()
-mail = Mail()
 flask_session = FlaskSession()
 cache = Cache()
 
@@ -121,7 +119,6 @@ def create_app(config_class=Config, config_override=None):
     login_manager.init_app(app)
     limiter.init_app(app)
     csrf.init_app(app)
-    mail.init_app(app)
     flask_session.init_app(app)
     cache.init_app(app)
 

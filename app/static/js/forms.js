@@ -9,10 +9,42 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("current_step")?.value || "1",
     10,
   );
-  const totalSteps = 2;
+  const totalSteps = 3;
   form.noValidate = true;
 
   showStep(currentStep);
+
+  // Age auto-calculation from DOB
+  const dobInput = document.getElementById("dob");
+  const ageInput = document.getElementById("age");
+  if (dobInput && ageInput) {
+    function calcAge() {
+      const val = dobInput.value;
+      if (!val) { ageInput.value = ""; return; }
+      const birth = new Date(val);
+      const now = new Date();
+      let age = now.getFullYear() - birth.getFullYear();
+      const m = now.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+      ageInput.value = age >= 0 ? age : "";
+    }
+    dobInput.addEventListener("change", calcAge);
+    if (dobInput.value) calcAge();
+  }
+
+  // Conditional show/hide for previous student fields
+  const prevStudent = document.getElementById("previous_student");
+  const prevFields = document.getElementById("previous_fields");
+  if (prevStudent && prevFields) {
+    function togglePrevFields() {
+      const isYes = prevStudent.value && prevStudent.value.startsWith("Yes");
+      prevFields.style.display = isYes ? "" : "none";
+    }
+    prevStudent.addEventListener("change", togglePrevFields);
+    togglePrevFields();
+  }
+
+
 
   document.getElementById("wizardNext")?.addEventListener("click", (e) => {
     e.preventDefault();

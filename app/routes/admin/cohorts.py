@@ -174,7 +174,7 @@ def export_cohort_csv(cohort_id):
     writer = csv.writer(output)
     writer.writerow([
         "First Name", "Last Name", "Email", "Phone", "Program",
-        "Country", "Location", "Stage", "Test Score", "Interview Rating",
+        "Country", "City", "Campus", "Stage", "Test Score", "Interview Rating",
         "Assigned At", "Submitted At",
     ])
     for a in members:
@@ -185,7 +185,8 @@ def export_cohort_csv(cohort_id):
             a.user.phone or "",
             a.field_of_study or "",
             a.country or "",
-            a.applicant_location or "",
+            a.city or "",
+            a.campus_location or "",
             a.pipeline_stage,
             a.test_score if a.test_score is not None else "",
             a.interview_rating if a.interview_rating is not None else "",

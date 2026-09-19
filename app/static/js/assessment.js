@@ -38,6 +38,39 @@ document.addEventListener("DOMContentLoaded", () => {
   let timerInterval;
   let submitting = false;
 
+  // Self-contained helpers so the submit flow never depends on app.js having
+  // loaded (a syntax error there used to silently kill Cellusys).
+  function uiConfirm(message) {
+    if (typeof Cellusys !== "undefined" && Cellusys.confirm) {
+      return Cellusys.confirm(message);
+    }
+    return Promise.resolve(window.confirm(message));
+  }
+
+  function uiAlert(message) {
+    if (typeof Cellusys !== "undefined" && Cellusys.alert) {
+      Cellusys.alert(message);
+    } else {
+      window.alert(message);
+    }
+  }
+
+  async function postSubmission(assessmentId, payload) {
+    const csrfToken = document
+      .querySelector('meta[name="csrf-token"]')
+      ?.getAttribute("content");
+    const res = await fetch(`/api/assessment/${assessmentId}/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken || "",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
   function persistState() {
     try {
       localStorage.setItem(
@@ -85,11 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const onNextPlain = () => navigate(1);
   const onSubmitClick = async () => {
-    const ok = await Cellusys.confirm(
+    const ok = await uiConfirm(
       "Submit your test? You cannot change answers after submission.",
     );
     if (ok) {
-      submitting = true;
       submitTest();
     }
   };
@@ -291,17 +323,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const timeTaken = durationMinutes * 60 - timeLeft;
 
     try {
-      const result = await Cellusys.fetchJSON(
-        `/api/assessment/${assessmentId}/submit`,
-        {
-          method: "POST",
-          body: JSON.stringify({ answers, time_taken: timeTaken }),
-        },
-      );
+      const result = await postSubmission(assessmentId, {
+        answers,
+        time_taken: timeTaken,
+      });
       clearState();
       window.location.href = `/student/assessment/result/${result.attempt_id}`;
     } catch (e) {
-      Cellusys.alert("Submission failed. Please try again.");
+      submitting = false;
+      uiAlert("Submission failed. Please try again.");
     }
   }
 });

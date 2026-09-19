@@ -26,9 +26,16 @@ services:
         sync: false
       - key: SECRET_KEY
         sync: false
-      - key: MAIL_USERNAME
+      # Resend HTTPS email API (avoids the SMTP block on Free instances).
+      - key: RESEND_API_KEY
         sync: false
-      - key: MAIL_PASSWORD
+      - key: EMAIL_FROM
         sync: false
       - key: SENTRY_DSN
         sync: false
+      # Render Free has no free background-worker instances, so the Celery
+      # worker + beat run inside this web service (see start.sh). Reminders
+      # resume whenever the service is awake.
+      - key: RUN_CELERY_IN_WEB
+        value: "true"
+

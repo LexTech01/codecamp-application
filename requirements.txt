@@ -5,7 +5,6 @@ Flask-SQLAlchemy==3.1.1
 Flask-WTF==1.2.1
 Flask-Migrate==4.0.5
 Flask-Limiter==4.1.1
-Flask-Mail==0.9.1
 WTForms==3.1.2
 Werkzeug==3.0.3
 python-dotenv==1.0.1
@@ -37,4 +36,5 @@ celery[redis]==5.6.3
 gunicorn==22.0.0
 alembic
 dnspython
+requests==2.34.2
 pytest
