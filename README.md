@@ -33,6 +33,13 @@ instead of silently degrading:
 - `SECRET_KEY` — random value (forgeable sessions otherwise)
 - `DATABASE_URL` — PostgreSQL/Supabase URL (SQLite fallback is disabled outside debug)
 
+The Render blueprint uses a paid Starter web service with a 1 GB persistent
+disk mounted at `/var/data`. Announcement and gallery uploads are stored in
+`/var/data/uploads` and `/var/data/gallery`; keep these paths on the persistent
+disk in production. Files from earlier ephemeral deployments are not copied
+automatically, so migrate any existing uploads before redeploying if they must
+be retained.
+
 ## Reseed Database (optional)
 
 Core content (assessment, questions, announcements, cohorts) is seeded on the

@@ -139,7 +139,7 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
       >
         {% if ann.image_filename %}
         <img
-          src="{{ url_for('static', filename='uploads/' ~ ann.image_filename) }}"
+          src="{{ url_for('main.uploaded_announcement_image', filename=ann.image_filename) }}"
           alt="thumb"
           style="
             width: 56px;

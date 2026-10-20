@@ -342,7 +342,7 @@ block extra_css %}
       >
         {% if post.image_filename %}
         <img
-          src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}"
+          src="{{ url_for('main.uploaded_announcement_image', filename=post.image_filename) }}"
           alt="Blog preview image"
         />
         {% else %}
@@ -429,7 +429,7 @@ block extra_css %}
     <div class="images">
       {% for img in gallery %}
       <img
-        src="{{ url_for('static', filename=img.file) }}"
+        src="{{ img.file }}"
         alt="{{ img.alt }}"
         data-aos="zoom-in"
         data-aos-delay="{{ 50 * (loop.index0 % 6) }}"
@@ -673,8 +673,8 @@ block extra_css %}
       <div class="footer-bottom-inner">
         <p>&copy; 2026 Cellusys CodeCamp. All rights reserved.</p>
         <div class="footer-bottom-links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
+          <a href="{{ url_for('main.privacy_policy') }}">Privacy Policy</a>
+          <a href="{{ url_for('main.terms_of_service') }}">Terms of Service</a>
         </div>
       </div>
     </div>

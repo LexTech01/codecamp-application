@@ -35,37 +35,37 @@
           <div class="form-group">
             <label class="form-label">First name</label>
             <div class="field-error" data-error-for="first_name"></div>
-            <input type="text" name="first_name" class="form-input" value="{{ current_user.first_name or '' }}" placeholder="e.g. Kofi" autocomplete="given-name" required>
+            <input type="text" name="first_name" class="form-input" value="{{ form_data.get('first_name', current_user.first_name or '') }}" placeholder="e.g. Kofi" autocomplete="given-name" required>
           </div>
           <div class="form-group">
             <label class="form-label">Last name</label>
             <div class="field-error" data-error-for="last_name"></div>
-            <input type="text" name="last_name" class="form-input" value="{{ current_user.last_name or '' }}" placeholder="e.g. Mensah" autocomplete="family-name" required>
+            <input type="text" name="last_name" class="form-input" value="{{ form_data.get('last_name', current_user.last_name or '') }}" placeholder="e.g. Mensah" autocomplete="family-name" required>
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Email address</label>
           <div class="field-error" data-error-for="email"></div>
-          <input type="email" name="email" class="form-input" value="{{ current_user.email or '' }}" placeholder="you@example.com" autocomplete="email" required>
+          <input type="email" name="email" class="form-input" value="{{ form_data.get('email', current_user.email or '') }}" placeholder="you@example.com" autocomplete="email" required>
         </div>
 
         <div class="form-group">
           <label class="form-label">WhatsApp number</label>
           <div class="field-error" data-error-for="whatsapp"></div>
-          <input type="tel" name="whatsapp" class="form-input" value="{{ current_user.phone or '' }}" placeholder="+233 20 000 0000" autocomplete="tel" required>
+          <input type="tel" name="whatsapp" class="form-input" value="{{ form_data.get('whatsapp', current_user.phone or '') }}" placeholder="+233 20 000 0000" autocomplete="tel" required>
         </div>
 
         <div class="grid grid-2 gap-2" style="gap:16px">
           <div class="form-group">
             <label class="form-label">Date of birth</label>
             <div class="field-error" data-error-for="date_of_birth"></div>
-            <input type="date" name="date_of_birth" id="dob" class="form-input" value="{{ application.date_of_birth or '' }}" required>
+            <input type="date" name="date_of_birth" id="dob" class="form-input" value="{{ form_data.get('date_of_birth', application.date_of_birth or '') }}" required>
           </div>
           <div class="form-group">
             <label class="form-label">Age</label>
             <div class="field-error" data-error-for="age"></div>
-            <input type="number" name="age" id="age" class="form-input" value="{{ application.age or '' }}" readonly placeholder="Auto-calculated">
+            <input type="number" name="age" id="age" class="form-input" value="{{ form_data.get('age', application.age or '') }}" readonly placeholder="Auto-calculated">
           </div>
         </div>
 
@@ -75,7 +75,7 @@
           <select name="gender" class="form-select" required>
             <option value="">Select gender</option>
             {% for gender in ['Male','Female'] %}
-            <option value="{{ gender }}" {% if application.gender == gender %}selected{% endif %}>{{ gender }}</option>
+            <option value="{{ gender }}" {% if form_data.get('gender', application.gender or '') == gender %}selected{% endif %}>{{ gender }}</option>
             {% endfor %}
           </select>
         </div>
@@ -83,7 +83,7 @@
         <div class="form-group">
           <label class="form-label">City and Residence</label>
           <div class="field-error" data-error-for="city"></div>
-          <input type="text" name="city" class="form-input" value="{{ application.city or '' }}" placeholder="e.g. Accra" required>
+          <input type="text" name="city" class="form-input" value="{{ form_data.get('city', application.city or '') }}" placeholder="e.g. Accra" required>
         </div>
 
         <div class="form-group">
@@ -92,7 +92,7 @@
           <select name="referral_source" class="form-select">
             <option value="">Select an option</option>
             {% for src in ['Banner','Sticker','Church','Facebook','Friend','Instagram','Mosque','Radio','School','Shop','Street','TV','WhatsApp','MOMO Vendor','Youtube','Bill Board','Telegram'] %}
-            <option value="{{ src }}" {% if application.referral_source == src %}selected{% endif %}>{{ src }}</option>
+            <option value="{{ src }}" {% if form_data.get('referral_source', application.referral_source or '') == src %}selected{% endif %}>{{ src }}</option>
             {% endfor %}
           </select>
         </div>
@@ -118,7 +118,7 @@
           <div class="grid grid-2 gap-2" style="gap:12px">
             {% for value, title, hint in [('CodeCamp Accra','CodeCamp Accra','Residents in Accra only'),('CodeCamp Cairo','CodeCamp Cairo','Residents in Cairo only')] %}
             <label class="selection-card">
-              <input type="radio" name="campus_location" value="{{ value }}" {% if application.campus_location == value %}checked{% endif %} required>
+              <input type="radio" name="campus_location" value="{{ value }}" {% if form_data.get('campus_location', application.campus_location or '') == value %}checked{% endif %} required>
               <span>
                 <strong>{{ title }}</strong>
                 <small>{{ hint }}</small>
@@ -134,7 +134,7 @@
           <div class="grid grid-2 gap-2" style="gap:12px">
             {% for value, title, hint in [('Software Engineering','Software Engineering','Programming track'),('Networking and Telecommunications','Networking & Telecom','Infrastructure track')] %}
             <label class="selection-card">
-              <input type="radio" name="field_of_study" value="{{ value }}" {% if application.field_of_study == value %}checked{% endif %} required>
+              <input type="radio" name="field_of_study" value="{{ value }}" {% if form_data.get('field_of_study', application.field_of_study or '') == value %}checked{% endif %} required>
               <span>
                 <strong>{{ title }}</strong>
                 <small>{{ hint }}</small>
@@ -150,7 +150,7 @@
           <select name="referral_code" class="form-select">
             <option value="">Select an option</option>
             {% for code in ['FAYA','PRINCE','JUSTIN','FRANCIS - FBB','MIKE','SLY','RALPH','None'] %}
-            <option value="{{ code }}" {% if application.referral_code == code %}selected{% endif %}>{{ code }}</option>
+            <option value="{{ code }}" {% if form_data.get('referral_code', application.referral_code or '') == code %}selected{% endif %}>{{ code }}</option>
             {% endfor %}
           </select>
         </div>
@@ -172,7 +172,7 @@
           <select name="previous_student" class="form-select" id="previous_student" required>
             <option value="">Select an option</option>
             {% for opt in ["Yes, I'm a current student at Cellusys CodeCamp","Yes, I'm a graduate of Cellusys CodeCamp","Yes, I dropped from Cellusys CodeCamp","No, I'm new to Cellusys CodeCamp"] %}
-            <option value="{{ opt }}" {% if application.previous_student == opt %}selected{% endif %}>{{ opt }}</option>
+            <option value="{{ opt }}" {% if form_data.get('previous_student', application.previous_student or '') == opt %}selected{% endif %}>{{ opt }}</option>
             {% endfor %}
           </select>
         </div>
@@ -185,14 +185,14 @@
               <select name="previous_course" class="form-select" id="previous_course">
                 <option value="">Select course</option>
                 {% for c in ['Software Engineering','Networking and Telecommunications'] %}
-                <option value="{{ c }}" {% if application.previous_course == c %}selected{% endif %}>{{ c }}</option>
+                <option value="{{ c }}" {% if form_data.get('previous_course', application.previous_course or '') == c %}selected{% endif %}>{{ c }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">If yes, which Cohort did you join?</label>
               <div class="field-error" data-error-for="previous_cohort"></div>
-              <input type="text" name="previous_cohort" class="form-input" id="previous_cohort" value="{{ application.previous_cohort or '' }}" placeholder="e.g. Cohort 3">
+              <input type="text" name="previous_cohort" class="form-input" id="previous_cohort" value="{{ form_data.get('previous_cohort', application.previous_cohort or '') }}" placeholder="e.g. Cohort 3">
             </div>
           </div>
         </div>
@@ -203,9 +203,9 @@
           <select name="current_status" class="form-select" required>
             <option value="">Select status</option>
             {% for s in ['Student','Graduate','Working Professional'] %}
-            <option value="{{ s }}" {% if application.current_status == s %}selected{% endif %}>{{ s }}</option>
+            <option value="{{ s }}" {% if form_data.get('current_status', application.current_status or '') == s %}selected{% endif %}>{{ s }}</option>
             {% endfor %}
-            <option value="Other" {% if application.current_status and application.current_status not in ['Student','Graduate','Working Professional'] %}selected{% endif %}>Other</option>
+            <option value="Other" {% if form_data.get('current_status', application.current_status or '') == 'Other' %}selected{% endif %}>Other</option>
           </select>
         </div>
 
@@ -213,12 +213,12 @@
           <div class="form-group">
             <label class="form-label">Field of Study or Profession</label>
             <div class="field-error" data-error-for="profession"></div>
-            <input type="text" name="profession" class="form-input" value="{{ application.profession or '' }}" placeholder="e.g. Computer Science" required>
+            <input type="text" name="profession" class="form-input" value="{{ form_data.get('profession', application.profession or '') }}" placeholder="e.g. Computer Science" required>
           </div>
           <div class="form-group">
             <label class="form-label">Institution / Organization (if any)</label>
             <div class="field-error" data-error-for="institution"></div>
-            <input type="text" name="institution" class="form-input" value="{{ application.institution or '' }}" placeholder="e.g. University of Ghana">
+            <input type="text" name="institution" class="form-input" value="{{ form_data.get('institution', application.institution or '') }}" placeholder="e.g. University of Ghana">
           </div>
         </div>
 
@@ -227,13 +227,13 @@
           <div class="field-error" data-error-for="can_commit"></div>
           <div class="grid grid-2 gap-2" style="gap:12px">
             <label class="selection-card">
-              <input type="radio" name="can_commit" value="true" {% if application.can_commit == true %}checked{% endif %} required>
+              <input type="radio" name="can_commit" value="true" {% if form_data.get('can_commit', 'true' if application.can_commit == true else 'false' if application.can_commit == false else '') == 'true' %}checked{% endif %} required>
               <span>
                 <strong>Yes, I can fully commit</strong>
               </span>
             </label>
             <label class="selection-card">
-              <input type="radio" name="can_commit" value="false" {% if application.can_commit == false %}checked{% endif %} required>
+              <input type="radio" name="can_commit" value="false" {% if form_data.get('can_commit', 'true' if application.can_commit == true else 'false' if application.can_commit == false else '') == 'false' %}checked{% endif %} required>
               <span>
                 <strong>No, I may not be available that often</strong>
               </span>

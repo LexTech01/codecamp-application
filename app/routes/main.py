@@ -1,7 +1,10 @@
 """Public routes: landing page and blog."""
 import math
 import os
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from flask import (
+    Blueprint, render_template, request, flash, redirect, url_for,
+    current_app, send_from_directory,
+)
 from app import db, limiter
 from app.models.announcement import Announcement
 from app.models.contact import ContactMessage
@@ -10,10 +13,32 @@ from app.models.gallery import GalleryItem
 main_bp = Blueprint("main", __name__)
 
 
+@main_bp.route("/media/uploads/<path:filename>")
+def uploaded_announcement_image(filename):
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+    if os.path.isfile(os.path.join(upload_folder, filename)):
+        return send_from_directory(upload_folder, filename)
+    return send_from_directory(
+        os.path.join(current_app.static_folder, "uploads"), filename
+    )
+
+
+@main_bp.route("/media/gallery/<path:filename>")
+def gallery_image(filename):
+    upload_folder = current_app.config["GALLERY_UPLOAD_FOLDER"]
+    if os.path.isfile(os.path.join(upload_folder, filename)):
+        return send_from_directory(upload_folder, filename)
+    return send_from_directory(
+        os.path.join(current_app.static_folder, "images", "gallery"), filename
+    )
+
+
 def _validate_image_filename(post):
     """Nullify image_filename when the file is missing on disk."""
     if post.image_filename:
         path = os.path.join(current_app.config["UPLOAD_FOLDER"], post.image_filename)
+        if not os.path.exists(path):
+            path = os.path.join(current_app.static_folder, "uploads", post.image_filename)
         if not os.path.exists(path):
             post.image_filename = None
     return post
@@ -66,6 +91,16 @@ def gallery():
     items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
     images = [i.to_dict() for i in items]
     return render_template("gallery.html", images=images)
+
+
+@main_bp.route("/privacy")
+def privacy_policy():
+    return render_template("privacy.html")
+
+
+@main_bp.route("/terms")
+def terms_of_service():
+    return render_template("terms.html")
 
 
 @main_bp.route("/contact", methods=["POST"])

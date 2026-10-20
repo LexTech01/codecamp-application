@@ -78,11 +78,29 @@ def mark_all_read():
 @login_required
 @limiter.limit("30 per hour")
 def submit_assessment(assessment_id):
-    data = request.get_json() or {}
-    answers = data.get("answers", {})
-    time_taken = data.get("time_taken", 0)
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not isinstance(data.get("answers"), dict):
+        return jsonify({"error": "Submit answers as a JSON object."}), 400
+    try:
+        time_taken = int(data.get("time_taken", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Time taken must be a non-negative integer."}), 400
+    if time_taken < 0:
+        return jsonify({"error": "Time taken must be a non-negative integer."}), 400
+    answers = data["answers"]
     assessment = Assessment.query.get_or_404(assessment_id)
+    if not current_user.is_active or current_user.role != "student":
+        return jsonify({"error": "Only active student accounts can submit assessments."}), 403
+    if not assessment.is_active:
+        return jsonify({"error": "This assessment is no longer available."}), 404
+
     app_record = Application.query.filter_by(user_id=current_user.id).first()
+    if (
+        app_record is None
+        or not app_record.is_submitted
+        or app_record.pipeline_stage not in ("test_invited", "test_completed")
+    ):
+        return jsonify({"error": "You are not eligible to take this assessment."}), 403
 
     # Reject resubmission after a passed attempt — prevents score overwrite.
     last_completed = TestAttempt.query.filter_by(
@@ -100,12 +118,12 @@ def submit_assessment(assessment_id):
             "error": f"You've used all {MAX_TEST_ATTEMPTS} attempts. Please contact support."
         }), 403
 
+    # A submission must belong to an attempt opened through the assessment page.
     attempt = TestAttempt.query.filter_by(
         user_id=current_user.id, assessment_id=assessment_id
     ).filter(TestAttempt.completed_at.is_(None)).first()
     if not attempt:
-        attempt = TestAttempt(user_id=current_user.id, assessment_id=assessment_id)
-        db.session.add(attempt)
+        return jsonify({"error": "No active attempt found. Open the assessment before submitting."}), 400
     questions = Question.query.filter_by(assessment_id=assessment_id).all()
     earned = 0
     total = 0

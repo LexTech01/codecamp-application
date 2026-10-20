@@ -50,9 +50,15 @@ def test_public_pages_render(client, app):
         post_id = Announcement.query.first().id
         db.session.commit()
 
-    for path in ["/", "/gallery", f"/blog/{post_id}", "/auth/login"]:
+    for path in [
+        "/", "/gallery", f"/blog/{post_id}", "/auth/login",
+        "/privacy", "/terms",
+    ]:
         resp = client.get(path)
         assert resp.status_code == 200, f"{path} -> {resp.status_code}"
+
+    assert b"/privacy" in client.get("/").data
+    assert b"/terms" in client.get("/").data
 
 
 def test_dashboard_take_page_render(client, app):

@@ -1,6 +1,7 @@
 """Student dashboard and feature routes."""
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from email_validator import EmailNotValidError, validate_email
 from flask import (
     Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app,
 )
@@ -84,6 +85,26 @@ def application():
             flash("Draft saved successfully.", "success")
             return redirect(url_for("student.application", step=app_record.current_step))
         if action == "submit":
+            if app_record.is_submitted:
+                flash("Your application has already been submitted.", "info")
+                return redirect(url_for("student.dashboard"))
+            errors = _application_submission_errors(request.form)
+            if errors:
+                flash("Please correct the following: " + " ".join(errors), "error")
+                error_text = " ".join(errors).lower()
+                step = 1 if any(
+                    field in error_text
+                    for field in ("name", "email", "whatsapp", "birth", "gender", "city")
+                ) else 2 if any(
+                    field in error_text for field in ("campus", "select a valid course")
+                ) else 3
+                return render_template(
+                    "dashboard/application.html",
+                    application=app_record,
+                    step=step,
+                    draft=parse_json_safe(app_record.draft_data),
+                    form_data=request.form,
+                )
             _save_application_draft(app_record, request.form)
             app_record.is_submitted = True
             app_record.pipeline_stage = "test_invited"
@@ -104,7 +125,125 @@ def application():
     if step not in (1, 2, 3):
         step = 1
     draft = parse_json_safe(app_record.draft_data)
-    return render_template("dashboard/application.html", application=app_record, step=step, draft=draft)
+    return render_template(
+        "dashboard/application.html",
+        application=app_record,
+        step=step,
+        draft=draft,
+        form_data={},
+    )
+
+
+def _application_submission_errors(form):
+    """Validate all application fields server-side before changing pipeline stage."""
+    errors = []
+    required = {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "email": "Email address",
+        "whatsapp": "WhatsApp number",
+        "date_of_birth": "Date of birth",
+        "gender": "Gender",
+        "city": "City",
+        "campus_location": "Campus",
+        "field_of_study": "Course",
+        "previous_student": "Previous student status",
+        "current_status": "Current status",
+        "profession": "Field of study or profession",
+        "can_commit": "Class attendance commitment",
+    }
+    values = {name: form.get(name, "").strip() for name in required}
+    for name, label in required.items():
+        if not values[name]:
+            errors.append(f"{label} is required.")
+
+    for name, label in (("first_name", "First name"), ("last_name", "Last name")):
+        if values[name] and not 2 <= len(values[name]) <= 80:
+            errors.append(f"{label} must be between 2 and 80 characters.")
+
+    email = values["email"].lower()
+    if email and len(email) > 120:
+        errors.append("Email address must be 120 characters or fewer.")
+    elif email:
+        try:
+            validate_email(email, check_deliverability=False)
+        except EmailNotValidError:
+            errors.append("Enter a valid email address.")
+        if email != current_user.email:
+            if User.query.filter(User.email == email, User.id != current_user.id).first():
+                errors.append("That email address is already in use.")
+            else:
+                errors.append("To change your email, update and confirm it in your profile first.")
+
+    if values["whatsapp"] and len(values["whatsapp"]) > 30:
+        errors.append("WhatsApp number must be 30 characters or fewer.")
+    if values["city"] and len(values["city"]) > 80:
+        errors.append("City must be 80 characters or fewer.")
+    if values["profession"] and len(values["profession"]) > 200:
+        errors.append("Field of study or profession must be 200 characters or fewer.")
+
+    birth_date = None
+    if values["date_of_birth"]:
+        try:
+            birth_date = datetime.strptime(values["date_of_birth"], "%Y-%m-%d").date()
+            if birth_date > date.today():
+                errors.append("Date of birth cannot be in the future.")
+        except ValueError:
+            errors.append("Enter a valid date of birth.")
+
+    choices = {
+        "gender": {"Male", "Female"},
+        "campus_location": {"CodeCamp Accra", "CodeCamp Cairo"},
+        "field_of_study": {
+            "Software Engineering",
+            "Networking and Telecommunications",
+        },
+        "previous_student": {
+            "Yes, I'm a current student at Cellusys CodeCamp",
+            "Yes, I'm a graduate of Cellusys CodeCamp",
+            "Yes, I dropped from Cellusys CodeCamp",
+            "No, I'm new to Cellusys CodeCamp",
+        },
+        "current_status": {"Student", "Graduate", "Working Professional", "Other"},
+        "can_commit": {"true", "false"},
+    }
+    labels = {
+        "gender": "Gender",
+        "campus_location": "Campus",
+        "field_of_study": "Course",
+        "previous_student": "Previous student status",
+        "current_status": "Current status",
+        "can_commit": "Class attendance commitment",
+    }
+    for field, options in choices.items():
+        if values[field] and values[field] not in options:
+            errors.append(f"Select a valid {labels[field].lower()}.")
+
+    optional_choices = {
+        "referral_source": {
+            "Banner", "Sticker", "Church", "Facebook", "Friend", "Instagram",
+            "Mosque", "Radio", "School", "Shop", "Street", "TV", "WhatsApp",
+            "MOMO Vendor", "Youtube", "Bill Board", "Telegram",
+        },
+        "referral_code": {
+            "FAYA", "PRINCE", "JUSTIN", "FRANCIS - FBB", "MIKE", "SLY",
+            "RALPH", "None",
+        },
+        "previous_course": {"Software Engineering", "Networking and Telecommunications"},
+    }
+    for field, options in optional_choices.items():
+        value = form.get(field, "").strip()
+        if value and value not in options:
+            errors.append("Select a valid " + field.replace("_", " ") + ".")
+
+    previous_cohort = form.get("previous_cohort", "").strip()
+    if len(previous_cohort) > 120:
+        errors.append("Previous cohort must be 120 characters or fewer.")
+    institution = form.get("institution", "").strip()
+    if len(institution) > 200:
+        errors.append("Institution must be 200 characters or fewer.")
+
+    return errors
 
 
 def _save_application_draft(app_record, form):
@@ -118,16 +257,20 @@ def _save_application_draft(app_record, form):
         current_user.first_name = form.get("first_name", "").strip()
     if "last_name" in form:
         current_user.last_name = form.get("last_name", "").strip()
-    if "email" in form:
-        email = form.get("email", "").lower().strip()
-        existing = User.query.filter(User.email == email, User.id != current_user.id).first() if email else None
-        if email and not existing:
-            current_user.email = email
     if "whatsapp" in form:
         current_user.phone = form.get("whatsapp", "").strip()
     for f in fields:
-        if f in form:
+        if f in form and f != "age":
             setattr(app_record, f, form.get(f))
+    if "date_of_birth" in form:
+        try:
+            birth_date = datetime.strptime(form.get("date_of_birth", ""), "%Y-%m-%d").date()
+            today = date.today()
+            app_record.age = today.year - birth_date.year - (
+                (today.month, today.day) < (birth_date.month, birth_date.day)
+            )
+        except ValueError:
+            app_record.age = None
     # Derive country from campus selection (Accra → Ghana, Cairo → Egypt)
     if app_record.campus_location:
         app_record.country = "Ghana" if app_record.campus_location == "CodeCamp Accra" else "Egypt"
@@ -135,7 +278,11 @@ def _save_application_draft(app_record, form):
     can_commit_val = form.get("can_commit")
     if can_commit_val is not None:
         app_record.can_commit = can_commit_val == "true"
-    app_record.current_step = int(form.get("current_step", app_record.current_step or 1))
+    try:
+        current_step = int(form.get("current_step", app_record.current_step or 1))
+    except (TypeError, ValueError):
+        current_step = app_record.current_step or 1
+    app_record.current_step = current_step if current_step in (1, 2, 3) else 1
     app_record.draft_data = json.dumps({
         "first_name": current_user.first_name,
         "last_name": current_user.last_name,
@@ -170,6 +317,8 @@ def assessment_list():
 @check_stage_access(["test_invited", "test_completed"])
 def take_assessment(assessment_id):
     assessment = Assessment.query.get_or_404(assessment_id)
+    if not assessment.is_active:
+        return redirect(url_for("student.assessment_list"))
     # Enforce max retry limit
     app_record = Application.query.filter_by(user_id=current_user.id).first()
     if app_record and (app_record.test_attempts or 0) >= MAX_TEST_ATTEMPTS:

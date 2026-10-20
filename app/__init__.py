@@ -112,6 +112,7 @@ def create_app(config_class=Config, config_override=None):
         app.logger.debug("SENTRY_DSN not set — error tracking disabled")
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["GALLERY_UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(os.path.join(app.root_path, "..", "instance"), exist_ok=True)
 
     db.init_app(app)

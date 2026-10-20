@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service — Cellusys CodeCamp{% endblock %}
+{% block body %}
+<main class="container" style="max-width: 900px; padding: 48px 20px 80px">
+  <h1>Terms of Service</h1>
+  <p>Last updated: October 20, 2026</p>
+  <p>
+    These terms apply when you use the Cellusys CodeCamp website and
+    recruitment platform. By using the service, you agree to use it lawfully
+    and provide information that is accurate to the best of your knowledge.
+  </p>
+
+  <h2>Accounts and applications</h2>
+  <ul>
+    <li>
+      Keep your account credentials secure and tell us promptly if you suspect
+      unauthorized access.
+    </li>
+    <li>
+      Submit only information you are permitted to provide. Do not impersonate
+      another person or interfere with another applicant’s account.
+    </li>
+    <li>
+      An application is a request to be considered; submitting one does not
+      guarantee admission, a scholarship or a place in a cohort.
+    </li>
+  </ul>
+
+  <h2>Selection and programmes</h2>
+  <p>
+    Applications may be assessed through the steps described on the website,
+    including an aptitude assessment and interview. Selection and programme
+    details are subject to review by Cellusys CodeCamp. If selected, you are
+    responsible for reviewing the programme, campus and attendance details
+    communicated to you and deciding whether you can participate.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <p>
+    Do not use the service to break the law, disrupt the platform, access data
+    or accounts without permission, submit malicious material, or attempt to
+    undermine the fairness of recruitment or assessments.
+  </p>
+
+  <h2>Website availability and content</h2>
+  <p>
+    We work to keep the website available and its information useful, but
+    features or content may change and uninterrupted availability is not
+    guaranteed. Contact us if you need clarification about an application or
+    programme detail.
+  </p>
+
+  <h2>Privacy</h2>
+  <p>
+    Our
+    <a href="{{ url_for('main.privacy_policy') }}">Privacy Policy</a>
+    explains how information is handled when you use the service.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about these terms may be sent to
+    <a href="mailto:hello@cellusyscodecamp.com">hello@cellusyscodecamp.com</a>.
+  </p>
+</main>
+{% endblock %}

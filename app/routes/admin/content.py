@@ -14,7 +14,6 @@ from app.utils.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
-GALLERY_FOLDER = os.path.join("static", "images", "gallery")
 IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 
@@ -134,7 +133,7 @@ def manage_gallery():
 
         fname = secure_filename(image.filename)
         unique = f"{uuid.uuid4().hex}_{fname}"
-        folder = os.path.join(current_app.root_path, GALLERY_FOLDER)
+        folder = current_app.config["GALLERY_UPLOAD_FOLDER"]
         os.makedirs(folder, exist_ok=True)
         image.save(os.path.join(folder, unique))
 
@@ -161,7 +160,7 @@ def manage_gallery():
 @admin_required
 def delete_gallery_item(item_id):
     item = GalleryItem.query.get_or_404(item_id)
-    fp = os.path.join(current_app.root_path, GALLERY_FOLDER, item.filename)
+    fp = os.path.join(current_app.config["GALLERY_UPLOAD_FOLDER"], item.filename)
     if os.path.exists(fp):
         try:
             os.remove(fp)

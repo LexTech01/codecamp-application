@@ -9,11 +9,15 @@ services:
   - type: web
     name: cellusys-codecamp
     runtime: python
-    plan: free
+    plan: starter
     region: frankfurt
     autoDeploy: true
     buildCommand: pip install -r requirements.txt
     startCommand: ./start.sh
+    disk:
+      name: cellusys-uploads
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.9"
@@ -24,6 +28,10 @@ services:
           property: connectionString
       - key: DATABASE_URL
         sync: false
+      - key: UPLOAD_FOLDER
+        value: /var/data/uploads
+      - key: GALLERY_UPLOAD_FOLDER
+        value: /var/data/gallery
       - key: SECRET_KEY
         sync: false
       # Resend HTTPS email API (avoids the SMTP block on Free instances).
@@ -38,4 +46,3 @@ services:
       # resume whenever the service is awake.
       - key: RUN_CELERY_IN_WEB
         value: "true"
-

@@ -1,5 +1,6 @@
 """Gallery images shown on the public landing page and gallery page."""
 from datetime import datetime, timezone
+from flask import url_for
 from app import db
 
 GALLERY_CATEGORIES = ("events", "programs", "campus")
@@ -16,7 +17,7 @@ class GalleryItem(db.Model):
 
     def to_dict(self):
         return {
-            "file": f"images/gallery/{self.filename}",
+            "file": url_for("main.gallery_image", filename=self.filename),
             "alt": self.alt or "",
             "category": self.category,
         }

@@ -32,7 +32,7 @@ def _login(client, user_id):
 
 
 def _gallery_folder(app):
-    return os.path.join(app.root_path, "static", "images", "gallery")
+    return app.config["GALLERY_UPLOAD_FOLDER"]
 
 
 def test_gallery_admin_page_requires_admin(app, client):
@@ -66,6 +66,9 @@ def test_admin_uploads_gallery_image(app, client):
         assert os.path.exists(saved)
         with open(saved, "rb") as f:
             assert f.read() == png
+        image_response = client.get(f"/media/gallery/{item.filename}")
+        assert image_response.status_code == 200
+        assert image_response.data == png
         # cleanup
         try:
             os.remove(saved)
@@ -100,7 +103,13 @@ def test_public_gallery_renders_db_images(app, client):
     resp = client.get("/gallery")
     assert resp.status_code == 200
     assert b"Alpha" in resp.data
-    assert b"images/gallery/x.png" in resp.data
+    assert b"/media/gallery/x.png" in resp.data
+
+
+def test_seeded_gallery_assets_remain_available(app, client):
+    response = client.get("/media/gallery/hero-img4.jpeg")
+    assert response.status_code == 200
+    assert response.mimetype == "image/jpeg"
 
 
 def test_landing_shows_latest_gallery_images(app, client):
@@ -111,4 +120,4 @@ def test_landing_shows_latest_gallery_images(app, client):
     resp = client.get("/")
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
-    assert "images/gallery/g0.png" in html
+    assert "/media/gallery/g0.png" in html

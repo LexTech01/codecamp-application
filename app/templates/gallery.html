@@ -99,7 +99,7 @@ endblock %} {% block extra_css %}
       {% for img in images %}
       <div class="gallery-item" data-category="{{ img.category }}">
         <img
-          src="{{ url_for('static', filename=img.file) }}"
+          src="{{ img.file }}"
           alt="{{ img.alt }}"
           loading="lazy"
         />
@@ -107,7 +107,7 @@ endblock %} {% block extra_css %}
           <span>{{ img.alt }}</span>
           <button
             class="gallery-expand"
-            data-src="{{ url_for('static', filename=img.file) }}"
+            data-src="{{ img.file }}"
             data-alt="{{ img.alt }}"
           >
             <i class="fa-solid fa-expand"></i>
@@ -242,8 +242,8 @@ endblock %} {% block extra_css %}
       <div class="footer-bottom-inner">
         <p>&copy; 2026 Cellusys CodeCamp. All rights reserved.</p>
         <div class="footer-bottom-links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
+          <a href="{{ url_for('main.privacy_policy') }}">Privacy Policy</a>
+          <a href="{{ url_for('main.terms_of_service') }}">Terms of Service</a>
         </div>
       </div>
     </div>

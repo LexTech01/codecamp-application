@@ -146,7 +146,12 @@ class Config:
     GOOGLE_SHEETS_CREDENTIALS_FILE = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_FILE", "")
 
     # Upload
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, "app", "static", "uploads")
+    UPLOAD_FOLDER = os.environ.get(
+        "UPLOAD_FOLDER", os.path.join(BASE_DIR, "instance", "uploads")
+    )
+    GALLERY_UPLOAD_FOLDER = os.environ.get(
+        "GALLERY_UPLOAD_FOLDER", os.path.join(BASE_DIR, "instance", "gallery")
+    )
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "pdf", "doc", "docx", "xlsx", "csv", "mp4"}
 

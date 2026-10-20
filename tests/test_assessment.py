@@ -43,6 +43,7 @@ def _login(client, user_id):
 
 
 def _submit(client, user_id, assessment_id, answers, time_taken=60):
+    client.get(f"/student/assessment/{assessment_id}/take")
     return client.post(f"/api/assessment/{assessment_id}/submit",
                        json={"answers": answers, "time_taken": time_taken})
 
@@ -219,3 +220,68 @@ def test_submit_within_grace_period_still_passes(client, app):
     assert resp.status_code == 200
     body = resp.get_json()
     assert body["passed"] is True
+
+
+def test_submit_requires_an_open_attempt(client, app):
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    _login(client, uid)
+
+    response = client.post(
+        f"/api/assessment/{aid}/submit",
+        json={"answers": {"1": 0}, "time_taken": 60},
+    )
+
+    assert response.status_code == 400
+    assert "No active attempt" in response.get_json()["error"]
+
+
+def test_submit_rejects_malformed_payload(client, app):
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    _login(client, uid)
+
+    response = client.post(
+        f"/api/assessment/{aid}/submit",
+        json={"answers": [], "time_taken": -1},
+    )
+
+    assert response.status_code == 400
+    assert "JSON object" in response.get_json()["error"]
+
+
+def test_submit_requires_submitted_application_in_test_stage(client, app):
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    with app.app_context():
+        application = Application.query.filter_by(user_id=uid).first()
+        application.pipeline_stage = "submitted"
+        application.is_submitted = False
+        db.session.commit()
+        _start_attempt(app, uid, aid, datetime.now(timezone.utc))
+    _login(client, uid)
+
+    response = client.post(
+        f"/api/assessment/{aid}/submit",
+        json={"answers": {"1": 0}, "time_taken": 60},
+    )
+
+    assert response.status_code == 403
+    assert "not eligible" in response.get_json()["error"]
+
+
+def test_submit_rejects_inactive_assessment(client, app):
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    with app.app_context():
+        assessment = Assessment.query.get(aid)
+        assessment.is_active = False
+        db.session.commit()
+    _login(client, uid)
+
+    response = client.post(
+        f"/api/assessment/{aid}/submit",
+        json={"answers": {"1": 0}, "time_taken": 60},
+    )
+
+    assert response.status_code == 404

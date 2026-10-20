@@ -82,7 +82,7 @@ CodeCamp{% endblock %} {% block extra_css %}
   {% if post.image_filename %}
   <div
     class="blog-hero"
-    style="background-image: url('{{ url_for('static', filename='uploads/' ~ post.image_filename) }}')"
+    style="background-image: url('{{ url_for('main.uploaded_announcement_image', filename=post.image_filename) }}')"
   >
     {% else %}
     <div class="blog-hero blog-hero-gradient">
@@ -189,7 +189,7 @@ CodeCamp{% endblock %} {% block extra_css %}
           >
             {% if r.image_filename %}
             <img
-              src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}"
+              src="{{ url_for('main.uploaded_announcement_image', filename=r.image_filename) }}"
               alt=""
             />
             {% else %}
@@ -330,8 +330,8 @@ CodeCamp{% endblock %} {% block extra_css %}
         <div class="footer-bottom-inner">
           <p>&copy; 2026 Cellusys CodeCamp. All rights reserved.</p>
           <div class="footer-bottom-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
+            <a href="{{ url_for('main.privacy_policy') }}">Privacy Policy</a>
+            <a href="{{ url_for('main.terms_of_service') }}">Terms of Service</a>
           </div>
         </div>
       </div>
