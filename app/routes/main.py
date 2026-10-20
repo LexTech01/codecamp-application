@@ -44,11 +44,42 @@ def _validate_image_filename(post):
     return post
 
 
+def _featured_blog_posts():
+    posts = (
+        Announcement.query
+        .order_by(Announcement.is_pinned.desc(), Announcement.created_at.desc())
+        .limit(3)
+        .all()
+    )
+    gallery_items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
+    gallery_filenames = []
+    seen_filenames = set()
+    for item in gallery_items:
+        if item.filename not in seen_filenames:
+            gallery_filenames.append(item.filename)
+            seen_filenames.add(item.filename)
+        if len(gallery_filenames) == len(posts):
+            break
+
+    for index, post in enumerate(posts):
+        if index < len(gallery_filenames):
+            post.blog_image_url = url_for(
+                "main.gallery_image", filename=gallery_filenames[index]
+            )
+        elif post.image_filename:
+            _validate_image_filename(post)
+            post.blog_image_url = (
+                url_for("main.uploaded_announcement_image", filename=post.image_filename)
+                if post.image_filename else None
+            )
+        else:
+            post.blog_image_url = None
+    return posts
+
+
 @main_bp.route("/")
 def index():
-    blog_posts = Announcement.query.order_by(Announcement.is_pinned.desc(), Announcement.created_at.desc()).limit(3).all()
-    for p in blog_posts:
-        _validate_image_filename(p)
+    blog_posts = _featured_blog_posts()
     from app.models.user import User
     from app.models.application import Application
     total_applicants = User.query.filter_by(role="student").count()
@@ -73,17 +104,37 @@ def index():
 @main_bp.route("/blog/<int:id>")
 def blog_detail(id):
     post = Announcement.query.get_or_404(id)
-    _validate_image_filename(post)
+    featured_posts = _featured_blog_posts()
+    featured_post = next((item for item in featured_posts if item.id == post.id), None)
+    if featured_post is not None:
+        post_image_url = featured_post.blog_image_url
+    else:
+        _validate_image_filename(post)
+        post_image_url = (
+            url_for("main.uploaded_announcement_image", filename=post.image_filename)
+            if post.image_filename else None
+        )
     all_posts = (
         Announcement.query
         .filter(Announcement.id != id)
         .order_by(Announcement.created_at.desc())
         .all()
     )
+    featured_images = {item.id: item.blog_image_url for item in featured_posts}
     for p in all_posts:
         _validate_image_filename(p)
+        p.blog_image_url = featured_images.get(p.id) or (
+            url_for("main.uploaded_announcement_image", filename=p.image_filename)
+            if p.image_filename else None
+        )
     read_time = max(1, math.ceil(len(post.content.split()) / 200))
-    return render_template("blog/detail.html", post=post, all_posts=all_posts, read_time=read_time)
+    return render_template(
+        "blog/detail.html",
+        post=post,
+        post_image_url=post_image_url,
+        all_posts=all_posts,
+        read_time=read_time,
+    )
 
 
 @main_bp.route("/gallery")

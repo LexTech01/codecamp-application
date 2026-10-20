@@ -79,10 +79,10 @@ CodeCamp{% endblock %} {% block extra_css %}
     </div>
   </header>
 
-  {% if post.image_filename %}
+  {% if post_image_url %}
   <div
     class="blog-hero"
-    style="background-image: url('{{ url_for('main.uploaded_announcement_image', filename=post.image_filename) }}')"
+    style="background-image: url('{{ post_image_url }}')"
   >
     {% else %}
     <div class="blog-hero blog-hero-gradient">
@@ -187,9 +187,9 @@ CodeCamp{% endblock %} {% block extra_css %}
             href="{{ url_for('main.blog_detail', id=r.id) }}"
             class="blog-card blog-card-link"
           >
-            {% if r.image_filename %}
+            {% if r.blog_image_url %}
             <img
-              src="{{ url_for('main.uploaded_announcement_image', filename=r.image_filename) }}"
+              src="{{ r.blog_image_url }}"
               alt=""
             />
             {% else %}

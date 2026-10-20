@@ -1,7 +1,9 @@
 """Tests for the admin-managed public gallery."""
 import os
 from io import BytesIO
+from datetime import datetime, timedelta, timezone
 from app import db
+from app.models.announcement import Announcement
 from app.models.user import User
 from app.models.gallery import GalleryItem
 
@@ -121,3 +123,45 @@ def test_landing_shows_latest_gallery_images(app, client):
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
     assert "/media/gallery/g0.png" in html
+
+
+def test_featured_blog_posts_use_distinct_gallery_images(app, client):
+    with app.app_context():
+        now = datetime.now(timezone.utc)
+        for index in range(3):
+            db.session.add(GalleryItem(
+                filename=f"blog-gallery-{index}.jpg",
+                alt=f"Blog image {index}",
+                category="events",
+                created_at=now - timedelta(minutes=index),
+            ))
+            db.session.add(Announcement(
+                title=f"Blog post {index}",
+                content=f"Content for post {index}",
+                created_at=now - timedelta(days=index),
+            ))
+        db.session.commit()
+        posts = Announcement.query.order_by(
+            Announcement.is_pinned.desc(), Announcement.created_at.desc()
+        ).all()
+        post_ids = [post.id for post in posts]
+
+    landing = client.get("/")
+    assert landing.status_code == 200
+    landing_html = landing.get_data(as_text=True)
+    blog_section = landing_html.split('<section id="blog">', 1)[1].split(
+        '<section class="gallery-section">', 1
+    )[0]
+    blog_image_urls = [
+        f"/media/gallery/blog-gallery-{index}.jpg" for index in range(3)
+    ]
+    assert all(url in blog_section for url in blog_image_urls)
+    assert blog_section.count("/media/gallery/blog-gallery-") == 3
+
+    for index, post_id in enumerate(post_ids):
+        detail = client.get(f"/blog/{post_id}")
+        assert detail.status_code == 200
+        assert (
+            f"background-image: url('/media/gallery/blog-gallery-{index}.jpg')"
+            in detail.get_data(as_text=True)
+        )

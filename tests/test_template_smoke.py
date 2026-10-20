@@ -57,8 +57,13 @@ def test_public_pages_render(client, app):
         resp = client.get(path)
         assert resp.status_code == 200, f"{path} -> {resp.status_code}"
 
-    assert b"/privacy" in client.get("/").data
-    assert b"/terms" in client.get("/").data
+    landing_html = client.get("/").data
+    assert b"/privacy" in landing_html
+    assert b"/terms" in landing_html
+    assert b'aria-roledescription="carousel"' in landing_html
+    assert landing_html.count(b'data-program-slide') == 2
+    assert b'aria-label="Previous program"' in landing_html
+    assert b'aria-label="Next program"' in landing_html
 
 
 def test_dashboard_take_page_render(client, app):

@@ -272,52 +272,114 @@ block extra_css %}
           education in coding and software development.
         </p>
       </div>
-      <div class="prog-cards">
-        <div class="prog" data-aos="fade-up" data-aos-delay="200">
-          <img
-            class="prog-bg"
-            src="{{url_for('static', filename='images/programs/software.jpg')}}"
-            alt="Developer typing code on a laptop"
-          />
-          <span class="prog-icon" aria-hidden="true"
-            ><i class="fa-solid fa-code"></i
-          ></span>
-          <div class="prog-content">
-            <h3>Software Engineering</h3>
-            <p>
-              Learn the fundamentals of software development, including
-              programming languages, algorithms, and web development. Our
-              curriculum is designed to prepare you for a successful career in
-              software engineering.
-            </p>
-            <div class="prog-cta">
-              <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
-                >Apply Now</a
-              >
-            </div>
+      <div class="prog-carousel" data-program-carousel>
+        <div
+          class="prog-carousel-viewport"
+          data-program-viewport
+          role="region"
+          aria-label="Cellusys CodeCamp programs"
+          aria-roledescription="carousel"
+          tabindex="0"
+        >
+          <div class="prog-cards" data-program-track>
+            <article
+              class="prog"
+              data-program-slide
+              role="group"
+              aria-roledescription="slide"
+              aria-label="1 of 2: Software Engineering"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
+              <img
+                class="prog-bg"
+                src="{{url_for('static', filename='images/programs/software.jpg')}}"
+                alt="Developer typing code on a laptop"
+              />
+              <span class="prog-icon" aria-hidden="true"
+                ><i class="fa-solid fa-code"></i
+              ></span>
+              <div class="prog-content">
+                <h3>Software Engineering</h3>
+                <p>
+                  Learn the fundamentals of software development, including
+                  programming languages, algorithms, and web development. Our
+                  curriculum is designed to prepare you for a successful career
+                  in software engineering.
+                </p>
+                <div class="prog-cta">
+                  <a
+                    href="{{ url_for('auth.signup') }}"
+                    class="btn btn-secondary"
+                    >Apply Now</a
+                  >
+                </div>
+              </div>
+            </article>
+            <article
+              class="prog"
+              data-program-slide
+              role="group"
+              aria-roledescription="slide"
+              aria-label="2 of 2: Networking and Telecom"
+              data-aos="fade-up"
+              data-aos-delay="300"
+            >
+              <img
+                class="prog-bg"
+                src="{{url_for('static', filename='images/programs/networking.jpg')}}"
+                alt="Network cables connected to a server rack"
+              />
+              <span class="prog-icon" aria-hidden="true"
+                ><i class="fa-solid fa-network-wired"></i
+              ></span>
+              <div class="prog-content">
+                <h3>Networking and Telecom</h3>
+                <p>
+                  Explore the world of networking and telecommunications. Learn
+                  how to design and implement robust communication systems for
+                  modern applications.
+                </p>
+                <div class="prog-cta">
+                  <a
+                    href="{{ url_for('auth.signup') }}"
+                    class="btn btn-secondary"
+                    >Apply Now</a
+                  >
+                </div>
+              </div>
+            </article>
           </div>
         </div>
-        <div class="prog" data-aos="fade-up" data-aos-delay="300">
-          <img
-            class="prog-bg"
-            src="{{url_for('static', filename='images/programs/networking.jpg')}}"
-            alt="Network cables connected to a server rack"
-          />
-          <span class="prog-icon" aria-hidden="true"
-            ><i class="fa-solid fa-network-wired"></i
-          ></span>
-          <div class="prog-content">
-            <h3>Networking and Telecom</h3>
-            <p>
-              Explore the world of networking and telecommunications. Learn how
-              to design and implement robust communication systems for modern
-              applications.
-            </p>
-            <div class="prog-cta">
-              <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
-                >Apply Now</a
-              >
-            </div>
+        <div class="prog-carousel-controls">
+          <span
+            class="prog-carousel-count"
+            data-program-count
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span data-program-current>01</span>
+            <span aria-hidden="true">/</span>
+            <span data-program-total>02</span>
+          </span>
+          <div class="prog-carousel-buttons">
+            <button
+              class="prog-carousel-button"
+              type="button"
+              data-program-prev
+              aria-label="Previous program"
+              disabled
+            >
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </button>
+            <button
+              class="prog-carousel-button"
+              type="button"
+              data-program-next
+              aria-label="Next program"
+            >
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -340,9 +402,9 @@ block extra_css %}
         data-aos="fade-up"
         data-aos-delay="{{ 100 + loop.index0 * 100 }}"
       >
-        {% if post.image_filename %}
+        {% if post.blog_image_url %}
         <img
-          src="{{ url_for('main.uploaded_announcement_image', filename=post.image_filename) }}"
+          src="{{ post.blog_image_url }}"
           alt="Blog preview image"
         />
         {% else %}
