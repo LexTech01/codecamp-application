@@ -45,10 +45,11 @@ def test_gallery_admin_page_requires_admin(app, client):
 def test_admin_uploads_gallery_image(app, client):
     admin_id = _create_admin(app)
     _login(client, admin_id)
+    png = b"\x89PNG\r\n\x1a\n" + b"fake-image-bytes"
     data = {
         "alt": "Grand Opening",
         "category": "events",
-        "image": (BytesIO(b"fake-image-bytes"), "opening.png"),
+        "image": (BytesIO(png), "opening.png"),
     }
     resp = client.post(
         "/admin/gallery", data=data, content_type="multipart/form-data"
@@ -64,7 +65,7 @@ def test_admin_uploads_gallery_image(app, client):
         saved = os.path.join(_gallery_folder(app), item.filename)
         assert os.path.exists(saved)
         with open(saved, "rb") as f:
-            assert f.read() == b"fake-image-bytes"
+            assert f.read() == png
         # cleanup
         try:
             os.remove(saved)

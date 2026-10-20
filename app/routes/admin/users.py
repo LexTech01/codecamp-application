@@ -6,7 +6,7 @@ from app import db
 from app.models.user import User
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
-from app.utils.helpers import log_activity
+from app.utils import outbox
 
 
 @admin_bp.route("/users")
@@ -50,7 +50,7 @@ def set_role(user_id):
     if user.role != new_role:
         old_role = user.role
         user.role = new_role
-        log_activity(
+        outbox.log(
             current_user.id, "role_change", f"User {user.id} {old_role} -> {new_role}"
         )
         db.session.commit()
@@ -76,7 +76,7 @@ def deactivate_user(user_id):
         user.is_active = False
         user.deactivated_at = datetime.now(timezone.utc)
         user.deactivated_reason = reason or None
-        log_activity(current_user.id, "user_deactivated", f"User {user.id}: {reason or 'no reason'}")
+        outbox.log(current_user.id, "user_deactivated", f"User {user.id}: {reason or 'no reason'}")
         db.session.commit()
         flash(f"{user.full_name} has been deactivated.", "success")
     else:
@@ -93,7 +93,7 @@ def reactivate_user(user_id):
         user.is_active = True
         user.deactivated_at = None
         user.deactivated_reason = None
-        log_activity(current_user.id, "user_reactivated", f"User {user.id}")
+        outbox.log(current_user.id, "user_reactivated", f"User {user.id}")
         db.session.commit()
         flash(f"{user.full_name} has been reactivated.", "success")
     else:

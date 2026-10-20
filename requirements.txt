@@ -37,4 +37,5 @@ gunicorn==22.0.0
 alembic
 dnspython
 requests==2.34.2
+openpyxl==3.1.5
 pytest

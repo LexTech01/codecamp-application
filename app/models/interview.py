@@ -43,9 +43,8 @@ class InterviewBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     slot_id = db.Column(db.Integer, db.ForeignKey("interview_slots.id"), unique=True, nullable=False)
-    status = db.Column(db.String(30), default="scheduled")  # scheduled, completed, cancelled, no_show
+    status = db.Column(db.String(30), default="scheduled")  # scheduled, approved, completed, cancelled
     notes = db.Column(db.Text)
     admin_notes = db.Column(db.Text)
-    rating = db.Column(db.Integer)  # 1-5
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

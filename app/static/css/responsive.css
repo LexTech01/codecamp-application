@@ -649,16 +649,24 @@
   }
 
   .prog {
-    padding: 20px 24px;
+    min-height: 320px;
   }
 
-  .prog img {
-    width: 80px;
-    height: 80px;
+  .prog-content {
+    min-height: 320px;
+    padding: 22px;
   }
 
-  .prog h3 {
-    font-size: 17px;
+  .prog-content h3 {
+    font-size: 20px;
+  }
+
+  .prog-icon {
+    top: 18px;
+    left: 18px;
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
   }
 
   .program > p {
@@ -1021,20 +1029,20 @@
   }
 
   .prog {
-    padding: 16px 20px;
+    min-height: 290px;
   }
 
-  .prog p {
+  .prog-content {
+    min-height: 290px;
+    padding: 20px;
+  }
+
+  .prog-content p {
     font-size: 14px;
   }
 
-  .prog h3 {
-    font-size: 16px;
-  }
-
-  .prog img {
-    width: 70px;
-    height: 70px;
+  .prog-content h3 {
+    font-size: 18px;
   }
 
   #blog h2 {
@@ -1222,14 +1230,21 @@
   }
 
   .flash-container {
-    right: 12px;
-    left: 12px;
+    top: 12px;
+    padding: 0 12px;
   }
 
   .flash {
     max-width: 100%;
     font-size: 0.82rem;
-    padding: 12px 16px;
+    padding: 11px 12px;
+    gap: 10px;
+  }
+
+  .flash-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
   }
 
   .pipeline-step {
@@ -1426,17 +1441,20 @@
     font-size: 24px;
   }
   .prog {
-    padding: 14px 16px;
+    min-height: 260px;
   }
-  .prog h3 {
-    font-size: 15px;
+
+  .prog-content {
+    min-height: 260px;
+    padding: 18px;
   }
-  .prog p {
+
+  .prog-content h3 {
+    font-size: 17px;
+  }
+
+  .prog-content p {
     font-size: 13px;
-  }
-  .prog img {
-    width: 56px;
-    height: 56px;
   }
 
   /* ── Blog ── */
@@ -1801,6 +1819,29 @@
   /* ── Notifications ── */
   .notif-menu {
     min-width: 290px;
+  }
+}
+
+/* ── Team members scroll horizontally on phones (swipeable strip) ── */
+@media (max-width: 600px) {
+  .teams {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .teams::-webkit-scrollbar {
+    display: none;
+  }
+  .teams > div {
+    flex: 0 0 68%;
+    min-width: 200px;
+    scroll-snap-align: center;
   }
 }
 

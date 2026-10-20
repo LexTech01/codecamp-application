@@ -3,15 +3,15 @@ import json
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify, url_for
 from flask_login import login_required, current_user
-from sqlalchemy.orm.exc import StaleDataError
 from app import db, limiter
 from app.models.application import Application
-from app.pipeline import pipeline
 from app.models.assessment import Assessment, Question, TestAttempt, MAX_TEST_ATTEMPTS
 from app.models.interview import InterviewSlot, InterviewBooking
 from app.models.announcement import AnnouncementRead
 from app.models.notification import Notification
-from app.utils.helpers import log_activity, create_notification, send_mail, calculate_score
+from app.utils import outbox
+from app.utils.helpers import calculate_score
+from app.utils.email import send_mail
 from app.utils.sheets import sync_passed_applicant
 
 api_bp = Blueprint("api", __name__)
@@ -116,9 +116,35 @@ def submit_assessment(assessment_id):
             continue
         total += q.points
         selected = answers.get(str(q.id))
-        if selected is not None and int(selected) == q.correct_answer:
+        if selected is None:
+            continue
+        try:
+            selected = int(selected)
+        except (TypeError, ValueError):
+            continue
+        if selected == q.correct_answer:
             earned += q.points
     score, passed = calculate_score(earned, total, assessment.pass_score)
+
+    # Enforce the time limit server-side. The browser timer is only cosmetic
+    # (it can be paused/resumed via localStorage), so the real deadline is
+    # when the attempt started plus the assessment duration.
+    started = attempt.started_at or datetime.now(timezone.utc)
+    if started.tzinfo is None:
+        started = started.replace(tzinfo=timezone.utc)
+    timed_out = False
+    duration_minutes = assessment.duration_minutes or 0
+    if duration_minutes > 0:
+        deadline = started + timedelta(minutes=duration_minutes)
+        # Small grace period covers the timer's zero-tick auto-submit plus
+        # network latency on the final request.
+        timed_out = datetime.now(timezone.utc) > deadline + timedelta(seconds=60)
+    if timed_out:
+        # A late submission still counts as a consumed attempt (so the cap can't
+        # be bypassed by taking unlimited time) and never passes, regardless of
+        # how many answers were correct.
+        passed = False
+
     attempt.answers = json.dumps(answers)
     attempt.earned_points = earned
     attempt.total_points = total
@@ -131,25 +157,46 @@ def submit_assessment(assessment_id):
         app_record.test_attempts = (app_record.test_attempts or 0) + 1
         app_record.last_test_attempt_date = datetime.now(timezone.utc)
 
+        details = f"Score: {score}% (Attempt {app_record.test_attempts if app_record else 1})"
         if attempt.passed:
             app_record.pipeline_stage = "test_completed"
             app_record.status = "test_completed"
-            create_notification(
+            outbox.transition(
                 current_user.id,
-                "Test Passed!",
-                f"You scored {score}%. Interview scheduling is now available.",
-                url_for("student.interview_schedule"),
+                action="test_completed",
+                details=details,
+                title="Test Passed!",
+                message=f"You scored {score}%. Interview scheduling is now available.",
+                link=url_for("student.interview_schedule"),
+            )
+        elif timed_out:
+            app_record.pipeline_stage = "test_completed"
+            app_record.status = "test_completed"
+            outbox.transition(
+                current_user.id,
+                action="test_completed",
+                details=details,
+                title="Test Time Expired",
+                message=f"Your time for the test ran out. You scored {score}%. You can retake the test.",
+                link=url_for("student.assessment_list"),
             )
         else:
             app_record.pipeline_stage = "test_completed"
             app_record.status = "test_completed"
-            create_notification(
+            outbox.transition(
                 current_user.id,
-                "Test Completed",
-                f"You scored {score}%. Minimum pass score is {assessment.pass_score}%. You can retake the test.",
-                url_for("student.assessment_list"),
+                action="test_completed",
+                details=details,
+                title="Test Completed",
+                message=f"You scored {score}%. Minimum pass score is {assessment.pass_score}%. You can retake the test.",
+                link=url_for("student.assessment_list"),
             )
-    log_activity(current_user.id, "test_completed", f"Score: {score}% (Attempt {app_record.test_attempts if app_record else 1})")
+    else:
+        outbox.log(
+            current_user.id,
+            "test_completed",
+            f"Score: {score}% (Attempt {app_record.test_attempts if app_record else 1})",
+        )
     db.session.commit()
 
     if app_record and attempt.passed:
@@ -253,18 +300,18 @@ def book_interview():
         app_record.status = "interview_scheduled"
         app_record.updated_at = datetime.now(timezone.utc)
 
-    create_notification(
+    outbox.notify(
         current_user.id,
         "Interview Scheduled",
         f"Your interview is booked for {slot.formatted_date} at {slot.formatted_time}.",
     )
-    create_notification(
+    outbox.notify(
         slot.interviewer_id,
         "Interview Booked",
         f"{current_user.full_name} ({current_user.email}) booked {slot.formatted_date} at {slot.formatted_time}.",
         url_for("admin.interviews"),
     )
-    log_activity(current_user.id, "interview_booked", f"Slot {slot_id}")
+    outbox.log(current_user.id, "interview_booked", f"Slot {slot_id}")
     db.session.commit()
     send_mail(
         recipient=current_user.email,
@@ -322,40 +369,6 @@ def cancel_interview(booking_id):
             ),
         )
     return jsonify({"success": True})
-
-
-@api_bp.route("/pipeline/move", methods=["POST"])
-@login_required
-def move_pipeline_card():
-    if not current_user.is_admin:
-        return jsonify({"error": "Unauthorized"}), 403
-    data = request.get_json() or {}
-    app_id = data.get("application_id")
-    column = data.get("column")
-    new_stage = pipeline.stage_for_kanban(column)
-    app_record = Application.query.get_or_404(app_id)
-    
-    if not pipeline.can_advance(app_record.pipeline_stage, new_stage):
-        return jsonify({"error": f"Cannot transition from {app_record.pipeline_stage} to {new_stage}"}), 400
-    
-    app_record.pipeline_stage = new_stage
-    app_record.status = new_stage
-    app_record.version += 1
-    app_record.updated_at = datetime.now(timezone.utc)
-    notif_title, notif_message = pipeline.notify_content(app_record.pipeline_stage, new_stage)
-    create_notification(
-        app_record.user_id,
-        notif_title,
-        notif_message,
-        url_for("student.dashboard"),
-    )
-    log_activity(current_user.id, "pipeline_move", f"App {app_id} -> {new_stage}")
-    try:
-        db.session.commit()
-        return jsonify({"success": True, "stage": new_stage})
-    except StaleDataError:
-        db.session.rollback()
-        return jsonify({"error": "Conflict: another admin modified this application. Please reload."}), 409
 
 
 @api_bp.route("/announcements/<int:ann_id>/read", methods=["POST"])

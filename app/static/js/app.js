@@ -4,6 +4,8 @@
 const Cellusys = {
   init() {
     this.initNavbar();
+    this.initMobileNav();
+    this.initImageFallbacks();
     this.initFlashMessages();
     this.initModals();
     this.initConfirmForms();
@@ -24,14 +26,66 @@ const Cellusys = {
     onScroll();
   },
 
-  /* ── Flash messages auto-dismiss ── */
+  /* ── Flash notification dropdowns ── */
   initFlashMessages() {
+    const DURATION = 5000;
     document.querySelectorAll(".flash").forEach((el) => {
-      setTimeout(() => {
-        el.style.opacity = "0";
-        el.style.transform = "translateX(40px)";
+      let dismissed = false;
+
+      const progress = el.querySelector(".flash-progress");
+      if (progress) progress.style.animationDuration = `${DURATION}ms`;
+
+      const dismiss = () => {
+        if (dismissed) return;
+        dismissed = true;
+        el.classList.add("flash-hide");
         setTimeout(() => el.remove(), 400);
-      }, 5000);
+      };
+
+      el.querySelector(".flash-close")?.addEventListener("click", dismiss);
+      setTimeout(dismiss, DURATION);
+    });
+  },
+
+  /* ── Mobile nav drawer (public pages: home, gallery, blog) ── */
+  initMobileNav() {
+    const btn = document.querySelector(".navbar-inner .mobile-menu-btn");
+    const nav = document.querySelector(".nav-links");
+    const overlay = document.querySelector(".nav-overlay");
+    if (!btn || !nav) return;
+    const openNav = () => {
+      nav.classList.add("open");
+      overlay?.classList.add("active");
+      const icon = btn.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-xmark";
+      document.body.style.overflow = "hidden";
+    };
+    const closeNav = () => {
+      nav.classList.remove("open");
+      overlay?.classList.remove("active");
+      const icon = btn.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-bars";
+      document.body.style.overflow = "";
+    };
+    btn.addEventListener("click", () => {
+      nav.classList.contains("open") ? closeNav() : openNav();
+    });
+    nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeNav));
+    overlay?.addEventListener("click", closeNav);
+  },
+
+  /* ── Image error fallbacks (replaces inline onerror handlers) ── */
+  initImageFallbacks() {
+    document.querySelectorAll("img[data-fallback-image]").forEach((img) => {
+      img.addEventListener(
+        "error",
+        function handler() {
+          img.removeEventListener("error", handler);
+          const fallback = img.dataset.fallbackImage;
+          if (fallback) img.src = fallback;
+        },
+        { once: true },
+      );
     });
   },
 

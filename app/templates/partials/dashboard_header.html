@@ -45,7 +45,7 @@
           src="{{ url_for('static', filename='images/cellusys.ico') }}"
           alt="Avatar"
           class="avatar"
-          onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'"
+          data-fallback-image="{{ url_for('static', filename='images/default-avatar.svg') }}"
         />
         <span style="font-size: 0.9rem; font-weight: 500"
           >{{ current_user.first_name }}</span
@@ -56,7 +56,7 @@
         src="{{ url_for('static', filename='images/cellusys.ico') }}"
         alt="Avatar"
         class="avatar"
-        onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'"
+        data-fallback-image="{{ url_for('static', filename='images/default-avatar.svg') }}"
       />
       <span style="font-size: 0.9rem; font-weight: 500"
         >{{ current_user.first_name }}</span

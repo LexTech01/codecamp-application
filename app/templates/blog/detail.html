@@ -121,7 +121,7 @@ CodeCamp{% endblock %} {% block extra_css %}
 
     <div class="blog-detail-container">
       <article class="blog-detail-content" data-aos="fade-up">
-        {{ post.content | replace('\n', '<br />') | safe }}
+        {{ post.content | e | replace('\n', '<br />') }}
       </article>
 
       <div class="blog-share" data-aos="fade-up">
@@ -153,14 +153,6 @@ CodeCamp{% endblock %} {% block extra_css %}
           ></a>
           <button
             class="share-btn share-copy"
-            onclick="
-              navigator.clipboard.writeText(window.location.href).then(() => {
-                this.querySelector('i').className = 'fa-solid fa-check';
-                setTimeout(() => {
-                  this.querySelector('i').className = 'fa-solid fa-link';
-                }, 2000);
-              })
-            "
             aria-label="Copy link"
           >
             <i class="fa-solid fa-link"></i>
@@ -345,32 +337,6 @@ CodeCamp{% endblock %} {% block extra_css %}
       </div>
     </footer>
   </div>
-  <script>
-    (function () {
-      var btn = document.querySelector(".navbar-inner .mobile-menu-btn");
-      var nav = document.querySelector(".nav-links");
-      var overlay = document.querySelector(".nav-overlay");
-      if (!btn || !nav) return;
-      function openNav() {
-        nav.classList.add("open");
-        overlay?.classList.add("active");
-        btn.querySelector("i").className = "fa-solid fa-xmark";
-        document.body.style.overflow = "hidden";
-      }
-      function closeNav() {
-        nav.classList.remove("open");
-        overlay?.classList.remove("active");
-        btn.querySelector("i").className = "fa-solid fa-bars";
-        document.body.style.overflow = "";
-      }
-      btn.addEventListener("click", function () {
-        nav.classList.contains("open") ? closeNav() : openNav();
-      });
-      nav.querySelectorAll("a").forEach(function (link) {
-        link.addEventListener("click", closeNav);
-      });
-      overlay?.addEventListener("click", closeNav);
-    })();
-  </script>
+  <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
   {% endblock %}
 </div>

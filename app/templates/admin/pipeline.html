@@ -69,9 +69,10 @@ Cellusys Admin{% endblock %} {% block sidebar %}{% include
       "
     >
       {% for app in columns[key] %}
-      <div
+      <a
         class="kanban-card"
         data-app-id="{{ app.id }}"
+        href="{{ url_for('admin.applicant_detail', app_id=app.id) }}"
         style="
           background: var(--bg-primary);
           border: 1px solid var(--border-color);
@@ -82,7 +83,6 @@ Cellusys Admin{% endblock %} {% block sidebar %}{% include
           text-decoration: none;
           display: block;
         "
-        onclick="window.location='{{ url_for('admin.applicant_detail', app_id=app.id) }}'"
       >
         <div
           style="
@@ -129,7 +129,7 @@ Cellusys Admin{% endblock %} {% block sidebar %}{% include
             >{{ app.test_score }}%</span
           >{% endif %}
         </div>
-      </div>
+      </a>
       {% endfor %}
     </div>
   </div>
@@ -151,6 +151,4 @@ Cellusys Admin{% endblock %} {% block sidebar %}{% include
     }
   }
 </style>
-{% endblock %} {% block page_js %}
-<script src="{{ url_for('static', filename='js/kanban.js') }}"></script>
 {% endblock %}

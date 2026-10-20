@@ -10,9 +10,9 @@ Cellusys{% endblock %} {% block sidebar %}{% include
   <p>Select a date and time that works for you.</p>
 </div>
 
-{% if booking and booking.status == 'scheduled' and booking.slot %}
+{% if booking and booking.status in ('scheduled', 'approved') and booking.slot %}
 <div class="existing-booking">
-  <h3><i class="fa-solid fa-check"></i> Interview Confirmed</h3>
+  <h3><i class="fa-solid fa-check"></i> Interview {% if booking.status == 'approved' %}Approved{% else %}Confirmed{% endif %}</h3>
   <p class="mt-2"><strong>{{ booking.slot.formatted_date }}</strong></p>
   <p>{{ booking.slot.formatted_time }}</p>
   <div
@@ -198,13 +198,5 @@ Cellusys{% endblock %} {% block sidebar %}{% include
   </div>
 </div>
 {% endif %} {% endblock %} {% block page_js %}
-<script>
-  document.getElementById("tzLabel") &&
-    (document.getElementById("tzLabel").textContent =
-      Intl.DateTimeFormat().resolvedOptions().timeZone);
-  document.getElementById("timezoneDisplay") &&
-    (document.getElementById("timezoneDisplay").textContent =
-      Intl.DateTimeFormat().resolvedOptions().timeZone);
-</script>
 <script src="{{ url_for('static', filename='js/interview.js') }}"></script>
 {% endblock %}

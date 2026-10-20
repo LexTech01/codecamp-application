@@ -6,7 +6,8 @@ from app import db, limiter
 from app.forms.auth_forms import LoginForm, SignupForm, ForgotPasswordForm
 from app.models.user import User
 from app.models.application import Application
-from app.utils.helpers import log_activity, create_notification, send_mail
+from app.utils import outbox
+from app.utils.email import send_mail
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint("auth", __name__)
@@ -32,7 +33,7 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
             session["_sess_v"] = user.session_version
-            log_activity(user.id, "login", f"User {user.email} logged in")
+            outbox.log(user.id, "login", f"User {user.email} logged in")
             db.session.commit()
             next_page = _safe_next(request.args.get("next"))
             if user.is_admin:
@@ -62,13 +63,14 @@ def signup():
             db.session.flush()
             app_record = Application(user_id=user.id, status="draft", pipeline_stage="submitted")
             db.session.add(app_record)
-            create_notification(
+            outbox.transition(
                 user.id,
-                "Welcome to Cellusys!",
-                "Complete your application to begin the recruitment journey.",
-                url_for("student.application"),
+                action="signup",
+                details=f"New account: {user.email}",
+                title="Welcome to Cellusys!",
+                message="Complete your application to begin the recruitment journey.",
+                link=url_for("student.application"),
             )
-            log_activity(user.id, "signup", f"New account: {user.email}")
             db.session.commit()
             login_user(user)
             session["_sess_v"] = user.session_version
@@ -139,7 +141,7 @@ def reset_password(token):
         user.clear_reset_token()
         user.session_version += 1  # invalidate all existing sessions
         db.session.commit()
-        log_activity(user.id, "password_reset", "Password reset completed")
+        outbox.log(user.id, "password_reset", "Password reset completed")
         flash("Password reset successfully. Please sign in.", "success")
         return redirect(url_for("auth.login"))
 
@@ -149,7 +151,7 @@ def reset_password(token):
 @auth_bp.route("/logout")
 def logout():
     if current_user.is_authenticated:
-        log_activity(current_user.id, "logout")
+        outbox.log(current_user.id, "logout")
         db.session.commit()
     logout_user()
     flash("You have been logged out.", "info")

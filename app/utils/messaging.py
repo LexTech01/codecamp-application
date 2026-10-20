@@ -1,6 +1,6 @@
 """Outbound messaging helpers.
 
-Wraps :func:`app.utils.helpers.send_mail` with an auditable, idempotent claim
+Wraps :func:`app.utils.email.send_mail` with an auditable, idempotent claim
 step backed by :class:`app.models.outbound_message.OutboundMessage`. Callers
 (reminder tasks) can therefore be retried safely without spamming users.
 """
@@ -58,7 +58,7 @@ def claim_outbound_message(user_id, recipient, kind, dedupe_key, subject, body, 
 
 def deliver_outbound_message(msg, text_body, html_body=None):
     """Send a claimed message and record the outcome. Never raises."""
-    from app.utils.helpers import send_mail
+    from app.utils.email import send_mail
 
     ok = send_mail(
         recipient=msg.recipient,

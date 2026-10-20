@@ -19,9 +19,9 @@ class PipelineMachine:
         "under_review": ["test_invited", "rejected", "waitlisted"],
         "test_invited": ["test_completed", "rejected"],
         "test_completed": ["interview_scheduled", "accepted", "rejected"],
-        "interview_scheduled": ["interview_completed", "rejected", "no_show"],
+        "interview_scheduled": ["interview_completed", "rejected", "accepted"],
         "interview_completed": ["accepted", "rejected", "waitlisted"],
-        "rejected": ["waitlisted"],
+        "rejected": ["waitlisted", "test_invited"],
         "waitlisted": ["test_invited"],
         "accepted": ["onboarding"],
         "onboarding": ["enrolled"],
@@ -33,8 +33,8 @@ class PipelineMachine:
         "under_review": ["test_invited", "rejected", "waitlisted"],
         "test_invited": ["test_completed", "rejected"],
         "test_completed": ["interview_scheduled", "accepted", "rejected", "waitlisted"],
-        "interview_scheduled": ["rejected"],
-        "interview_completed": ["accepted", "rejected", "waitlisted"],
+        "interview_scheduled": ["rejected", "accepted", "interview_completed", "test_completed"],
+        "interview_completed": ["accepted", "rejected", "waitlisted", "test_completed"],
         "accepted": ["onboarding"],
         "onboarding": ["enrolled"],
         "rejected": ["test_invited"],
@@ -124,17 +124,6 @@ class PipelineMachine:
             title = "Application Waitlisted"
             message = "Your application has been waitlisted. We'll notify you when there is an update."
         return title, message
-
-    def stage_for_kanban(self, column):
-        mapping = {
-            "new": "submitted",
-            "review": "under_review",
-            "test": "test_invited",
-            "interview": "interview_scheduled",
-            "accepted": "accepted",
-            "rejected": "rejected",
-        }
-        return mapping.get(column, "submitted")
 
 
 pipeline = PipelineMachine()

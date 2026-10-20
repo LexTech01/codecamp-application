@@ -18,7 +18,6 @@ from werkzeug.utils import secure_filename
 from flask import current_app
 from app.models.notification import Notification
 from app.utils.decorators import admin_required
-from app.utils.helpers import log_activity, create_notification
 
 admin_bp = Blueprint("admin", __name__)
 

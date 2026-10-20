@@ -214,14 +214,16 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
           <button
             class="btn btn-ghost btn-sm"
             style="font-size: 0.8rem"
-            onclick="document.getElementById('edit-cohort-{{ c.id }}').classList.toggle('hidden')"
+            type="button"
+            data-toggle-target="edit-cohort-{{ c.id }}"
           >
             <i class="fa-solid fa-pen"></i> Edit
           </button>
           <button
             class="btn btn-ghost btn-sm"
             style="font-size: 0.8rem"
-            onclick="document.getElementById('notify-cohort-{{ c.id }}').classList.toggle('hidden')"
+            type="button"
+            data-toggle-target="notify-cohort-{{ c.id }}"
           >
             <i class="fa-solid fa-bell"></i> Notify
           </button>
@@ -229,7 +231,7 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
             href="{{ url_for('admin.export_cohort_csv', cohort_id=c.id) }}"
             class="btn btn-ghost btn-sm"
             style="font-size: 0.8rem"
-            ><i class="fa-solid fa-file-csv"></i> Export CSV</a
+            ><i class="fa-solid fa-file-excel"></i> Export Excel</a
           >
           <form
             method="POST"
@@ -400,7 +402,7 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
     </div>
     <form
       method="POST"
-      action="{{ url_for('admin.assign_cohort', cohort_id=0) }}"
+      action="{{ url_for('admin.assign_unassigned') }}"
       id="assign-form"
       style="padding: 0"
     >
@@ -503,31 +505,5 @@ Admin{% endblock %} {% block sidebar %}{% include "partials/sidebar_admin.html"
     }
   }
 </style>
-<script>
-  document
-    .getElementById("select-all-unassigned")
-    ?.addEventListener("change", function () {
-      document
-        .querySelectorAll(".unassigned-checkbox")
-        .forEach((cb) => (cb.checked = this.checked));
-    });
-  document
-    .getElementById("assign-form")
-    ?.addEventListener("submit", function (e) {
-      const cohortSelect = document.getElementById("assign-cohort-select");
-      if (!cohortSelect.value) {
-        e.preventDefault();
-        Cellusys.alert("Select a cohort to assign to.");
-        return;
-      }
-      const checked = this.querySelectorAll(".unassigned-checkbox:checked");
-      if (!checked.length) {
-        e.preventDefault();
-        Cellusys.alert("Select at least one student.");
-        return;
-      }
-      // Patch the action URL with the selected cohort ID
-      this.action = this.action.replace("/0/", "/" + cohortSelect.value + "/");
-    });
-</script>
+<script src="{{ url_for('static', filename='js/admin-cohorts.js') }}"></script>
 {% endblock %}

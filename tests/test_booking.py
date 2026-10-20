@@ -5,6 +5,7 @@ from app.models.user import User
 from app.models.application import Application
 from app.models.assessment import Assessment, TestAttempt
 from app.models.interview import InterviewSlot, InterviewBooking
+from app.models.notification import Notification
 
 
 def _login(client, user_id):
@@ -12,6 +13,34 @@ def _login(client, user_id):
         sess["_user_id"] = str(user_id)
         sess["_fresh"] = True
         sess["_sess_v"] = 1
+
+
+def _make_scheduled_booking(app, admin_email, student_email, stage="interview_scheduled"):
+    with app.app_context():
+        admin = User(email=admin_email, first_name="Admin", last_name="X", role="admin")
+        admin.set_password("pass")
+        student = User(email=student_email, first_name="Stu", last_name="Y", role="student")
+        student.set_password("pass")
+        db.session.add_all([admin, student])
+        db.session.commit()
+        admin_id = admin.id
+        student_id = student.id
+        app_record = Application(
+            user_id=student_id, pipeline_stage=stage, is_submitted=True,
+        )
+        slot = InterviewSlot(
+            interviewer_id=admin_id, slot_date=date.today() + timedelta(days=3),
+            start_time=datetime.strptime("09:00", "%H:%M").time(),
+            end_time=datetime.strptime("10:00", "%H:%M").time(),
+        )
+        db.session.add_all([app_record, slot])
+        db.session.commit()
+        slot_id = slot.id
+        booking = InterviewBooking(user_id=student_id, slot_id=slot_id, status="scheduled")
+        slot.is_available = False
+        db.session.add(booking)
+        db.session.commit()
+        return admin_id, booking.id
 
 
 def test_create_slot(client, app):
@@ -76,94 +105,145 @@ def test_cancel_booking_frees_slot(client, app):
         assert slot.is_available is True
 
 
-def test_booking_no_show_rejects(client, app):
+def _approve_booking(client, booking_id):
+    resp = client.post(f"/admin/interviews/booking/{booking_id}/update",
+                       data={"status": "approved"})
+    assert resp.status_code == 302
+    return resp
+
+
+def test_approve_interview(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "approve@test.com", "stu-approve@test.com"
+    )
+    _login(client, admin_id)
+    resp = _approve_booking(client, booking_id)
+
     with app.app_context():
-        admin = User(email="admin3@test.com", first_name="A", last_name="C",
-                     role="admin")
-        admin.set_password("p")
-        student = User(email="stu2@test.com", first_name="S2", last_name="T2",
-                       role="student")
-        student.set_password("p")
-        db.session.add_all([admin, student])
-        db.session.commit()
-        admin_id = admin.id
-        student_id = student.id
+        booking = InterviewBooking.query.get(booking_id)
+        assert booking.status == "approved"
+        notif = Notification.query.filter_by(
+            user_id=booking.user_id, title="Interview Approved"
+        ).first()
+        assert notif is not None
 
-        app_record = Application(
-            user_id=student_id, pipeline_stage="interview_scheduled",
-            is_submitted=True,
-        )
-        slot = InterviewSlot(
-            interviewer_id=admin_id, slot_date=date.today() + timedelta(days=3),
-            start_time=datetime.strptime("11:00", "%H:%M").time(),
-            end_time=datetime.strptime("12:00", "%H:%M").time(),
-        )
-        db.session.add_all([app_record, slot])
-        db.session.commit()
-        slot_id = slot.id
 
-        booking = InterviewBooking(
-            user_id=student_id, slot_id=slot_id, status="scheduled",
-        )
-        slot.is_available = False
-        db.session.add(booking)
-        db.session.commit()
-        booking_id = booking.id
+def test_interviews_page_renders_approved_booking(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "render@test.com", "stu-render@test.com"
+    )
+    _login(client, admin_id)
+    _approve_booking(client, booking_id)
+    resp = client.get("/admin/interviews")
+    assert resp.status_code == 200
+    assert b"approved" in resp.data
+    assert b"Passed" in resp.data
+    assert b"Failed" in resp.data
+    assert b"Waitlisted" not in resp.data
+    assert b"Rating" not in resp.data
 
+
+def test_interviews_page_shows_scheduled_actions(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "render2@test.com", "stu-render2@test.com"
+    )
+    _login(client, admin_id)
+    resp = client.get("/admin/interviews")
+    assert resp.status_code == 200
+    assert b"Approve Interview" in resp.data
+    assert b"Cancel Booking" in resp.data
+    assert b"Decision recorded" not in resp.data
+
+
+def test_decision_requires_approved(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "gate2@test.com", "stu-gate2@test.com"
+    )
     _login(client, admin_id)
     resp = client.post(f"/admin/interviews/booking/{booking_id}/update",
-                       data={"status": "no_show"})
+                       data={"result": "passed"})
     assert resp.status_code == 302
 
     with app.app_context():
-        app_record = Application.query.filter_by(user_id=student_id).first()
+        booking = InterviewBooking.query.get(booking_id)
+        assert booking.status == "scheduled"
+        app_record = Application.query.filter_by(user_id=booking.user_id).first()
+        assert app_record.pipeline_stage == "interview_scheduled"
+
+
+def test_booking_passed_accepts_and_records(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "pass@test.com", "stu-pass@test.com"
+    )
+    with app.app_context():
+        before = Application.query.filter(
+            Application.user_id == InterviewBooking.query.get(booking_id).user_id
+        ).first().version
+    _login(client, admin_id)
+    _approve_booking(client, booking_id)
+    resp = client.post(f"/admin/interviews/booking/{booking_id}/update",
+                       data={"result": "passed"})
+    assert resp.status_code == 302
+
+    with app.app_context():
+        booking = InterviewBooking.query.get(booking_id)
+        assert booking.status == "completed"
+        app_record = Application.query.filter_by(user_id=booking.user_id).first()
+        assert app_record.pipeline_stage == "accepted"
+        assert app_record.version == before + 1
+
+
+def test_booking_failed_rejects_with_reason(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "fail@test.com", "stu-fail@test.com"
+    )
+    _login(client, admin_id)
+    _approve_booking(client, booking_id)
+    resp = client.post(f"/admin/interviews/booking/{booking_id}/update",
+                       data={"result": "failed", "rejection_reason": "Poor fit"})
+    assert resp.status_code == 302
+
+    with app.app_context():
+        booking = InterviewBooking.query.get(booking_id)
+        assert booking.status == "completed"
+        app_record = Application.query.filter_by(user_id=booking.user_id).first()
         assert app_record.pipeline_stage == "rejected"
-        assert app_record.rejection_reason == "No-show at interview"
+        assert app_record.rejection_reason == "Poor fit"
+        assert app_record.can_reapply is False
 
 
-def test_booking_completed_advances_stage(client, app):
-    with app.app_context():
-        admin = User(email="admin4@test.com", first_name="A", last_name="D",
-                     role="admin")
-        admin.set_password("p")
-        student = User(email="stu3@test.com", first_name="S3", last_name="T3",
-                       role="student")
-        student.set_password("p")
-        db.session.add_all([admin, student])
-        db.session.commit()
-        admin_id = admin.id
-        student_id = student.id
-
-        app_record = Application(
-            user_id=student_id, pipeline_stage="interview_scheduled",
-            is_submitted=True,
-        )
-        slot = InterviewSlot(
-            interviewer_id=admin_id, slot_date=date.today() + timedelta(days=1),
-            start_time=datetime.strptime("14:00", "%H:%M").time(),
-            end_time=datetime.strptime("15:00", "%H:%M").time(),
-        )
-        db.session.add_all([app_record, slot])
-        db.session.commit()
-        slot_id = slot.id
-
-        booking = InterviewBooking(
-            user_id=student_id, slot_id=slot_id, status="scheduled",
-        )
-        slot.is_available = False
-        db.session.add(booking)
-        db.session.commit()
-        booking_id = booking.id
-
+def test_booking_waitlist_rejected_after_approval(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "wl@test.com", "stu-wl@test.com"
+    )
     _login(client, admin_id)
+    _approve_booking(client, booking_id)
     resp = client.post(f"/admin/interviews/booking/{booking_id}/update",
-                       data={"status": "completed", "rating": 4})
+                       data={"result": "waitlisted"})
     assert resp.status_code == 302
 
     with app.app_context():
-        app_record = Application.query.filter_by(user_id=student_id).first()
-        assert app_record.pipeline_stage == "interview_completed"
-        assert app_record.interview_rating == 4
+        booking = InterviewBooking.query.get(booking_id)
+        assert booking.status == "approved"
+        app_record = Application.query.filter_by(user_id=booking.user_id).first()
+        assert app_record.pipeline_stage == "interview_scheduled"
+
+
+def test_notes_only_save_allowed(client, app):
+    admin_id, booking_id = _make_scheduled_booking(
+        app, "notes@test.com", "stu-notes@test.com"
+    )
+    _login(client, admin_id)
+    resp = client.post(f"/admin/interviews/booking/{booking_id}/update",
+                       data={"status": "scheduled", "admin_notes": "solid"})
+    assert resp.status_code == 302
+
+    with app.app_context():
+        booking = InterviewBooking.query.get(booking_id)
+        assert booking.status == "scheduled"
+        assert booking.admin_notes == "solid"
+        app_record = Application.query.filter_by(user_id=booking.user_id).first()
+        assert app_record.pipeline_stage == "interview_scheduled"
 
 
 def test_book_requires_passed_test(client, app):
@@ -281,7 +361,8 @@ def test_recurring_slots(client, app):
     start = date.today() + timedelta(days=7)
     while start.weekday() != 0:  # land on a Monday
         start += timedelta(days=1)
-    resp = client.post("/admin/interviews/recurring", data={
+    resp = client.post("/admin/interviews/slots", data={
+        "mode": "recurring",
         "start_date": start.isoformat(),
         "weeks": "2",
         "weekdays": ["0", "3"],  # Mon, Thu
@@ -292,6 +373,63 @@ def test_recurring_slots(client, app):
     with app.app_context():
         slots = InterviewSlot.query.all()
         assert len(slots) == 2 * 2 * 2  # weeks x weekdays x times
+
+
+def test_create_slots_capped_at_four_per_day(client, app):
+    with app.app_context():
+        admin = User(email="admin-cap@test.com", first_name="C", last_name="A",
+                     role="admin")
+        admin.set_password("p")
+        db.session.add(admin)
+        db.session.commit()
+        admin_id = admin.id
+
+    _login(client, admin_id)
+    target = (date.today() + timedelta(days=6)).isoformat()
+    resp = client.post("/admin/interviews/slots", data={
+        "slot_date": target,
+        "times": [
+            "12:00-13:00", "14:00-15:00", "16:00-17:00", "18:00-19:00",
+            "20:00-21:00",
+        ],
+    })
+    assert resp.status_code == 302
+
+    with app.app_context():
+        slots = InterviewSlot.query.all()
+        assert len(slots) == 4  # fifth slot rejected by the daily cap
+        for s in slots:
+            assert s.start_time < datetime.strptime("19:00", "%H:%M").time()
+
+
+def test_recurring_slots_capped_per_day(client, app):
+    with app.app_context():
+        admin = User(email="admin-cap2@test.com", first_name="C", last_name="B",
+                     role="admin")
+        admin.set_password("p")
+        db.session.add(admin)
+        db.session.commit()
+        admin_id = admin.id
+
+    _login(client, admin_id)
+    start = date.today() + timedelta(days=7)
+    while start.weekday() != 0:  # land on a Monday
+        start += timedelta(days=1)
+    resp = client.post("/admin/interviews/slots", data={
+        "mode": "recurring",
+        "start_date": start.isoformat(),
+        "weeks": "2",
+        "weekdays": ["0"],
+        "times": [
+            "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
+            "13:00-14:00",
+        ],
+    })
+    assert resp.status_code == 302
+
+    with app.app_context():
+        slots = InterviewSlot.query.all()
+        assert len(slots) == 2 * 4  # 2 Mondays x 4 slots/day max
 
 
 def test_cancel_completed_reverts_stage(client, app):

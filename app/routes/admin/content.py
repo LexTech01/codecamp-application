@@ -15,6 +15,25 @@ from app.utils.decorators import admin_required
 logger = logging.getLogger(__name__)
 
 GALLERY_FOLDER = os.path.join("static", "images", "gallery")
+IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+def _is_image_file(file):
+    """Validate an upload by extension AND magic bytes (png/jpg/gif/webp)."""
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in IMAGE_EXTENSIONS:
+        return False
+    head = file.read(16)
+    file.seek(0)
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):
+        return True
+    if head[:3] == b"\xff\xd8\xff":
+        return True
+    if head[:6] in (b"GIF87a", b"GIF89a"):
+        return True
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return True
+    return False
 
 
 @admin_bp.route("/announcements", methods=["GET", "POST"])
@@ -25,9 +44,9 @@ def manage_announcements():
         image = request.files.get("image")
         filename = None
         if image and image.filename:
-            allowed = set(current_app.config.get("ALLOWED_EXTENSIONS", []))
-            ext = image.filename.rsplit('.', 1)[-1].lower()
-            if ext in allowed:
+            if not _is_image_file(image):
+                flash("Invalid announcement image. Please upload a PNG, JPG, GIF or WEBP image.", "warning")
+            else:
                 fname = secure_filename(image.filename)
                 unique = f"{uuid.uuid4().hex}_{fname}"
                 upload_path = current_app.config["UPLOAD_FOLDER"]
@@ -47,9 +66,15 @@ def manage_announcements():
 
         total = Announcement.query.count()
         if total > 6:
+            over = total - 6
             extras = Announcement.query.filter_by(is_pinned=False).order_by(
                 Announcement.created_at.asc()
-            ).limit(total - 6).all()
+            ).limit(over).all()
+            remaining = over - len(extras)
+            if remaining > 0:
+                extras += Announcement.query.filter_by(is_pinned=True).order_by(
+                    Announcement.created_at.asc()
+                ).limit(remaining).all()
             for ex in extras:
                 if ex.image_filename:
                     fp = os.path.join(current_app.config["UPLOAD_FOLDER"], ex.image_filename)
@@ -103,9 +128,7 @@ def manage_gallery():
             flash("Please choose an image to upload.", "error")
             return redirect(url_for("admin.manage_gallery"))
 
-        allowed = set(current_app.config.get("ALLOWED_EXTENSIONS", []))
-        ext = image.filename.rsplit(".", 1)[-1].lower()
-        if ext not in allowed or ext in ("pdf", "doc", "docx", "xlsx", "csv", "mp4"):
+        if not _is_image_file(image):
             flash("Invalid image type. Please upload a PNG, JPG, GIF or WEBP image.", "error")
             return redirect(url_for("admin.manage_gallery"))
 

@@ -46,10 +46,25 @@
     %}
   >
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %}
+    messages %} {% set flash_icons =
+    {'success':'fa-circle-check','error':'fa-circle-xmark','info':'fa-circle-info','warning':'fa-triangle-exclamation','message':'fa-circle-info'}
+    %}
     <div class="flash-container">
       {% for category, message in messages %}
-      <div class="flash flash-{{ category }}">{{ message }}</div>
+      <div class="flash flash-{{ category }}">
+        <span class="flash-icon" aria-hidden="true"
+          ><i class="fa-solid {{ flash_icons.get(category, 'fa-circle-info') }}"></i
+        ></span>
+        <span class="flash-text">{{ message }}</span>
+        <button
+          class="flash-close"
+          type="button"
+          aria-label="Dismiss notification"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span class="flash-progress" aria-hidden="true"></span>
+      </div>
       {% endfor %}
     </div>
     {% endif %} {% endwith %} {% block body %}{% endblock %} {# ── Confirm Modal
@@ -75,9 +90,7 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script>
-      AOS.init({ duration: 800, offset: 60, once: true, mirror: false });
-    </script>
+    <script src="{{ url_for('static', filename='js/aos-init.js') }}"></script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>

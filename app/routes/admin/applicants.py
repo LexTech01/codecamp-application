@@ -1,6 +1,4 @@
 """Applicant management routes."""
-from io import StringIO
-import csv
 from datetime import datetime, timedelta, timezone
 from flask import render_template, redirect, url_for, flash, request, Response
 from flask_login import login_required, current_user
@@ -13,7 +11,8 @@ from app.models.assessment import TestAttempt
 from app.models.interview import InterviewBooking
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
-from app.utils.helpers import log_activity, create_notification
+from app.utils import outbox
+from app.utils.csv_export import build_export
 
 
 def _apply_stage_change(app_record, new_stage, rejection_reason=None):
@@ -27,7 +26,7 @@ def _apply_stage_change(app_record, new_stage, rejection_reason=None):
         return False
     if new_stage == app_record.pipeline_stage:
         return False
-    if not pipeline.can_advance(app_record.pipeline_stage, new_stage):
+    if new_stage not in pipeline.available_actions(app_record.pipeline_stage):
         return False
 
     old_stage = app_record.pipeline_stage
@@ -50,7 +49,7 @@ def _apply_stage_change(app_record, new_stage, rejection_reason=None):
     if new_stage == "rejected":
         notif_message = app_record.rejection_reason or notif_message
 
-    create_notification(
+    outbox.notify(
         app_record.user_id,
         notif_title,
         notif_message,
@@ -139,7 +138,7 @@ def update_stage(app_id):
         flash(f"Cannot transition from {app_record.pipeline_stage} to {new_stage}.", "error")
         return redirect(url_for("admin.applicant_detail", app_id=app_id))
 
-    log_activity(current_user.id, "stage_update", f"App {app_id} -> {new_stage}")
+    outbox.log(current_user.id, "stage_update", f"App {app_id} -> {new_stage}")
     try:
         db.session.commit()
         flash(f"Stage updated to {app_record.status_label}.", "success")
@@ -167,7 +166,10 @@ def bulk_action():
             return redirect(url_for("admin.applicants", **redirect_args))
         changed = 0
         for app_id in app_ids:
-            app_record = Application.query.get(int(app_id))
+            try:
+                app_record = Application.query.get(int(app_id))
+            except (TypeError, ValueError):
+                continue
             if app_record and _apply_stage_change(app_record, new_stage):
                 changed += 1
         db.session.commit()
@@ -178,7 +180,10 @@ def bulk_action():
         reason = request.form.get("reason", "").strip()
         changed = 0
         for app_id in app_ids:
-            app_record = Application.query.get(int(app_id))
+            try:
+                app_record = Application.query.get(int(app_id))
+            except (TypeError, ValueError):
+                continue
             if app_record and _apply_stage_change(app_record, "rejected", rejection_reason=reason):
                 changed += 1
         db.session.commit()
@@ -189,7 +194,7 @@ def bulk_action():
     return redirect(url_for("admin.applicants", **redirect_args))
 
 
-@admin_bp.route("/applicants/export.csv")
+@admin_bp.route("/applicants/export.xlsx")
 @login_required
 @admin_required
 def export_applicants():
@@ -208,35 +213,11 @@ def export_applicants():
         query = query.filter_by(pipeline_stage=stage)
     apps = query.order_by(Application.updated_at.desc()).all()
 
-    output = StringIO()
-    writer = csv.writer(output)
-    writer.writerow([
-        "First Name", "Last Name", "Email", "Phone", "Program",
-        "Country", "City", "Campus", "Stage", "Test Score", "Interview Rating",
-        "Cohort", "Submitted At",
-    ])
-    for a in apps:
-        writer.writerow([
-            a.user.first_name,
-            a.user.last_name,
-            a.user.email,
-            a.user.phone or "",
-            a.field_of_study or "",
-            a.country or "",
-            a.city or "",
-            a.campus_location or "",
-            a.pipeline_stage,
-            a.test_score if a.test_score is not None else "",
-            a.interview_rating if a.interview_rating is not None else "",
-            a.cohort_name or "",
-            a.submitted_at.strftime("%Y-%m-%d %H:%M:%S") if a.submitted_at else "",
-        ])
-    csv_bytes = output.getvalue().encode("utf-8")
+    data, ext, mimetype = build_export(apps)
     return Response(
-        csv_bytes,
-        mimetype="text/csv",
+        data,
+        mimetype=mimetype,
         headers={
-            "Content-Disposition": "attachment; filename=applicants.csv",
-            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": f"attachment; filename=applicants.{ext}",
         },
     )

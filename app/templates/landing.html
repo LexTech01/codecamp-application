@@ -275,34 +275,50 @@ block extra_css %}
       <div class="prog-cards">
         <div class="prog" data-aos="fade-up" data-aos-delay="200">
           <img
-            src="{{url_for('static', filename='images/software.jpeg')}}"
-            alt="software engineering image"
+            class="prog-bg"
+            src="{{url_for('static', filename='images/programs/software.jpg')}}"
+            alt="Developer typing code on a laptop"
           />
-          <h3>Software Engineering</h3>
-          <p>
-            Learn the fundamentals of software development, including
-            programming languages, algorithms, and web development. Our
-            curriculum is designed to prepare you for a successful career in
-            software engineering.
-          </p>
-          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
-            >Apply Now</a
-          >
+          <span class="prog-icon" aria-hidden="true"
+            ><i class="fa-solid fa-code"></i
+          ></span>
+          <div class="prog-content">
+            <h3>Software Engineering</h3>
+            <p>
+              Learn the fundamentals of software development, including
+              programming languages, algorithms, and web development. Our
+              curriculum is designed to prepare you for a successful career in
+              software engineering.
+            </p>
+            <div class="prog-cta">
+              <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
+                >Apply Now</a
+              >
+            </div>
+          </div>
         </div>
         <div class="prog" data-aos="fade-up" data-aos-delay="300">
           <img
-            src="{{url_for('static', filename='images/telecom.jpeg')}}"
-            alt="telecom image"
+            class="prog-bg"
+            src="{{url_for('static', filename='images/programs/networking.jpg')}}"
+            alt="Network cables connected to a server rack"
           />
-          <h3>Networking and Telecom</h3>
-          <p>
-            Explore the world of networking and telecommunications. Learn how to
-            design and implement robust communication systems for modern
-            applications.
-          </p>
-          <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
-            >Apply Now</a
-          >
+          <span class="prog-icon" aria-hidden="true"
+            ><i class="fa-solid fa-network-wired"></i
+          ></span>
+          <div class="prog-content">
+            <h3>Networking and Telecom</h3>
+            <p>
+              Explore the world of networking and telecommunications. Learn how
+              to design and implement robust communication systems for modern
+              applications.
+            </p>
+            <div class="prog-cta">
+              <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary"
+                >Apply Now</a
+              >
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -386,13 +402,13 @@ block extra_css %}
         <img
           src="{{ url_for('static', filename='images/team/' ~ photo) }}"
           alt="{{ name }}"
+          data-fallback-image="{{ url_for('static', filename='images/cellusys.ico') }}"
           style="
             width: 100px;
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
           "
-          onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/cellusys.ico') }}'"
         />
         <h3>{{ name }}</h3>
         <p>{{ role }}</p>
@@ -664,45 +680,6 @@ block extra_css %}
     </div>
   </footer>
 </div>
-<script>
-  // FAQ Accordion
-  document.querySelectorAll(".faq-question").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const item = btn.closest(".faq-item");
-      const isOpen = item.classList.contains("open");
-      document
-        .querySelectorAll(".faq-item.open")
-        .forEach((el) => el.classList.remove("open"));
-      if (!isOpen) item.classList.add("open");
-    });
-  });
-
-  // Mobile nav toggle
-  (function () {
-    var btn = document.querySelector(".navbar-inner .mobile-menu-btn");
-    var nav = document.querySelector(".nav-links");
-    var overlay = document.querySelector(".nav-overlay");
-    if (!btn || !nav) return;
-    function openNav() {
-      nav.classList.add("open");
-      overlay?.classList.add("active");
-      btn.querySelector("i").className = "fa-solid fa-xmark";
-      document.body.style.overflow = "hidden";
-    }
-    function closeNav() {
-      nav.classList.remove("open");
-      overlay?.classList.remove("active");
-      btn.querySelector("i").className = "fa-solid fa-bars";
-      document.body.style.overflow = "";
-    }
-    btn.addEventListener("click", function () {
-      nav.classList.contains("open") ? closeNav() : openNav();
-    });
-    nav.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", closeNav);
-    });
-    overlay?.addEventListener("click", closeNav);
-  })();
-</script>
+<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

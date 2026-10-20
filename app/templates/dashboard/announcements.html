@@ -84,50 +84,7 @@ Cellusys{% endblock %} {% block sidebar %}{% include
   </div>
 </div>
 
-<script>
-  const csrfToken =
-    document.querySelector('meta[name="csrf-token"]')?.content || "";
-  const csrfHeader = { "X-CSRFToken": csrfToken };
-
-  document.querySelectorAll(".announcement-card.unread").forEach((card) => {
-    fetch(`/api/announcements/${card.dataset.id}/read`, {
-      method: "POST",
-      headers: csrfHeader,
-    });
-  });
-
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".announcement-dismiss");
-    if (!btn) return;
-    const card = btn.closest(".announcement-card");
-    if (!card) return;
-    const id = card.dataset.id;
-    fetch(`/api/announcements/${id}/read`, {
-      method: "POST",
-      headers: csrfHeader,
-    }).catch(() => {});
-    card.style.transition = "opacity 0.3s, transform 0.3s";
-    card.style.opacity = "0";
-    card.style.transform = "translateX(30px)";
-    setTimeout(() => card.remove(), 300);
-  });
-
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".update-dismiss");
-    if (!btn) return;
-    const item = btn.closest(".update-item");
-    if (!item) return;
-    const id = item.dataset.notifId;
-    fetch(`/api/notifications/${id}/read`, {
-      method: "POST",
-      headers: csrfHeader,
-    }).catch(() => {});
-    item.style.transition = "opacity 0.3s, transform 0.3s";
-    item.style.opacity = "0";
-    item.style.transform = "translateX(30px)";
-    setTimeout(() => item.remove(), 300);
-  });
-</script>
+<script src="{{ url_for('static', filename='js/announcements.js') }}"></script>
 
 <style>
   .announcements-page {

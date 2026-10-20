@@ -184,7 +184,7 @@ def create_app(config_class=Config, config_override=None):
         response.headers["Referrer-Policy"] = "strict-origin"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
+            "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net; "
             "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
             "https://unpkg.com https://fonts.googleapis.com; "
             "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; "

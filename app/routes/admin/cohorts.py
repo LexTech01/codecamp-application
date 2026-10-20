@@ -1,6 +1,4 @@
 """Cohort management routes."""
-import csv
-from io import StringIO
 from datetime import datetime, timezone
 from flask import render_template, redirect, url_for, flash, request, Response
 from flask_login import login_required, current_user
@@ -10,7 +8,15 @@ from app.models.cohort import Cohort
 from app.models.notification import Notification
 from app.routes.admin import admin_bp
 from app.utils.decorators import admin_required
-from app.utils.helpers import create_notification
+from app.utils import outbox
+from app.utils.csv_export import build_export
+
+
+def _parse_date(value):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
 
 
 @admin_bp.route("/cohorts")
@@ -63,8 +69,8 @@ def create_cohort():
     cohort = Cohort(
         name=name,
         description=request.form.get("description", "").strip(),
-        start_date=datetime.strptime(start, "%Y-%m-%d").date() if start else None,
-        end_date=datetime.strptime(end, "%Y-%m-%d").date() if end else None,
+        start_date=_parse_date(start) if start else None,
+        end_date=_parse_date(end) if end else None,
     )
     db.session.add(cohort)
     db.session.commit()
@@ -91,8 +97,8 @@ def edit_cohort(cohort_id):
     cohort.description = request.form.get("description", "").strip()
     start = request.form.get("start_date")
     end = request.form.get("end_date")
-    cohort.start_date = datetime.strptime(start, "%Y-%m-%d").date() if start else None
-    cohort.end_date = datetime.strptime(end, "%Y-%m-%d").date() if end else None
+    cohort.start_date = _parse_date(start) if start else None
+    cohort.end_date = _parse_date(end) if end else None
     db.session.commit()
     flash("Cohort updated.", "success")
     return redirect(url_for("admin.cohorts"))
@@ -117,6 +123,26 @@ def delete_cohort(cohort_id):
     return redirect(url_for("admin.cohorts"))
 
 
+def _assign_to_cohort(cohort, app_ids, notes):
+    assigned = 0
+    for app_id in app_ids:
+        try:
+            app_id = int(app_id)
+        except (TypeError, ValueError):
+            continue
+        app_record = Application.query.get(app_id)
+        if app_record and app_record.pipeline_stage in ("accepted", "onboarding", "enrolled"):
+            app_record.cohort_name = cohort.name
+            app_record.cohort_notes = notes
+            app_record.cohort_assigned_at = datetime.now(timezone.utc)
+            if app_record.pipeline_stage == "accepted":
+                app_record.pipeline_stage = "onboarding"
+                app_record.status = "onboarding"
+            app_record.updated_at = datetime.now(timezone.utc)
+            assigned += 1
+    return assigned
+
+
 @admin_bp.route("/cohorts/<int:cohort_id>/assign", methods=["POST"])
 @login_required
 @admin_required
@@ -126,18 +152,25 @@ def assign_cohort(cohort_id):
     if not app_ids:
         flash("No students selected.", "warning")
         return redirect(url_for("admin.cohorts"))
-    for app_id in app_ids:
-        app_record = Application.query.get(int(app_id))
-        if app_record and app_record.pipeline_stage in ("accepted", "onboarding", "enrolled"):
-            app_record.cohort_name = cohort.name
-            app_record.cohort_notes = request.form.get("notes", "").strip()
-            app_record.cohort_assigned_at = datetime.now(timezone.utc)
-            if app_record.pipeline_stage == "accepted":
-                app_record.pipeline_stage = "onboarding"
-                app_record.status = "onboarding"
-            app_record.updated_at = datetime.now(timezone.utc)
+    assigned = _assign_to_cohort(cohort, app_ids, request.form.get("notes", "").strip())
     db.session.commit()
-    flash(f"{len(app_ids)} student(s) assigned to {cohort.name}.", "success")
+    flash(f"{assigned} student(s) assigned to {cohort.name}.", "success")
+    return redirect(url_for("admin.cohorts"))
+
+
+@admin_bp.route("/cohorts/assign-unassigned", methods=["POST"])
+@login_required
+@admin_required
+def assign_unassigned():
+    """Assign unassigned accepted/onboarding students from one form-driven POST."""
+    cohort = Cohort.query.get_or_404(int(request.form.get("cohort_id", 0)))
+    app_ids = request.form.getlist("app_ids")
+    if not app_ids:
+        flash("No students selected.", "warning")
+        return redirect(url_for("admin.cohorts"))
+    assigned = _assign_to_cohort(cohort, app_ids, "")
+    db.session.commit()
+    flash(f"{assigned} student(s) assigned to {cohort.name}.", "success")
     return redirect(url_for("admin.cohorts"))
 
 
@@ -154,7 +187,7 @@ def notify_cohort(cohort_id):
     members = Application.query.filter_by(cohort_name=cohort.name).all()
     sent = 0
     for app in members:
-        create_notification(app.user_id, title, message, url_for("student.announcements"))
+        outbox.notify(app.user_id, title, message, url_for("student.announcements"))
         sent += 1
     db.session.commit()
     flash(f"Notification sent to {sent} student(s) in {cohort.name}.", "success")
@@ -170,35 +203,15 @@ def export_cohort_csv(cohort_id):
         Application.updated_at.desc()
     ).all()
 
-    output = StringIO()
-    writer = csv.writer(output)
-    writer.writerow([
-        "First Name", "Last Name", "Email", "Phone", "Program",
-        "Country", "City", "Campus", "Stage", "Test Score", "Interview Rating",
-        "Assigned At", "Submitted At",
-    ])
-    for a in members:
-        writer.writerow([
-            a.user.first_name,
-            a.user.last_name,
-            a.user.email,
-            a.user.phone or "",
-            a.field_of_study or "",
-            a.country or "",
-            a.city or "",
-            a.campus_location or "",
-            a.pipeline_stage,
-            a.test_score if a.test_score is not None else "",
-            a.interview_rating if a.interview_rating is not None else "",
-            a.cohort_assigned_at.strftime("%Y-%m-%d %H:%M:%S") if a.cohort_assigned_at else "",
-            a.submitted_at.strftime("%Y-%m-%d %H:%M:%S") if a.submitted_at else "",
-        ])
-    filename = cohort.name.replace(" ", "_").replace("/", "_") + "_roster.csv"
+    invalid = '<>:"/\\|?*'
+    filename = "".join(
+        "_" if ch in invalid or ch in " " else ch for ch in cohort.name
+    ).strip("_") or "cohort"
+    data, ext, mimetype = build_export(members, sheet_title=cohort.name)
     return Response(
-        output.getvalue().encode("utf-8"),
-        mimetype="text/csv",
+        data,
+        mimetype=mimetype,
         headers={
-            "Content-Disposition": f"attachment; filename={filename}",
-            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": f"attachment; filename={filename}_roster.{ext}",
         },
     )

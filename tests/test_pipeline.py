@@ -9,9 +9,13 @@ def test_can_advance_valid(pipeline):
     assert pipeline.can_advance("test_completed", "interview_scheduled")
     assert pipeline.can_advance("test_completed", "accepted")
     assert pipeline.can_advance("interview_scheduled", "interview_completed")
+    assert pipeline.can_advance("interview_scheduled", "accepted")
+    assert pipeline.can_advance("interview_scheduled", "accepted")
+    assert not pipeline.can_advance("interview_scheduled", "waitlisted")
     assert pipeline.can_advance("interview_completed", "accepted")
     assert pipeline.can_advance("accepted", "onboarding")
     assert pipeline.can_advance("onboarding", "enrolled")
+    assert pipeline.can_advance("rejected", "test_invited")
 
 
 def test_can_advance_invalid(pipeline):
@@ -20,6 +24,7 @@ def test_can_advance_invalid(pipeline):
     assert not pipeline.can_advance("test_completed", "submitted")
     assert not pipeline.can_advance("accepted", "rejected")
     assert not pipeline.can_advance("rejected", "accepted")
+    assert not pipeline.can_advance("rejected", "onboarding")
 
 
 def test_available_actions(pipeline):
@@ -27,6 +32,9 @@ def test_available_actions(pipeline):
     assert "rejected" in pipeline.available_actions("under_review")
     assert "waitlisted" in pipeline.available_actions("under_review")
     assert "accepted" in pipeline.available_actions("interview_completed")
+    assert "accepted" in pipeline.available_actions("interview_scheduled")
+    assert "waitlisted" not in pipeline.available_actions("interview_scheduled")
+    assert "test_invited" in pipeline.available_actions("rejected")
     assert [] == pipeline.available_actions("enrolled")
 
 
@@ -59,16 +67,6 @@ def test_check_access_allows_past(pipeline):
 
 def test_check_access_blocks_future(pipeline):
     assert not pipeline.check_access("submitted", ["interview_completed"])
-
-
-def test_stage_for_kanban(pipeline):
-    assert pipeline.stage_for_kanban("new") == "submitted"
-    assert pipeline.stage_for_kanban("review") == "under_review"
-    assert pipeline.stage_for_kanban("test") == "test_invited"
-    assert pipeline.stage_for_kanban("interview") == "interview_scheduled"
-    assert pipeline.stage_for_kanban("accepted") == "accepted"
-    assert pipeline.stage_for_kanban("rejected") == "rejected"
-    assert pipeline.stage_for_kanban("unknown") == "submitted"
 
 
 def test_notify_content(pipeline):

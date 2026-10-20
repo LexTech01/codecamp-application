@@ -469,7 +469,8 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
           class="btn btn-primary btn-block"
           style="justify-content: flex-start"
         >
-          <i class="fa-solid fa-check-circle"></i> Accept Candidate
+          <i class="fa-solid fa-check-circle"></i> Mark Passed (move to cohort
+          allocation)
         </button>
         <button
           type="submit"
@@ -484,7 +485,7 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
       <div style="margin-top: 12px">
         <div class="form-group" style="margin-bottom: 8px">
           <label class="form-label" style="font-size: 0.8rem"
-            >Rejection Reason</label
+            >Failure Reason</label
           >
           <textarea
             name="rejection_reason"
@@ -499,7 +500,7 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
           value="rejected"
           class="btn btn-danger btn-block"
         >
-          Reject Application
+          Mark Failed (Reject Application)
         </button>
       </div>
     </form>
@@ -640,48 +641,77 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
       </div>
     </form>
 
-    {# ── Interview scheduled: manage booking link ── #} {% elif stage ==
-    "interview_scheduled" %}
+    {# ── Interview scheduled: decide pass / fail / waitlist ── #} {% elif
+    stage == "interview_scheduled" %}
     <div style="margin-bottom: 16px">
+      {% if booking and booking.status == 'scheduled' %}
       <p
-        style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px"
+        class="text-muted"
+        style="font-size: 0.85rem; margin-bottom: 12px"
       >
-        Interview is scheduled. Manage from the interviews page or mark as
-        rejected:
+        This interview is booked but not yet approved. Approve it on the
+        Interviews page before recording a decision.
       </p>
       <a
         href="{{ url_for('admin.interviews') }}"
-        class="btn btn-secondary btn-block"
+        class="btn btn-primary btn-block"
         style="justify-content: flex-start"
       >
-        <i class="fa-solid fa-calendar-days"></i> Go to Interviews
+        <i class="fa-solid fa-calendar-days"></i> Approve on Interviews page
       </a>
-    </div>
-    <form
-      method="POST"
-      action="{{ url_for('admin.update_stage', app_id=application.id) }}"
-    >
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <div class="form-group" style="margin-bottom: 8px">
-        <label class="form-label" style="font-size: 0.8rem"
-          >Rejection Reason</label
-        >
-        <textarea
-          name="rejection_reason"
-          class="form-textarea"
-          placeholder="Why is this being rejected?"
-          style="min-height: 60px"
-        ></textarea>
-      </div>
-      <button
-        type="submit"
-        name="pipeline_stage"
-        value="rejected"
-        class="btn btn-danger btn-block"
+      {% else %}
+      <p
+        style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px"
       >
-        Reject Application
-      </button>
-    </form>
+        Interview is booked. After the interview, decide if the candidate
+        passed or failed:
+      </p>
+      <form
+        method="POST"
+        action="{{ url_for('admin.update_stage', app_id=application.id) }}"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <button
+            type="submit"
+            name="pipeline_stage"
+            value="accepted"
+            class="btn btn-primary btn-block"
+            style="justify-content: flex-start"
+          >
+            <i class="fa-solid fa-check-circle"></i> Mark Passed (move to
+            cohort allocation)
+          </button>
+          <div class="form-group" style="margin-bottom: 8px">
+            <label class="form-label" style="font-size: 0.8rem"
+              >Failure Reason (if failing)</label
+            >
+            <textarea
+              name="rejection_reason"
+              class="form-textarea"
+              placeholder="Why did this candidate fail the interview?"
+              style="min-height: 60px"
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            name="pipeline_stage"
+            value="rejected"
+            class="btn btn-danger btn-block"
+          >
+            Mark Failed (Reject Application)
+          </button>
+        </div>
+      </form>
+      <a
+        href="{{ url_for('admin.interviews') }}"
+        class="btn btn-ghost btn-block"
+        style="justify-content: flex-start; margin-top: 12px"
+      >
+        <i class="fa-solid fa-calendar-days"></i> Manage on Interviews page
+      </a>
+      {% endif %}
+    </div>
 
     {# ── Submitted: review or move to test ── #} {% elif stage == "submitted"
     %}
@@ -823,12 +853,6 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
         <span class="text-muted" style="font-size: 0.85rem">Test Attempts</span>
         <strong>{{ application.test_attempts or 0 }}</strong>
       </div>
-      <div class="flex justify-between mb-2">
-        <span class="text-muted" style="font-size: 0.85rem"
-          >Interview Rating</span
-        >
-        <strong>{{ application.interview_rating or '—' }}</strong>
-      </div>
     </div>
   </div>
   {% if attempts %}
@@ -957,7 +981,7 @@ application.user.full_name }} — Cellusys Admin{% endblock %} {% block sidebar
           Status
         </div>
         <span
-          class="badge {% if booking.status == 'scheduled' %}badge-warning{% elif booking.status == 'completed' %}badge-success{% elif booking.status == 'cancelled' %}badge-error{% else %}badge-info{% endif %}"
+          class="badge {% if booking.status == 'scheduled' %}badge-warning{% elif booking.status == 'approved' %}badge-info{% elif booking.status == 'completed' %}badge-success{% elif booking.status == 'cancelled' %}badge-error{% else %}badge-info{% endif %}"
           >{{ booking.status|title }}</span
         >
       </div>

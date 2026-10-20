@@ -15,7 +15,9 @@ from app.models.announcement import Announcement, AnnouncementRead
 from app.models.notification import Notification
 from app.models.activity import ActivityLog
 from app.utils.decorators import student_required
-from app.utils.helpers import save_upload, log_activity, create_notification, parse_json_safe, send_mail
+from app.utils import outbox
+from app.utils.helpers import parse_json_safe, resolve_assessment_image
+from app.utils.email import send_mail
 from app.pipeline import pipeline
 
 student_bp = Blueprint("student", __name__)
@@ -88,12 +90,12 @@ def application():
             app_record.status = "test_invited"
             app_record.submitted_at = datetime.now(timezone.utc)
             app_record.current_step = 2
-            log_activity(current_user.id, "application_submitted")
-            create_notification(
+            outbox.transition(
                 current_user.id,
-                "Application Submitted",
-                "Your application has been received. You can now take the aptitude test.",
-                url_for("student.assessment_list"),
+                action="application_submitted",
+                title="Application Submitted",
+                message="Your application has been received. You can now take the aptitude test.",
+                link=url_for("student.assessment_list"),
             )
             db.session.commit()
             flash("Application submitted successfully! You can now take the aptitude test.", "success")
@@ -197,15 +199,14 @@ def take_assessment(assessment_id):
         db.session.add(attempt)
         db.session.commit()
         if app_record and app_record.pipeline_stage == "test_invited":
-            log_activity(current_user.id, "test_started")
+            outbox.log(current_user.id, "test_started")
             db.session.commit()
     question_objs = Question.query.filter_by(assessment_id=assessment_id).order_by(Question.order_num, Question.id).all()
-    from app.utils.helpers import question_image_url
     questions = []
     for q in question_objs:
         d = q.to_dict()
-        d["image"] = question_image_url(q.question_image)
-        d["option_images"] = [question_image_url(i) for i in q.option_images_list()]
+        d["image"] = resolve_assessment_image(q.question_image)
+        d["option_images"] = [resolve_assessment_image(i) for i in q.option_images_list()]
         questions.append(d)
     return render_template(
         "assessment/take.html",
@@ -337,7 +338,7 @@ def profile():
                 "Your address will update once you confirm it.",
                 "info",
             )
-            log_activity(current_user.id, "email_change_requested", f"Pending: {new_email}")
+            outbox.log(current_user.id, "email_change_requested", f"Pending: {new_email}")
             return redirect(url_for("student.profile"))
 
         if changed:

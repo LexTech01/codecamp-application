@@ -148,7 +148,7 @@ class Config:
     # Upload
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "app", "static", "uploads")
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf", "doc", "docx", "xlsx", "csv", "mp4"}
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "pdf", "doc", "docx", "xlsx", "csv", "mp4"}
 
     # Cloudinary (optional — configure when uploads use it)
     CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "")

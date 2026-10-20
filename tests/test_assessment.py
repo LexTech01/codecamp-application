@@ -158,3 +158,64 @@ def test_nullable_correct_answer_excluded_from_scoring(client, app):
     assert resp.status_code == 200
     body = resp.get_json()
     assert body["score"] == 100.0  # 1 of 1 scored question correct
+
+
+def _start_attempt(app, user_id, assessment_id, started_at):
+    """Create an in-progress attempt anchored at `started_at` (skips take page)."""
+    with app.app_context():
+        t = TestAttempt(user_id=user_id, assessment_id=assessment_id,
+                        started_at=started_at)
+        db.session.add(t)
+        db.session.commit()
+        return t.id
+
+
+def test_submit_non_integer_answer_does_not_500(client, app):
+    """A malformed/non-integer answer must be ignored, not crash the endpoint."""
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    _login(client, uid)
+
+    resp = _submit(client, uid, aid, {"1": "not-a-number"})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["score"] == 0.0
+    assert body["passed"] is False
+
+
+def test_submit_after_deadline_forces_failure(client, app):
+    """Submitting after started_at + duration (+ grace) must never pass."""
+    from datetime import timedelta
+
+    uid = _make_student(app)
+    aid = _make_assessment(app)  # duration_minutes=20
+
+    _start_attempt(app, uid, aid, datetime.now(timezone.utc) - timedelta(minutes=25))
+    _login(client, uid)
+
+    resp = _submit(client, uid, aid, {"1": 0})  # correct answer
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["passed"] is False  # deadline hit despite a correct answer
+    assert body["score"] == 100.0  # score still recorded for feedback
+
+    with app.app_context():
+        attempts = TestAttempt.query.filter_by(user_id=uid, assessment_id=aid).all()
+        assert len(attempts) == 1
+        assert attempts[0].passed is False
+        assert attempts[0].completed_at is not None
+
+
+def test_submit_within_grace_period_still_passes(client, app):
+    """A submission just past the deadline (within the 60s grace) still counts."""
+    from datetime import timedelta
+
+    uid = _make_student(app)
+    aid = _make_assessment(app)
+    _start_attempt(app, uid, aid, datetime.now(timezone.utc) - timedelta(minutes=20, seconds=30))
+    _login(client, uid)
+
+    resp = _submit(client, uid, aid, {"1": 0})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["passed"] is True

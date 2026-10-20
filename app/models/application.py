@@ -55,7 +55,6 @@ class Application(db.Model):
     pipeline_stage = db.Column(db.String(30), default="submitted")
     admin_notes = db.Column(db.Text)
     test_score = db.Column(db.Float)
-    interview_rating = db.Column(db.Integer)
 
     # Rejection & Appeal
     rejection_reason = db.Column(db.Text)

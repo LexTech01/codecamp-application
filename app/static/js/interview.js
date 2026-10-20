@@ -2,6 +2,12 @@
  * Calendly-inspired interview scheduling
  */
 document.addEventListener("DOMContentLoaded", () => {
+  const tzLabel = document.getElementById("tzLabel");
+  const timezoneDisplay = document.getElementById("timezoneDisplay");
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (tzLabel) tzLabel.textContent = tz;
+  if (timezoneDisplay) timezoneDisplay.textContent = tz;
+
   // Cancel/Reschedule live in the "existing booking" branch, which has no
   // .interview-layout — wire them before the calendar guard below.
   document
